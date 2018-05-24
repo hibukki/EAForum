@@ -45,6 +45,7 @@ class MultiSelectButtons extends Component {
             {color: "white", fontSize: "16px", textTransform: "none"}
           : {fontSize: "16px", textTransform: "none", color: "rgba(0,0,0,0.6)"}
           }
+          // TODO green
           backgroundColor={selected ? (option.color || "rgba(100, 169, 105, 0.9)") : "rgba(0,0,0,0)"}
           hoverColor={selected ? (option.hoverColor || "rgba(100, 169, 105, 0.5)") : "rgba(0,0,0,0.1)"}
           label={option.label || option.value}

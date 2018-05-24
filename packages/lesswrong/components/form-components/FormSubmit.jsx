@@ -82,6 +82,7 @@ const FormSubmit = ({
       label={"Submit" }
       labelStyle={{fontSize: "16px", color: "rgba(100, 169, 105, 0.9)"}}
     />
+    {/* TODO green */}
 
     {/* <Button type="submit" bsStyle="primary">
       {submitLabel ? submitLabel : <FormattedMessage id="forms.submit"/>}

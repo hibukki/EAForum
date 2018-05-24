@@ -38,10 +38,11 @@ export const customizeTheme = (router, userAgent, params, store) => {
     "palette": {
       "primary1Color": "#f5f5f5",
       "primary2Color": "#eeeeee",
-      "accent1Color": "rgba(100, 169, 105, 0.5)",
-      "accent2Color": "rgba(100, 169, 105, 1)",
-      "accent3Color": "#c8e6c9",
-      "pickerHeaderColor": "#4caf50",
+      // TODO color change
+      "accent1Color": "#0C869B",
+      "accent2Color": "#00B2BE",
+      "accent3Color": "#D5F3FF",
+      "pickerHeaderColor": "#00B2BE",
     },
     "appBar": {
       "textColor": "rgba(0, 0, 0, 0.54)"
@@ -54,7 +55,7 @@ export const customizeTheme = (router, userAgent, params, store) => {
       "primaryTextColor": "rgba(0,0,0,0.54)"
     },
     "checkbox": {
-      "checkedColor": "rgba(100, 169, 105, 0.7)",
+      "checkedColor": "#0C869B",
       "labelColor": "rgba(0,0,0,0.6)",
       "boxColor": "rgba(0,0,0,0.6)"
     },

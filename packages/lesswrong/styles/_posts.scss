@@ -1,3 +1,5 @@
+// TODO explicit imports
+// TODO brand colors should be refactored
 
 //////////////////////////////////////////////////////
 // Post List                                        //
@@ -217,7 +219,8 @@
 
 .posts-load-more, .comments-load-more{
   font-size: 16px;
-  color: rgba(100, 169, 105, 0.6);
+  // TODO color change
+  color: $cea-blue-primary; // rgba(100, 169, 105, 0.6);
 }
 
 .posts-load-more, .comments-load-more {
@@ -507,7 +510,8 @@
     .upvote-button {
       .material-icons {
         font-weight: 900;
-        color: rgba(100, 169, 105, 0.9) !important;
+        // TODO color change
+        color: $cea-blue-highlight !important; // rgba(100, 169, 105, 0.9)
       }
     }
 
@@ -518,7 +522,8 @@
     }
 
     .vote-count {
-      color: rgba(100, 169, 105, 0.9) !important;
+      // TODO color change
+      color: $cea-blue-highlight !important; // rgba(100, 169, 105, 0.9) ;
     }
   }
 
@@ -686,7 +691,8 @@
         .upvote-button {
           .material-icons {
             font-weight: 900;
-            color: rgba(100, 169, 105, 0.9) !important;
+            // TODO color change
+            color: $cea-blue-highlight !important; // rgba(100, 169, 105, 0.9) !important;
           }
         }
 
@@ -810,7 +816,8 @@
         .upvote-button {
           .material-icons {
             font-weight: 900;
-            color: rgba(100, 169, 105, 0.9) !important;
+            // TODO color change
+            color: $cea-blue-highlight !important;  // rgba(100, 169, 105, 0.9) !important;
           }
         }
 
@@ -987,7 +994,8 @@ textarea.posts-edit-header-title {
       &:hover{
         text-decoration: none !important;
         background: inherit;
-        color: rgba(100, 169, 105, 0.9);
+        // TODO color change
+        color: $cea-blue-highlight;  // rgba(100, 169, 105, 0.9);
       }
     }
   }
@@ -1148,7 +1156,8 @@ svg.drag-handle {
 
 .posts-page-content-header-title-draft {
   text-transform: uppercase;
-  color: rgba(100, 169, 105, 0.9)
+  // TODO color change
+  color: $cea-blue-highlight;  // rgba(100, 169, 105, 0.9)
 }
 .post-category-display-container {
   position:absolute;
@@ -1250,7 +1259,8 @@ svg.drag-handle {
 
   &.easy-going {
     .moderation-guidelines-header {
-      color: rgba(100, 169, 105, 0.9);
+      // TODO color change
+      color: $cea-blue-highlight;  // rgba(100, 169, 105, 0.9);
     }
   }
   &.norm-enforcing {
@@ -1288,6 +1298,7 @@ svg.drag-handle {
     color: rgba(0,0,0,0.3) !important;
   }
   &.easy-going {
+    // TODO green, but maybe fine
     color: rgba(100, 169, 105, 0.8) !important;
     &:hover {
       color: rgba(100, 169, 105, 0.6) !important;

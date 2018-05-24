@@ -282,6 +282,7 @@
     .upvoted {
       .upvote-button {
         .material-icons {
+          // TODO green
           color: rgba(100, 169, 105, 0.9) !important;
         }
       }
@@ -290,6 +291,7 @@
     .downvoted {
       .downvote-button {
         .material-icons {
+          // TODO green, shouldn't this be red
           color: rgba(100, 169, 105, 0.9) !important;
         }
       }
@@ -826,10 +828,12 @@ svg.drag-handle {
 
 .sequences-page-content-header-title-draft {
   text-transform: uppercase;
+  // TODO green
   color: rgba(140, 239, 145, 0.9)
 }
 .sequences-grid-item-title-draft {
   text-transform: uppercase;
+  // TODO green
   color: rgba(100, 169, 105, 0.9)
 }
 
