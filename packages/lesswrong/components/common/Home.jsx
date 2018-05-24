@@ -35,27 +35,15 @@ const testCollections = [
 
 const Home = (props, context) => {
   const currentUser = props.currentUser
-  const currentView = _.clone(props.router.location.query).view || (props.currentUser && props.currentUser.currentFrontpageFilter) || (props.currentUser ? "frontpage" : "curated");
+  const currentView = _.clone(props.router.location.query).view || (props.currentUser && props.currentUser.currentFrontpageFilter) || "frontpage";
   let recentPostsTerms = _.isEmpty(props.location.query) ? {view: currentView, limit: 10} : _.clone(props.location.query)
-  if (recentPostsTerms.view === "curated" && currentUser) {
-    recentPostsTerms.offset = 3
-  }
-
-  const curatedPostsTerms = {view:"curated", limit:3}
   let recentPostsTitle = "Recent Posts"
+
   switch (recentPostsTerms.view) {
     case "frontpage":
       recentPostsTitle = "Frontpage Posts"; break;
-    case "curated":
-      if (currentUser) {
-        recentPostsTitle = "More Curated"; break;
-      } else {
-        recentPostsTitle = "Curated Posts"; break;
-      }
     case "community":
       recentPostsTitle = "All Posts"; break;
-    default:
-      return "Recent Posts";
   }
 
   const lat = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[1]
@@ -98,9 +86,6 @@ const Home = (props, context) => {
                 showAuthor={true}
                 showLoadMore={false}
               className="frontpage-sequences-grid-list" />
-          </Components.Section>
-          <Components.Section title="Curated Content">
-            <Components.PostsList terms={curatedPostsTerms} showHeader={false} showLoadMore={false}/>
           </Components.Section>
         </div>
       }
