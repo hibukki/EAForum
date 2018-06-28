@@ -13,6 +13,11 @@ else
 fi
 
 command -v meteor >/dev/null 2>&1 || {
+
+# Try adding meteor to path
+export PATH=$PATH:$HOME/.meteor;
+command -v meteor >/dev/null 2>&1 || {
+
 echo "Vulcan requires Meteor but it's not installed. Trying to Install..." >&2;
 
 if [ "$(uname)" == "Darwin" ]; then
@@ -23,7 +28,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # GNU/Linux platform
     echo "🌋  ${bold}${purple}Good news you are on  GNU/Linux platform and we will install Meteor now! ${reset}";
     curl https://install.meteor.com/ | bash;
-    export PATH=$PATH:$HOME/.meteor;
+    # TODO try this first
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     # Windows NT platform
     echo "🌋  ${bold}${purple}Oh no! you are on a Windows platform and you will need to install Meteor Manually! ${reset}";
@@ -31,6 +36,7 @@ elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     exit;
 fi
 
+}
 }
 
 
