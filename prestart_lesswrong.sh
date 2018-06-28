@@ -23,7 +23,7 @@ elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # GNU/Linux platform
     echo "🌋  ${bold}${purple}Good news you are on  GNU/Linux platform and we will install Meteor now! ${reset}";
     curl https://install.meteor.com/ | bash;
-    export PATH=$PATH:$HOME/.meteor
+    export PATH=$PATH:$HOME/.meteor;
 elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
     # Windows NT platform
     echo "🌋  ${bold}${purple}Oh no! you are on a Windows platform and you will need to install Meteor Manually! ${reset}";
