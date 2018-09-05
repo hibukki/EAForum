@@ -1,64 +1,65 @@
 /* global Vulcan */
-import { Posts, Comments } from 'meteor/example-forum';
-import Users from 'meteor/vulcan:users';
-import Sequences from '../../lib/collections/sequences/collection.js';
-import algoliasearch from 'algoliasearch';
-import { getSetting } from 'meteor/vulcan:core';
+/* eslint no-console: 'off' */
+
+import { Posts, Comments } from 'meteor/example-forum'
+import Users from 'meteor/vulcan:users'
+import Sequences from '../../lib/collections/sequences/collection.js'
+import algoliasearch from 'algoliasearch'
+import { getSetting } from 'meteor/vulcan:core'
+
+const gotTaskID = (algoliaIndex, totalErrors) => (error, content) => {
+  if(error) {
+    console.log('Algolia Error encountered, see errors at end')
+    totalErrors.push(error)
+  }
+  console.log('write operation received: ', content)
+  algoliaIndex.waitTask(content, () => {
+    console.log(`object ${JSON.stringify(content)} indexed`)
+  })
+}
 
 function algoliaExport(Collection, indexName, selector = {}, updateFunction) {
-  const algoliaAppId = getSetting('algolia.appId');
-  const algoliaAdminKey = getSetting('algolia.adminKey');
-  let client = algoliasearch(algoliaAppId, algoliaAdminKey);
-  //eslint-disable-next-line no-console
-  console.log(`Exporting ${indexName}...`);
-  let algoliaIndex = client.initIndex(indexName);
-  //eslint-disable-next-line no-console
-  console.log("Initiated Index connection", algoliaIndex)
+  console.log(`Exporting ${indexName}...`)
 
-  let importCount = 0;
-  let importBatch = [];
-  let batchContainer = [];
-  let totalErrors = [];
+  const algoliaAppId = getSetting('algolia.appId')
+  const algoliaAdminKey = getSetting('algolia.adminKey')
+  let client = algoliasearch(algoliaAppId, algoliaAdminKey)
+  let algoliaIndex = client.initIndex(indexName)
+  console.log('Initiated Index connection', algoliaIndex)
+
+  let importCount = 0
+  let importBatch = []
+  let batchContainer = []
+  let totalErrors = []
   Collection.find(selector).fetch().forEach((item) => {
-    if (updateFunction) updateFunction(item);
-    batchContainer = Collection.toAlgolia(item);
-    importBatch = [...importBatch, ...batchContainer];
-    importCount++;
-    if (importCount % 100 == 0) {
-      //eslint-disable-next-line no-console
-      console.log("Imported n documents: ",  importCount, importBatch.length)
-      algoliaIndex.addObjects(_.map(importBatch, _.clone), function gotTaskID(error, content) {
-        if(error) {
-          //eslint-disable-next-line no-console
-          console.log("Algolia Error: ", error);
-          totalErrors.push(error);
-        }
-        //eslint-disable-next-line no-console
-        console.log("write operation received: ", content);
-        algoliaIndex.waitTask(content, function contentIndexed() {
-          //eslint-disable-next-line no-console
-          console.log("object " + content + " indexed");
-        });
-      });
-      importBatch = [];
+    if (updateFunction) updateFunction(item)
+    batchContainer = Collection.toAlgolia(item)
+    importBatch = [...importBatch, ...batchContainer]
+    importCount++
+
+    // Batch insert every 100
+    if (importCount % 100 === 0) {
+      console.log('Importing documents', importBatch.length)
+      algoliaIndex.addObjects(
+        _.map(importBatch, _.clone),
+        gotTaskID(algoliaIndex, totalErrors)
+      )
+      importBatch = []
     }
   })
-  //eslint-disable-next-line no-console
-  console.log("Exporting last n documents ", importCount);
-  algoliaIndex.addObjects(_.map(importBatch, _.clone), function gotTaskID(error, content) {
-    if(error) {
-      //eslint-disable-next-line no-console
-      console.error("Algolia Error: ", error)
-    }
-    //eslint-disable-next-line no-console
-    console.log("write operation received: " + content);
-    algoliaIndex.waitTask(content, function contentIndexed() {
-      //eslint-disable-next-line no-console
-      console.log("object " + content + " indexed");
-    });
-  });
-  //eslint-disable-next-line no-console
-  console.log("Encountered the following errors: ", totalErrors)
+
+  // Batch any remaining
+  console.log(`Exporting last ${importCount} documents `)
+  algoliaIndex.addObjects(
+    _.map(importBatch, _.clone),
+    gotTaskID(algoliaIndex, totalErrors)
+  )
+
+  if (totalErrors.length) {
+    console.log('Encountered the following errors: ', totalErrors)
+  } else {
+    console.log('Success!')
+  }
 }
 
 Vulcan.runAlgoliaExport = () => {
