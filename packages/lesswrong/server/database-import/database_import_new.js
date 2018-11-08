@@ -16,7 +16,7 @@ import cheerio from 'cheerio'
 const postgresImportDetails = {
   host: 'localhost',
   port: 5432,
-  database: 'oldforum',
+  database: 'oldforum3',
   user: 'jpaddison', // If this is the logged-in user on localhost, no need for password
   password: ''       // Ommitted for obvious reasons
 }
@@ -178,7 +178,7 @@ const upsertProcessedPosts = async (posts, postMap) => {
     const existingPost = postMap.get(post.legacyId);
     if (existingPost) {
       // TODO; We changed htmlbody, probably fine
-      let set = {htmlBody: post.htmlBody, draft: post.draft, legacyData: post.legacyData};
+      let set = {htmlBody: post.htmlBody, draft: post.draft, legacyData: post.legacyData, maxBaseScore: post.maxBaseScore};
       if (post.deleted || post.spam) {
         set.status = 3;
       }
@@ -388,6 +388,7 @@ const legacyPostToNewPost = (post, legacyId, user) => {
     status: post.deleted || post.spam ? 3 : 2,
     legacySpam: post.spam,
     baseScore: post.ups - post.downs,
+    maxBaseScore: post.ups - post.downs,
     url: absoluteURLRegex.test(post.url) ? post.url : null,
     createdAt: moment(post.date).toDate(),
     postedAt: moment(post.date).toDate(),

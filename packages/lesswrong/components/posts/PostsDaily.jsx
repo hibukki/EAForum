@@ -11,7 +11,7 @@ const styles = theme => ({
   titleSettings: {
     marginTop: 10,
     width: 150,
-    
+
     [theme.breakpoints.up('md')]: {
       float: "right"
     }
@@ -24,6 +24,7 @@ const styles = theme => ({
     // using, since the new, darker green doesn't fit the deemphasized position
     // this element is in.
     "& svg": {
+      // TODO here's the green color
       color: "rgba(100, 169, 105, 0.7)"
     }
   },

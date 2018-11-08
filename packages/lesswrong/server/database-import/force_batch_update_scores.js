@@ -1,4 +1,5 @@
 /* global Vulcan */
+import Users from 'meteor/vulcan:users';
 import { Comments } from '../../lib/collections/comments'
 import { Posts } from '../../lib/collections/posts'
 
@@ -17,4 +18,8 @@ Vulcan.forceBatchUpdateScores = async () => {
   console.log('nActiveCommentsUpdated', nActiveCommentsUpdated)
   const nInactiveCommentsUpdated = await batchUpdateScore({collection: Comments, inactive: true, forceUpdate: true})
   console.log('nInactiveCommentsUpdated', nInactiveCommentsUpdated)
+}
+
+Vulcan.testUpdate = async () => {
+  console.log(await Users.rawCollection().update({username: 'jpaddison'}, {$set: {auto_subscribe_to_my_posts: false}}).then(res => res.result))
 }

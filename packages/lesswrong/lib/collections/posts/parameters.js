@@ -55,7 +55,7 @@ function PostsAddBeforeAfterParameters (parameters, terms, apolloClient) {
       if (Meteor.isClient) {
         startOfDay.add(timeDifference, 'minutes');
         // console.log('// after add   ', startOfDay.toDate(), startOfDay.valueOf());
-        // note: on the client, dates are stored as strings, 
+        // note: on the client, dates are stored as strings,
         // so use strings for MongoDB filtering options too
         postedAt.$gte = startOfDay.toISOString();
       } else {
@@ -85,6 +85,7 @@ function PostsAddBeforeAfterParameters (parameters, terms, apolloClient) {
     }
   }
 
+  // console.log('parameters', parameters)
   return parameters;
 }
 addCallback('posts.parameters', PostsAddBeforeAfterParameters);

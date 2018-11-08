@@ -28,6 +28,7 @@ Posts.addDefaultView(terms => {
   if (terms.userId) {
     params.selector.hideAuthor = {$ne: true}
   }
+  console.log('default view terms', params)
   return params;
 })
 
@@ -72,14 +73,17 @@ Posts.addView("old", terms => ({
   options: {sort: setStickies({postedAt: 1}, terms)}
 }))
 
-Posts.addView("daily", terms => ({
-  selector: {
-    baseScore: {$gt: terms.karmaThreshold || -100}
-  },
-  options: {
-    sort: {score: -1}
+Posts.addView("daily", terms => {
+  // console.log('daily function being called', terms)
+  return {
+    selector: {
+      baseScore: {$gt: terms.karmaThreshold || -100}
+    },
+    options: {
+      sort: {score: -1}
+    }
   }
-}));
+});
 
 Posts.addView("frontpage", terms => ({
   selector: {

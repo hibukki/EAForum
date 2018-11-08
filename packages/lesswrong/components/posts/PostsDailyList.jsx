@@ -48,7 +48,7 @@ class PostsDailyList extends PureComponent {
         .tz(this.props.timezone)
         .format('YYYY-MM-DD')
     );
-    
+
     if(this.getDatePosts(posts, range[0]).length == 0) {
       return _.rest(range);
     } else {
@@ -63,10 +63,10 @@ class PostsDailyList extends PureComponent {
         .tz(this.props.timezone)
         .format('YYYY-MM-DD') === date);
   }
-  
+
   groupByDate(posts) {
     const { timeField } = this.props.terms
-    
+
     return _.groupBy(posts, post =>
       moment(new Date(timeField ? post[timeField] : post.postedAt))
         .tz(this.props.timezone)
@@ -111,8 +111,12 @@ class PostsDailyList extends PureComponent {
 
   render() {
     const posts = this.props.results;
+    // console.log('postsdailylistrender')
+    // console.log('posts', posts)
+    // console.log('results', this.props.results)
+    // console.log('allprops', this.props)
     const dates = this.getDateRange(this.state.afterLoaded, this.state.before, posts);
-    
+
     if (this.props.loading && (!posts || !posts.length)) {
       return <Components.PostsLoading />
     } else {
