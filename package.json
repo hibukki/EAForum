@@ -25,6 +25,7 @@
     "@sentry/node": "^4.1.1",
     "akismet-api": "^4.2.0",
     "algoliasearch": "^3.29.0",
+    "analytics-node": "^3.3.0",
     "anchorate": "^1.2.3",
     "apollo-client": "^1.2.2",
     "apollo-engine": "^1.1.2",

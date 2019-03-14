@@ -56,7 +56,7 @@ accounts-github@1.4.2
 # example-reactions
 
 # vulcan:debug
-vulcan:events-ga
+# vulcan:events-ga
 
 lesswrong
 # webtoken-session
@@ -64,3 +64,6 @@ lesswrong
 es5-shim@4.8.0
 meteortesting:mocha
 zodern:standard-minifier-js
+
+############ EA Forum ############
+vulcan:events-segment
