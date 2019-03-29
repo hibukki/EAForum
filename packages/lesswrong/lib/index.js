@@ -1,7 +1,7 @@
 // # Vulcan Modifications
 
 // schema utils
-import { generateIdResolverMulti, generateIdResolverSingle } from './modules/utils/schemaUtils.js'
+import './modules/utils/schemaUtils.js'
 // Permissions
 import './modules/permissions.js';
 
@@ -20,6 +20,10 @@ import './modules/voting/callbacks.js';
 import './collections/subscription_fields.js';
 //MomentJS configuration
 import '../components/momentjs.js';
+
+import './collections/posts/fragments.js';
+import './collections/comments/fragments.js';
+
 
 // Notifications
 import Notifications from './collections/notifications/collection.js';
@@ -70,7 +74,9 @@ import './modules/fragments.js';
 import './collections/chapters/fragments.js';
 import './collections/sequences/fragments.js';
 import './collections/books/fragments.js';
+import './collections/books/views.js';
 import './collections/collections/fragments.js';
+import './collections/collections/views.js';
 import './modules/alignment-forum/posts/fragments.js';
 import './modules/alignment-forum/users/fragments.js';
 
@@ -91,11 +97,14 @@ import './collections/posts/custom_fields.js';
 import './collections/posts/views.js';
 import './collections/posts/permissions.js';
 import './collections/posts/helpers.js';
+
+// Revisions
+import Revisions from './collections/revisions/collection.js'
 //
 // Users
 import './collections/users/helpers.js';
 import './collections/users/custom_fields.js';
-import './collections/users/callbacks.js';
+import './collections/users/karmaChangesGraphQL.js';
 import './collections/users/views.js';
 import './collections/users/permissions.js';
 
@@ -103,25 +112,15 @@ import './collections/users/permissions.js';
 import { Comments } from './collections/comments'
 
 // Votes
-import './collections/votes/custom_fields.js';
-//
-//
-//
+import './collections/votes';
+
 // Internationalization
 import './i18n-en-us/en_US.js';
-//
-// // General
-import './modules/callbacks.js';
 
-// // Misc.
+// Misc.
 import './helpers.js'
 import './routes.js';
-import './views.js';
 import './scrollRestoration.js';
-
-// Algolia Search Integration
-import './search/utils.js';
-import './search/callbacks.js';
 
 import './components.js';
 
@@ -133,13 +132,18 @@ import './modules/alignment-forum/graphql.js';
 import './modules/alignment-forum/posts/custom_fields.js';
 import './modules/alignment-forum/posts/callbacks.js';
 import './modules/alignment-forum/posts/helpers.js';
+import './modules/alignment-forum/posts/views.js';
 
 import './modules/alignment-forum/comments/custom_fields.js';
 import './modules/alignment-forum/comments/callbacks.js';
+import './modules/alignment-forum/comments/helpers.js';
+import './modules/alignment-forum/comments/views.js';
+import './modules/alignment-forum/comments/fragments.js';
 
 import './modules/alignment-forum/sequences/custom_fields.js'
 import './modules/alignment-forum/sequences/callbacks.js';
 
+import './modules/alignment-forum/users/callbacks.js';
 import './modules/alignment-forum/users/custom_fields.js';
 import './modules/alignment-forum/users/helpers.js';
 import './modules/alignment-forum/users/views.js';
@@ -160,7 +164,6 @@ export {
   Books,
   Bans,
   Localgroups,
-  generateIdResolverMulti,
-  generateIdResolverSingle,
-  Comments
+  Comments,
+  Revisions
 }

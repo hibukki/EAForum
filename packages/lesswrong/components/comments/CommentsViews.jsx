@@ -1,4 +1,4 @@
-import { Components, registerComponent, getSetting } from 'meteor/vulcan:core';
+import { registerComponent, getSetting } from 'meteor/vulcan:core';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router'
@@ -45,7 +45,7 @@ class CommentsViews extends Component {
     const { router, post } = this.props
     const currentQuery = (!_.isEmpty(router.location.query) && router.location.query) ||  {view: 'postCommentsTop'}
     this.setState({ anchorEl: null })
-    router.replace({...router.location, query: {...currentQuery, view: view, postId: post._id}})
+    router.replace({...router.location, query: {...currentQuery, view: view, postId: post ? post._id : undefined}})
   };
 
   handleClose = () => {

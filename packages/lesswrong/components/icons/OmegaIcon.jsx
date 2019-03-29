@@ -1,5 +1,5 @@
 import React from 'react';
-import { Components, registerComponent } from 'meteor/vulcan:core';
+import { registerComponent } from 'meteor/vulcan:core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 
@@ -14,7 +14,9 @@ const styles = (theme) => ({
       'Georgia',
       'serif'].join(','),
     position:"relative",
-    top:2
+    top:2,
+    width: 24,
+    textAlign:"center"
   }
 })
 

@@ -1,4 +1,4 @@
-import React, { Component, PureComponent } from 'react';
+import React, { PureComponent } from 'react';
 import {
   Components,
   registerComponent,
@@ -16,12 +16,16 @@ import withNewEvents from '../../lib/events/withNewEvents.jsx';
 import { connect } from 'react-redux';
 import { unflattenComments } from '../../lib/modules/utils/unflatten';
 import withUser from '../common/withUser';
-import { withStyles } from '@material-ui/core/styles';
+import withErrorBoundary from '../common/withErrorBoundary'
 
-import FontIcon from 'material-ui/FontIcon';
+import { withStyles } from '@material-ui/core/styles';
+import { postExcerptFromHTML } from '../../lib/editor/ellipsize'
 import { postHighlightStyles } from '../../themes/stylePiping'
 
 const styles = theme => ({
+  root: {
+    marginBottom: theme.spacing.unit*4,
+  },
   postStyle: theme.typography.postStyle,
   postBody: {
     ...postHighlightStyles(theme),
@@ -31,7 +35,6 @@ const styles = theme => ({
     overflowY: "hidden",
   },
   postItem: {
-    paddingLeft:10,
     paddingBottom:10,
     ...theme.typography.postStyle,
   },
@@ -48,6 +51,19 @@ const styles = theme => ({
     top:5.5,
     marginLeft:2,
     marginRight:5
+  },
+  postHighlight: {
+    ...postHighlightStyles(theme),
+    marginTop:5,
+    maxWidth:600,
+    lineHeight:"22px",
+    marginBottom:16,
+    '& a, & a:hover, & a:focus, & a:active, & a:visited': {
+      backgroundColor: "none"
+    }
+  },
+  noComments: {
+    borderBottom: "solid 1px rgba(0,0,0,.2)"
   }
 })
 
@@ -56,7 +72,7 @@ class RecentDiscussionThread extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      showExcerpt: false,
+      showHighlight: false,
       readStatus: false,
     };
   }
@@ -96,14 +112,16 @@ class RecentDiscussionThread extends PureComponent {
       }
   }
 
-  showExcerpt = () => {
-    this.setState({showExcerpt:!this.state.showExcerpt});
+  showHighlight = () => {
+    this.setState({showHighlight:!this.state.showHighlight});
     this.setState({readStatus:true});
     this.handleMarkAsRead()
   }
 
   render() {
     const { post, postCount, results, loading, editMutation, currentUser, classes } = this.props
+
+    const { ContentItemBody, LinkPostMessage, PostsItemTitle, PostsItemMeta, ShowOrHideHighlightButton, CommentsNode, PostsHighlight } = Components
     const nestedComments = unflattenComments(results);
 
     // Only show the loading widget if this is the first post in the recent discussion section, so that the users don't see a bunch of loading components while the comments load
@@ -117,66 +135,48 @@ class RecentDiscussionThread extends PureComponent {
       return null
     }
 
-    const highlightClasses = classNames("recent-discussion-thread-highlight", {"no-comments":post.commentCount === null})
+    const highlightClasses = classNames({
+      [classes.noComments]: post.commentCount === null
+    })
 
     return (
-      <div className="recent-discussion-thread-wrapper">
+      <div className={classes.root}>
         <div className={classNames(classes.postItem)}>
 
           <Link to={Posts.getPageUrl(post)}>
-            <Components.PostsItemTitle post={post} />
+            <PostsItemTitle post={post} />
           </Link>
 
-          <div className="recent-discussion-thread-meta" onClick={() => { this.showExcerpt() }}>
+          <div className="recent-discussion-thread-meta" onClick={this.showHighlight}>
             {currentUser && !(post.lastVisitedAt || this.state.readStatus) &&
               <span title="Unread" className={classes.unreadDot}>•</span>
             }
-            <Components.PostsItemMeta post={post}/>
-            <span className="recent-discussion-show-highlight">
-              { this.state.showExcerpt ?
-                <Components.MetaInfo>
-                  Hide Highlight
-                  <FontIcon className={classNames("material-icons","hide-highlight-button")}>
-                    subdirectory_arrow_left
-                  </FontIcon>
-                </Components.MetaInfo>
-              :
-              <Components.MetaInfo>
-                Show Highlight
-                <FontIcon className={classNames("material-icons","show-highlight-button")}>
-                  subdirectory_arrow_left
-                </FontIcon>
-              </Components.MetaInfo> }
-            </span>
+            <PostsItemMeta post={post}/>
+            <ShowOrHideHighlightButton
+              className={"recent-discussion-show-highlight"}
+              open={this.state.showHighlight}/>
           </div>
         </div>
-
-        { this.state.showExcerpt ?
+        { this.state.showHighlight ?
           <div className={highlightClasses}>
-            <Components.LinkPostMessage post={post} />
-            { post.htmlHighlight ?
-              <div>
-                <div className={classNames("post-highlight", classes.postBody)} dangerouslySetInnerHTML={{__html: post.htmlHighlight}}/>
-                { post.wordCount > 280 && <div className={classes.continueReading}>
-                  <Link to={Posts.getPageUrl(post)}>
-                    (Continue Reading {` – ${post.wordCount - 280} more words`})
-                  </Link>
-                </div>}
-              </div>
-              :
-              <div className="post-highlight excerpt" dangerouslySetInnerHTML={{__html: post.excerpt}}/>
-            }
+            <LinkPostMessage post={post} />
+            <PostsHighlight post={post} />
           </div>
-          : <div className={highlightClasses} onClick={() => { this.showExcerpt() }}>
-              <Components.LinkPostMessage post={post} />
-              { post.excerpt && (!post.lastVisitedAt || post.commentCount === null) && <div className={classNames(classes.postBody, "post-highlight", "excerpt")}  dangerouslySetInnerHTML={{__html: post.excerpt}}/>}
+          : <div className={highlightClasses} onClick={this.showHighlight}>
+              <LinkPostMessage post={post} />
+              { (!post.lastVisitedAt || post.commentCount === null) &&
+                <ContentItemBody
+                  className={classes.postHighlight}
+                  dangerouslySetInnerHTML={{__html: postExcerptFromHTML(post.contents && post.contents.htmlHighlight)}}/>}
             </div>
         }
         <div className="recent-discussion-thread-comment-list">
           <div className={"comments-items"}>
             {nestedComments.map(comment =>
               <div key={comment.item._id}>
-                <Components.CommentsNode
+                <CommentsNode
+                  startThreadCollapsed={true}
+                  nestingLevel={1}
                   currentUser={currentUser}
                   comment={comment.item}
                   //eslint-disable-next-line react/no-children-prop
@@ -202,6 +202,7 @@ const commentsOptions = {
   enableTotal: false,
   pollInterval: 0,
   enableCache: true,
+  fetchPolicy: 'cache-and-network',
   limit: 3,
 };
 
@@ -222,4 +223,5 @@ registerComponent(
   withNewEvents,
   connect(mapStateToProps, mapDispatchToProps),
   withStyles(styles, { name: "RecentDiscussionThread" }),
+  withErrorBoundary
 );

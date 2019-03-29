@@ -31,8 +31,10 @@ registerFragment(`
     user {
       ...UsersMinimumInfo
     }
+    contents {
+      html
+    }
     createdAt
-    htmlBody
     conversationId
   }
 `);
@@ -63,11 +65,18 @@ extendFragment('UsersCurrent', `
   nullifyVotes
   hideIntercom
   currentFrontpageFilter
+  allPostsView
+  allPostsFilter
+  allPostsShowLowKarma
+  allPostsOpenSettings
   lastNotificationsCheck
   subscribedItems
   groups
   bannedUserIds
   moderationStyle
+  moderationGuidelines {
+    ...RevisionEdit
+  }
   markDownPostEditor
   commentSorting
   location
@@ -76,6 +85,36 @@ extendFragment('UsersCurrent', `
   emailSubscribedToCurated
   emails
   whenConfirmationEmailSent
+  noCollapseCommentsFrontpage
+  noCollapseCommentsPosts
+  karmaChangeNotifierSettings
+  karmaChangeLastOpened
+  shortformFeedId
+  viewUnreviewedComments
+`);
+
+registerFragment(`
+  fragment UserKarmaChanges on User {
+    karmaChanges {
+      totalChange
+      updateFrequency
+      startDate
+      endDate
+      nextBatchDate
+      posts {
+        _id
+        scoreChange
+        title
+        slug
+      }
+      comments {
+        _id
+        scoreChange
+        description
+        postId
+      }
+    }
+  }
 `);
 
 registerFragment(`
@@ -90,171 +129,6 @@ registerFragment(`
     displayFullContent
     nickname
     url
-  }
-`);
-
-registerFragment(`
-  fragment PostsList on Post {
-    # example-forum
-    _id
-    title
-    url
-    slug
-    postedAt
-    createdAt
-    sticky
-    metaSticky
-    status
-    frontpageDate
-    meta
-    # body # We replaced this with content
-    excerpt # This won't work with content
-    htmlHighlight
-    # content # Our replacement for body
-    viewCount
-    clickCount
-    # vulcan:users
-    userId
-    user {
-      ...UsersMinimumInfo
-    }
-    coauthors {
-      ...UsersMinimumInfo
-    }
-    # example-forum
-    commentCount
-    # vulcan:voting
-    currentUserVotes{
-      ...VoteFragment
-    }
-    baseScore
-    unlisted
-    score
-    feedId
-    feedLink
-    feed {
-      ...RSSFeedMinimumInfo
-    }
-    lastVisitedAt
-    lastCommentedAt
-    canonicalCollectionSlug
-    curatedDate
-    wordCount
-    commentsLocked
-    # Local Event data
-    groupId
-    location
-    googleLocation
-    mongoLocation
-    startTime
-    endTime
-    facebookLink
-    website
-    contactInfo
-    isEvent
-    reviewedByUserId
-    suggestForCuratedUserIds
-    suggestForCuratedUsernames
-    reviewForCuratedUserId
-    af
-    afDate
-    suggestForAlignmentUserIds
-    reviewForAlignmentUserId
-    afBaseScore
-    afCommentCount
-    afLastCommentedAt
-    afSticky
-    voteCount
-  }
-`);
-
-registerFragment(`
-  fragment EventsList on Post {
-    ...PostsList
-    location
-    googleLocation
-    mongoLocation
-    startTime
-    endTime
-    facebookLink
-    website
-    contactInfo
-    content
-    htmlBody
-    body
-    types
-  }
-`);
-
-registerFragment(`
-  fragment LWPostsPage on Post {
-    ...PostsList
-    lastEditedAs
-    body
-    htmlBody
-    content
-    plaintextExcerpt
-    draft
-    commentSortOrder
-    canonicalPrevPostSlug
-    canonicalNextPostSlug
-    canonicalCollectionSlug
-    canonicalSequenceId
-    canonicalBookId
-    bannedUserIds
-    hideAuthor
-    user {
-      groups
-      moderationStyle
-      bannedUserIds
-      moderationGuidelines
-      moderatorAssistance
-    }
-    canonicalSequence {
-      title
-    }
-    canonicalBook {
-      title
-    }
-    canonicalCollection {
-      title
-    }
-    collectionTitle
-    types
-  }
-`);
-
-registerFragment(`
-  fragment LWPostsBody on Post {
-    htmlBody
-  }
-`);
-
-registerFragment(`
-  fragment SequencesPostNavigationLink on Post {
-    _id
-    title
-    url
-    slug
-    canonicalCollectionSlug
-  }
-`);
-
-registerFragment(`
-  fragment PostUrl on Post {
-    _id
-    url
-    slug
-  }
-`);
-
-registerFragment(`
-  fragment PostStats on Post {
-    allVotes {
-      ...VoteFragment
-    }
-    baseScore
-    score
   }
 `);
 
@@ -297,18 +171,6 @@ registerFragment(`
 `)
 
 registerFragment(`
-  fragment UsersBannedFromPostsModerationLog on Post {
-    user {
-      ...UsersMinimumInfo
-    }
-    title
-    slug
-    _id
-    bannedUserIds
-  }
-`)
-
-registerFragment(`
   fragment UsersBannedFromUsersModerationLog on User {
     _id
     slug
@@ -316,39 +178,6 @@ registerFragment(`
     bannedUserIds
   }
 `)
-
-registerFragment(`
-  fragment CommentsList on Comment {
-    # example-forum
-    _id
-    postId
-    parentCommentId
-    topLevelCommentId
-    body
-    htmlBody
-    content
-    postedAt
-    repliesBlockedUntil
-    # vulcan:users
-    userId
-    deleted
-    deletedPublic
-    hideAuthor
-    user {
-      ...UsersMinimumInfo
-    }
-    # vulcan:voting
-    currentUserVotes {
-      ...VoteFragment
-    }
-    baseScore
-    score
-    voteCount
-    af
-    afBaseScore
-    needsReview
-  }
-`);
 
 registerFragment(`
   fragment SelectCommentsList on Comment {
@@ -381,6 +210,8 @@ registerFragment(`
     bigUpvoteCount
     smallDownvoteCount
     bigDownvoteCount
+    banned
+    reviewedByUserId
   }
 `);
 
@@ -441,9 +272,9 @@ registerFragment(`
     _id
     parentCommentId
     topLevelCommentId
-    body
-    htmlBody
-    content
+    contents {
+      ...RevisionDisplay
+    }
     postedAt
     # vulcan:users
     userId
@@ -464,9 +295,9 @@ registerFragment(`
   fragment commentInlineFragment on Comment {
     # example-forum
     _id
-    body
-    htmlBody
-    content
+    contents {
+      ...RevisionDisplay
+    }
     # vulcan:users
     userId
     user {
@@ -480,12 +311,20 @@ registerFragment(`
     # vulcan:users
     _id
     slug
+    createdAt
     username
     displayName
+    fullName
     emailHash
     karma
     afKarma
     deleted
+    groups
+    htmlBio
+    postCount
+    commentCount
+    afPostCount 
+    afCommentCount
   }
 `);
 
@@ -511,12 +350,77 @@ registerFragment(`
     afSequenceDraftCount
     sequenceDraftCount
     moderationStyle
+    moderationGuidelines {
+      ...RevisionDisplay
+    }
     bannedUserIds
     location
     googleLocation
     mongoLocation
+    shortformFeedId
+    viewUnreviewedComments
+    auto_subscribe_to_my_posts
+    auto_subscribe_to_my_comments
   }
 `);
+
+registerFragment(`
+  fragment UsersEdit on User {
+    ...UsersProfile
+    # Moderation Guidelines editor information
+    moderationGuidelines {
+      ...RevisionEdit
+    }
+
+    # UI Settings
+    markDownPostEditor
+    hideIntercom
+    commentSorting
+    currentFrontpageFilter
+    noCollapseCommentsPosts
+    noCollapseCommentsFrontpage
+
+    # Emails
+    email
+    whenConfirmationEmailSent
+    emailSubscribedToCurated
+
+    # Moderation
+    moderatorAssistance
+    collapseModerationGuidelines
+    bannedUserIds
+    bannedPersonalUserIds
+
+    # Ban & Purge
+    voteBanned
+    nullifyVotes
+    deleteContent
+    banned
+
+    # Name
+    username
+    displayName
+    fullName
+
+    # Location
+    mongoLocation
+    googleLocation
+    location
+
+    # Admin & Review
+    reviewedByUserId
+
+    # Alignment Forum
+    reviewForAlignmentForumUserId
+    groups
+    afApplicationText
+    afSubmittedApplication
+
+    # Karma Settings
+    karmaChangeLastOpened
+    karmaChangeNotifierSettings
+  }
+`)
 
 registerFragment(`
   fragment unclaimedReportsList on Report {
@@ -535,9 +439,10 @@ registerFragment(`
       user {
         ...UsersMinimumInfo
       }
-      body
-      htmlBody
       baseScore
+      contents {
+        ...RevisionDisplay
+      }
       postedAt
       deleted
       postId
@@ -554,6 +459,9 @@ registerFragment(`
       slug
       title
       isEvent
+      contents {
+        ...RevisionDisplay
+      }
     }
     closedAt
     createdAt
@@ -566,6 +474,8 @@ registerFragment(`
     }
     link
     description
+    reportedAsSpam
+    markedAsSpam
   }
 `);
 
@@ -573,6 +483,15 @@ registerFragment(`
   fragment VoteMinimumInfo on Vote {
     _id
     voteType
+  }
+`);
+
+
+registerFragment(`
+  fragment VoteFragment on Vote {
+    _id
+    voteType
+    power
   }
 `);
 
@@ -588,6 +507,7 @@ registerFragment(`
     baseScore
     score
     afBaseScore
+    voteCount
   }
 `);
 
@@ -603,20 +523,13 @@ registerFragment(`
     baseScore
     score
     afBaseScore
+    voteCount
   }
 `);
 
 //
 // example-forum migrated fragments
 //
-
-registerFragment(/* GraphQL */`
-  fragment PostsPage on Post {
-    ...PostsList
-    body
-    htmlBody
-  }
-`);
 
 // note: fragment used by default on the UsersProfile fragment
 registerFragment(/* GraphQL */`
@@ -627,3 +540,34 @@ registerFragment(/* GraphQL */`
     votedAt
   }
 `);
+
+registerFragment(`
+  fragment RevisionDisplay on Revision {
+    version
+    updateType
+    editedAt
+    userId
+    html
+    wordCount
+    htmlHighlight
+    plaintextDescription
+  }
+`)
+
+
+
+registerFragment(`
+  fragment RevisionEdit on Revision {
+    version
+    updateType
+    editedAt
+    userId
+    originalContents
+    html
+    markdown
+    draftJS
+    wordCount
+    htmlHighlight
+    plaintextDescription
+  }
+`)

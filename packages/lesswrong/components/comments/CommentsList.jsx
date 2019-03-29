@@ -3,19 +3,38 @@ import React, { Component } from 'react';
 import { FormattedMessage } from 'meteor/vulcan:i18n';
 import { Comments } from "../../lib/collections/comments";
 import { shallowEqual, shallowEqualExcept } from '../../lib/modules/utils/componentUtils';
+import { Posts } from '../../lib/collections/posts';
+import withGlobalKeydown from '../common/withGlobalKeydown';
 
 class CommentsList extends Component {
-  constructor(props, context) {
-    super(props)
+  state = { expandAllThreads: false }
+
+  handleKeyDown = (event) => {
+    const F_Key = 70
+    if ((event.metaKey || event.ctrlKey) && event.keyCode == F_Key) {
+      this.setState({expandAllThreads: true});
+    }
+  }
+
+  componentDidMount() {
+    const { addKeydownListener } = this.props
+    addKeydownListener(this.handleKeyDown);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
     if(!shallowEqual(this.state, nextState))
       return true;
-    if(!shallowEqualExcept(this.props, nextProps, ["post","comments","editMutation"]))
+    
+    if(!shallowEqualExcept(this.props, nextProps,
+      ["post","comments","editMutation","updateComment"]))
+    {
       return true;
-    if(this.props.post==null || nextProps.post==null || this.props.post._id != nextProps.post._id)
+    }
+    
+    if(this.props.post==null || nextProps.post==null || this.props.post._id != nextProps.post._id || 
+      (this.props.post.contents && this.props.post.contents.version !== nextProps.post.contents && nextProps.post.contents.version))
       return true;
+    
     if(this.commentTreesDiffer(this.props.comments, nextProps.comments))
       return true;
     return false;
@@ -38,20 +57,23 @@ class CommentsList extends Component {
   }
 
   render() {
-    let {
-      comments,
-      currentUser,
-      highlightDate,
-      editMutation,
-      post,
-      postPage,
-    } = this.props;
+    const { comments, currentUser, highlightDate, editMutation, post, postPage, totalComments, startThreadCollapsed, parentAnswerId } = this.props;
+
+
+    const { expandAllThreads } = this.state
+    const { lastVisitedAt } = post
+    const lastCommentedAt = Posts.getLastCommentedAt(post)
+    const unreadComments = lastVisitedAt < lastCommentedAt;
+
     if (comments) {
       return (
         <Components.ErrorBoundary>
           <div className="comments-list">
             {comments.map(comment =>
               <Components.CommentsNode
+                startThreadCollapsed={startThreadCollapsed || totalComments >= 25}
+                expandAllThreads={expandAllThreads}
+                unreadComments={unreadComments}
                 currentUser={currentUser}
                 comment={comment.item}
                 nestingLevel={1}
@@ -62,6 +84,7 @@ class CommentsList extends Component {
                 editMutation={editMutation}
                 post={post}
                 postPage={postPage}
+                parentAnswerId={parentAnswerId}
               />)
             }
           </div>
@@ -88,4 +111,4 @@ const withEditOptions = {
 };
 
 
-registerComponent('CommentsList', CommentsList, [withEdit, withEditOptions]);
+registerComponent('CommentsList', CommentsList, [withEdit, withEditOptions], withGlobalKeydown);

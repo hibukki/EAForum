@@ -86,7 +86,8 @@ const theme = createLWTheme({
     },
     MuiTooltip: {
       tooltip: {
-        fontSize: "1rem"
+        fontSize: "1rem",
+        padding: ".7rem",
       }
     },
     MuiDialogContent: {
@@ -94,6 +95,20 @@ const theme = createLWTheme({
         fontFamily: sansSerifStack,
         fontSize: "1.16rem",
         lineHeight: "1.5em"
+      }
+    },
+    MuiMenuItem: {
+      root: {
+        fontFamily: sansSerifStack,
+        color: grey[800],
+        fontSize: "1.1rem",
+        lineHeight: "1em"
+      }
+    },
+    MuiListItem: {
+      root: {
+        paddingTop: 8,
+        paddingBottom: 8
       }
     }
   }

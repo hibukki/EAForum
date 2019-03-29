@@ -1,4 +1,4 @@
-import { Components, registerComponent } from 'meteor/vulcan:core';
+import { registerComponent } from 'meteor/vulcan:core';
 import React, { PureComponent } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 
@@ -8,7 +8,7 @@ const styles = theme => ({
     display:"flex",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    padding: 10,
+    padding: '10px 3px',
     [theme.breakpoints.down('sm')]: {
       flexDirection: "column",
       alignItems: "center",

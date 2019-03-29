@@ -1,6 +1,5 @@
 import { registerComponent } from 'meteor/vulcan:core';
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import { Textarea } from 'formsy-react-components';
 import { withStyles } from '@material-ui/core/styles';
 
@@ -25,7 +24,7 @@ const EditTitle = (props) => {
   return <Textarea
     className={props.classes.root}
     {...props.inputProperties}
-    placeholder={ props.placeholder }
+    placeholder={ props.document.question ? "Question" : props.placeholder }
     layout="elementOnly"
          />
 }

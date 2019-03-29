@@ -18,18 +18,11 @@ $small-font: 1.1rem;
       overflow-wrap: break-word;
     }
   }
-  a {
-    font-weight: 400;
-  }
   .comments-item-meta {
     & > div {
       display: inline-block;
     }
     margin-bottom: 8px;
-    .users-name {
-      margin-right: 10px;
-      font-weight: 600;
-    }
   }
 
   .comments-item-bottom {
@@ -42,10 +35,6 @@ $small-font: 1.1rem;
   }
 
   .comments-item-bottom, .comments-item-meta {
-    a {
-      color: rgba(0,0,0,0.87);
-      text-decoration: none;
-    }
     .vote {
       display: inline;
     }
@@ -59,23 +48,6 @@ $small-font: 1.1rem;
 }
 
 
-
-/*
-
-New CSS File
-
-*/
-
-.posts-comments-thread {
-  font-weight:400;
-  font-family: $comments-font;
-  max-width:720px;
-  margin:80px auto $vmargin auto;
-}
-
-.posts-comments-thread .content-editor-is-empty {
-  font-size:15px !important;
-}
 
 .comments-item-body, .recent-comments-item-body {
   font-family: $comments-font;
@@ -105,19 +77,6 @@ New CSS File
 .comments-node-linked {
   border-left: solid 5px #1B5266;
   animation: ea-blue-fade 5s ease-in-out 0s;
-}
-
-.recent-comments-item {
-  .recent-comments-item-meta {
-    .users-name {
-      color: rgba(0,0,0,0.87);
-    }
-  }
-}
-
-.comments-subscribe:hover {
-  text-decoration: none;
-  color: inherit;
 }
 
 .comments-item-body{
@@ -151,10 +110,6 @@ New CSS File
     margin-right: 5px;
   }
 
-  .users-name{
-    margin-right: $hmargin;
-  }
-
   .comments-collapse{
     margin-right: 5px;
     opacity: 0.8;
@@ -169,25 +124,6 @@ New CSS File
     }
   }
 
-  .comments-item-date{
-    display: inline-block;
-    margin-right: 2px;
-    color: rgba(0,0,0,0.5);
-    font-size: $small-font;
-    a {
-      color: rgba(0,0,0,0.5);
-      .comments-item-permalink{
-          color: rgba(0,0,0,0.5);
-      }
-
-    }
-  }
-  .comment-edit, .comment-delete {
-    font-size: $small-font;
-  }
-  .comment-delete {
-    margin-left: 8px;
-  }
   .comments-item-origin {
     display: inline-block;
     color: rgba(0,0,0,0.4);
@@ -201,7 +137,7 @@ New CSS File
     }
     color: rgba(0,0,0,0.3);
   }
-  a:hover, a:active, a:focus {
+  a:hover, a:active {
     text-decoration: none;
     color: rgba(0,0,0,0.3) !important;
     .comments-item-permalink {
@@ -231,7 +167,7 @@ New CSS File
   }
 }
 
-.comments-edit-form, .comments-new-form{
+.comments-edit-form {
   position:relative;
   padding-bottom:12px;
   .form-submit {
@@ -248,18 +184,8 @@ New CSS File
   margin-top: $vmargin;
   padding:10px;
   border:solid 1px rgba(0,0,0,.2);
-  .comments-new-form, .comments-edit-form {
+  .comments-edit-form {
     padding-bottom: 0px;
-  }
-}
-
-.comment-actions{
-  @include flex-center;
-  button{
-    margin-right: $hmargin;
-  }
-  a{
-    display: block;
   }
 }
 
@@ -272,11 +198,10 @@ New CSS File
   }
   @include max-tiny() {
     margin:0px;
+    .comments-item {
+      padding:0px 7px;
+    }
   }
-}
-
-.recent-comments-item {
-  padding-bottom: 3px;
 }
 
 .comments-item-text.collapsed {
@@ -293,16 +218,6 @@ New CSS File
   margin-left: 10px;
 }
 
-.read-more {
-  color: rgba(0, 0, 0, 0.5) !important;
-  background-image: none !important;
-  margin-left: 2px;
-  &:hover {
-    color: rgba(0, 0, 0, 0.3) !important;
-  }
-}
-
-
 .comments-node-even {
   background-color: rgb(242,242,242);
 }
@@ -313,34 +228,43 @@ New CSS File
   background-color: white;
 }
 .comments-node-its-getting-nested-here {
-  margin-left:9px !important;
+  margin-left:7px !important;
+  margin-bottom:7px !important;
 }
 .comments-node-so-take-off-all-your-margins {
-  margin-left:8px !important;
+  margin-left:6px !important;
+  margin-bottom:6px !important;
 }
 .comments-node-im-getting-so-nested {
-  margin-left:7px !important;
+  margin-left:5px !important;
+  margin-bottom:5px !important;
 }
 .comments-node-im-gonna-drop-my-margins {
-  margin-left:6px !important;
+  margin-left:5px !important;
+  margin-bottom:5px !important;
 }
 .comments-node-what-are-you-even-arguing-about {
-  margin-left:5px !important;
+  margin-left:4px !important;
+  margin-bottom:4px !important;
 }
 .comments-node-are-you-sure-this-is-a-good-idea {
-  margin-left:4px !important;
+  margin-left:3px !important;
+  margin-bottom:3px !important;
 }
 .comments-node-seriously-what-the-fuck {
-  margin-left:3px !important;
+  margin-left:2px !important;
+  margin-bottom:2px !important;
   transform: rotate(.5deg);
 }
 .comments-node-are-you-curi-and-lumifer-specifically {
-  margin-left:2px !important;
+  margin-left:1px !important;
+  margin-bottom:1px !important;
   transform: rotate(1deg);
 }
 .comments-node-cuz-i-guess-that-makes-sense-but-like-really-tho {
   margin-left:1px !important;
-  transform: rotate(3deg);
+  margin-bottom:1px !important;
+  transform: rotate(-1deg);
 }
 
 .recent-comments-node {
@@ -390,37 +314,6 @@ New CSS File
   }
 }
 
-.posts-item-new-comments-section {
-  background-color: rgba(0,0,0,.05);
-  padding:7px 9px 25px 9px;
-}
-.comment-context-link {
-  font-family: $comments-font;
-  text-align:right;
-  color:rgba(0,0,0,.5);
-  margin-right:10px;
-}
-
-.posts-item-new-comments-wrapper .comment-new .comments-node.comments-node-root {
-  margin-top:3px;
-  margin-bottom:10px;
-  &:hover {
-    text-decoration:none;
-    color:rgba(0,0,0,.35);
-  }
-}
-
-.i18n-message.author_has_banned_you {
-  padding:1em 0;
-}
-
-.comments-delete-modal-body {
-  padding-bottom: 10px !important;
-  p {
-    font-family: $comments-font !important;
-  }
-}
-
 .comments-delete-modal-textfield {
   margin-top: 10px;
 }
@@ -437,26 +330,6 @@ New CSS File
 
 .comments-children {
   position:relative;
-}
-.comments-parent-scroll {
-  position:absolute;
-  top:0;
-  left:0;
-  width:10px;
-  height:100%;
-  cursor:pointer;
-
-  &:hover {
-    background-color:rgba(0,0,0,.075);
-  }
-}
-
-.discussion-thread-list {
-  margin:-2px 10px;
-
-  @include max-tiny() {
-    margin:-2px 0;
-  }
 }
 
 .recent-comment-parent.root {

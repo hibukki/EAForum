@@ -222,6 +222,10 @@ Picker.route('/rss/comments.xml', (params, req, res, next) => {
   return makeRedirect(res, '/feed.xml?type=comments');
 });
 
+Picker.route('/daily', (params, req, res, next) => {
+  return makeRedirect(res, '/allPosts');
+});
+
 // Route for old general RSS (all posts)
 Picker.route('/:section?/:subreddit?/:new?/.rss', (params, req, res, next) => {
   return makeRedirect(res, '/feed.xml');
@@ -265,4 +269,10 @@ Picker.route('/item', (params, req, res, next) => {
     res.statusCode = 404
     res.end("Please provide a URL");
   }
+});
+
+// Secondary way of specifying favicon for browser or RSS readers that don't
+// support using a meta tag (the preferred approach).
+Picker.route('/favicon.ico', (params, req, res, next) => {
+  makeRedirect(res, getSetting('faviconUrl'));
 });

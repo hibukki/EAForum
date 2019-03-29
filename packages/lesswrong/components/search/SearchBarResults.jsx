@@ -1,17 +1,15 @@
 import React, { Component } from 'react';
 import { registerComponent, Components } from 'meteor/vulcan:core';
-import PropTypes from 'prop-types';
-import {
-  Hits,
-  Configure,
-  Index } from 'react-instantsearch/dom';
+import { Hits, Configure, Index, CurrentRefinements } from 'react-instantsearch-dom';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
+import { algoliaIndexNames } from '../../lib/algoliaIndexNames.js';
 
 const styles = theme => ({
   root: {
     backgroundColor: theme.palette.background.default,
+    color: "rgba(0,0,0, 0.87)",
     transition: "opacity .1s ease-in-out",
     height: 2000,
     width:"100%",
@@ -21,11 +19,26 @@ const styles = theme => ({
     top: 64,
     [theme.breakpoints.down('small')]: {
       top:48,
-    }
+    },
+    "& .ais-CurrentRefinements": {
+      display: 'inline-block',
+      position: 'absolute',
+      padding: '0px 16px',
+      top: 16
+    },
+    "& .ais-CurrentRefinements-item": {
+      border: '1px solid rgba(0,0,0,0.3)',
+      borderRadius: 20,
+      padding: '8px',
+    },
+    "& .ais-CurrentRefinements-label": {
+      marginRight: 5
+    },
   },
   searchResults: {
     maxWidth: 1200,
     margin: "auto",
+    paddingTop: 20
   },
   searchList: {
     padding:theme.spacing.unit*2
@@ -51,9 +64,10 @@ class SearchBarResults extends Component {
 
     return <div className={classes.root}>
       <Grid container className={classes.searchResults}>
+        <CurrentRefinements />
         <Components.ErrorBoundary>
           <Grid item xs={12} sm={6} md={5} className={classes.searchList}>
-            <Index indexName="test_posts">
+            <Index indexName={algoliaIndexNames.Posts}>
               <div className={classes.header}>
                 <Typography variant="display1">Posts</Typography>
                 <Components.SearchPagination />
@@ -66,7 +80,7 @@ class SearchBarResults extends Component {
         </Components.ErrorBoundary>
         <Components.ErrorBoundary>
           <Grid item xs={12} sm={6} md={4} className={classes.searchList}>
-            <Index indexName="test_comments">
+            <Index indexName={algoliaIndexNames.Comments}>
               <div className={classes.header}>
                 <Typography variant="display1">Comments</Typography>
                 <Components.SearchPagination />
@@ -78,7 +92,7 @@ class SearchBarResults extends Component {
         </Components.ErrorBoundary>
         <Components.ErrorBoundary>
           <Grid item xs={12} sm={4} md={3} className={classes.searchList}>
-            <Index indexName= "test_users">
+            <Index indexName={algoliaIndexNames.Users}>
               <div className={classes.header}>
                 <Typography variant="display1">Users</Typography>
                 <Components.SearchPagination />

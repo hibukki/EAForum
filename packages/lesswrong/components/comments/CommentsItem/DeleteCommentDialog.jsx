@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
-import { registerComponent, withMessages, Components } from 'meteor/vulcan:core';
-import PropTypes from 'prop-types';
+import { registerComponent, withMessages } from 'meteor/vulcan:core';
 import withModerateComment from './withModerateComment.js'
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -21,7 +20,7 @@ class DeleteCommentDialog extends PureComponent {
   state = { deletedReason: "" }
 
   handleDelete = (event) => {
-    const { moderateCommentMutation, onRequestClose, comment, flash } = this.props
+    const { moderateCommentMutation, onClose, comment, flash } = this.props
     event.preventDefault();
     moderateCommentMutation({
       commentId: comment._id,
@@ -30,12 +29,12 @@ class DeleteCommentDialog extends PureComponent {
       deletedReason: this.state.deletedReason,
     }).then(()=>{
       flash({messageString: "Successfully deleted comment", type: "success"})
-      onRequestClose()
+      onClose()
     }).catch(/* error */);
   }
 
   handleDeletePublic = (event) => {
-    const { moderateCommentMutation, onRequestClose, comment, flash } = this.props
+    const { moderateCommentMutation, onClose, comment, flash } = this.props
 
     event.preventDefault();
     moderateCommentMutation({
@@ -45,14 +44,14 @@ class DeleteCommentDialog extends PureComponent {
       deletedReason: this.state.deletedReason,
     }).then(()=>{
       flash({messageString: "Successfully deleted comment", type: "success"})
-      onRequestClose()
+      onClose()
     }).catch(/* error */);
   }
 
   render() {
-    const { onRequestClose, classes } = this.props
+    const { onClose, classes } = this.props
     return (
-      <Dialog open={true} onClose={onRequestClose}>
+      <Dialog open={true} onClose={onClose}>
         <DialogTitle>
           What is your reason for deleting this comment?
         </DialogTitle>
@@ -63,18 +62,17 @@ class DeleteCommentDialog extends PureComponent {
             id="comment-menu-item-delete-reason"
             label="Reason for deleting (optional)"
             className="comments-delete-modal-textfield"
-            underlineShow={false}
             value={this.state.deletedReason}
-            onChange={((event,newValue)=> {this.setState({deletedReason:newValue})})}
+            onChange={((event)=> {this.setState({deletedReason:event.target.value})})}
             fullWidth
-            multiLine
+            multiline
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={this.handleDelete} className={classes.deleteWithoutTrace}>
             Delete Without Trace
           </Button>
-          <Button onClick={onRequestClose}>
+          <Button onClick={onClose}>
             Cancel
           </Button>
           <Button color="primary" onClick={this.handleDeletePublic}>

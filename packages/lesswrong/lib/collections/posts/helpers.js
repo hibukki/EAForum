@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { Posts } from './collection.js';
 import Users from 'meteor/vulcan:users';
 import { Utils, getSetting, registerSetting } from 'meteor/vulcan:core';
@@ -38,15 +37,6 @@ Posts.getShareableLink = function (post) {
  */
 Posts.getLinkTarget = function (post) {
   return !!post.url ? '_blank' : '';
-};
-
-/**
- * @summary Get URL of a post page.
- * @param {Object} post
- */
-Posts.getPageUrl = function(post, isAbsolute = false){
-  const prefix = isAbsolute ? Utils.getSiteUrl().slice(0,-1) : '';
-  return `${prefix}/posts/${post._id}/${post.slug}`;
 };
 
 ///////////////////
@@ -104,20 +94,6 @@ Posts.isPending = function (post) {
   return post.status === Posts.config.STATUS_PENDING;
 };
 
-
-/**
- * @summary Check to see if post URL is unique.
- * We need the current user so we know who to upvote the existing post as.
- * @param {String} url
- */
-Posts.checkForSameUrl = function (url) {
-
-  // check that there are no previous posts with the same link in the past 6 months
-  var sixMonthsAgo = moment().subtract(6, 'months').toDate();
-  var postWithSameLink = Posts.findOne({url: url, postedAt: {$gte: sixMonthsAgo}});
-
-  return !!postWithSameLink;
-};
 
 /**
  * @summary When on a post page, return the current post
@@ -197,12 +173,27 @@ Posts.getPageUrl = function(post, isAbsolute = false){
 };
 
 Posts.getCommentCount = (post) => {
-  if (getSetting('AlignmentForum')) {
+  if (getSetting('AlignmentForum', false)) {
     return post.afCommentCount || 0;
   } else {
     return post.commentCount || 0;
   }
 }
+
+Posts.getCommentCountStr = (post, commentCount) => {
+  // can be passed in a manual comment count, or retrieve the post's cached comment count
+
+  const count = commentCount != undefined ? commentCount :  Posts.getCommentCount(post)
+
+  if (!count) {
+    return "No comments"
+  } else if (count == 1) {
+    return "1 comment"
+  } else {
+    return count + " comments"
+  }
+}
+
 
 Posts.getLastCommentedAt = (post) => {
   if (getSetting('AlignmentForum')) {
@@ -214,4 +205,11 @@ Posts.getLastCommentedAt = (post) => {
 
 Posts.canEdit = (currentUser, post) => {
   return Users.owns(currentUser, post) || Users.canDo(currentUser, 'posts.edit.all')
+}
+
+Posts.canDelete = (currentUser, post) => {
+  if (Users.canDo(currentUser, "posts.remove.all")) {
+    return true
+  }
+  return Users.owns(currentUser, post) && post.draft
 }

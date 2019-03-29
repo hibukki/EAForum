@@ -159,14 +159,82 @@ Vulcan.createStyledPost = async () => {
   const post = await createDummyPost(user, {
     title: "Styled Post",
     slug: "styled-post",
-    body: makeStyledBody(),
-    af: true,
+    contents: {
+      originalContents: {
+        data: makeStyledBody(),
+        type: "html"
+      }
+    },
     frontpageDate: new Date(),
+    curatedDate: new Date(),
   })
 
   await createDummyComment(user, {
     postId: post._id,
-    body: makeStyledBody()
+    contents: {
+      originalContents: {
+        data: makeStyledBody(),
+        type: "html"
+      }
+    },
+  })
+}
+
+Vulcan.createStyledAFPost = async () => {
+  const user = Users.findOne();
+  // Create a post
+
+  const post = await createDummyPost(user, {
+    title: "Styled Post",
+    slug: "styled-post",
+    contents: {
+      originalContents: {
+        data: makeStyledBody(),
+        type: "html"
+      }
+    },
+    af: true,
+    frontpageDate: new Date(),
+    curateDate: new Date(),
+  })
+
+  await createDummyComment(user, {
+    postId: post._id,
+    contents: {
+      originalContents: {
+        data: makeStyledBody(),
+        type: "html"
+      }
+    },
+  })
+}
+
+Vulcan.createStyledQuestion = async () => {
+  const user = Users.findOne();
+  // Create a post
+
+  const post = await createDummyPost(user, {
+    title: "Styled Post",
+    slug: "styled-post",
+    contents: {
+      originalContents: {
+        data: makeStyledBody(),
+        type: "html"
+      }
+    },
+    question: true,
+    frontpageDate: new Date(),
+    curatedDate: new Date(),
+  })
+
+  await createDummyComment(user, {
+    postId: post._id,
+    contents: {
+      originalContents: {
+        data: makeStyledBody(),
+        type: "html"
+      }
+    },
   })
 }
 
@@ -178,7 +246,10 @@ Vulcan.createTestPostSet = async () =>
 {
   //eslint-disable-next-line no-console
   console.log("Creating a set of bulky posts to test for load-time problems. This may take awhile...");
+
   await Vulcan.createStyledPost()
+  await Vulcan.createStyledAFPost()
+  await Vulcan.createStyledQuestion()
 
   await Vulcan.createBulkyTestPost({
     postTitle: "Test post with 100 flat comments",
@@ -253,7 +324,12 @@ Vulcan.createBulkyTestPost = async ({
 
   let dummyPostFields = {
     title: postTitle,
-    body: body
+    contents: {
+      originalContents: {
+        data: body,
+        type: "html"
+      }
+    },
   };
   if (backDate) {
     dummyPostFields.createdAt = backDate;
@@ -267,7 +343,12 @@ Vulcan.createBulkyTestPost = async ({
     //eslint-disable-next-line no-await-in-loop
     var rootComment = await createDummyComment(user, {
       postId: post._id,
-      body: makeLoremIpsumBody(commentParagraphCount, commentParagraphLength)
+      contents: {
+        originalContents: {
+          data: makeLoremIpsumBody(commentParagraphCount, commentParagraphLength),
+          type: "html"
+        }
+      },
     })
 
     // If commentDepth>1, create a series of replies-to-replies under the top-level replies
@@ -276,7 +357,12 @@ Vulcan.createBulkyTestPost = async ({
       var childComment = await createDummyComment(user, {
         postId: post._id,
         parentCommentId: parentCommentId,
-        body: makeLoremIpsumBody(commentParagraphCount, commentParagraphLength)
+        contents: {
+          originalContents: {
+            data: makeLoremIpsumBody(commentParagraphCount, commentParagraphLength),
+            type: "html"
+          }
+        },
       });
       parentCommentId = childComment._id
     }
@@ -284,12 +370,12 @@ Vulcan.createBulkyTestPost = async ({
 }
 
 // Create a set of test posts that are back-dated, one per hour for the past
-// ten days. Primarily for testing time-zone handling on /daily.
+// ten days. Primarily for testing time-zone handling on /allPosts (in daily mode).
 Vulcan.createBackdatedPosts = async () =>
 {
   //eslint-disable-next-line no-console
   console.log("Creating back-dated test post set");
-  
+
   for(let i=0; i<24*10; i++) {
     const backdateTime = moment().subtract(i, 'hours').toDate();
     await Vulcan.createBulkyTestPost({
@@ -298,7 +384,7 @@ Vulcan.createBackdatedPosts = async () =>
       backDate: backdateTime,
     });
   }
-  
+
   //eslint-disable-next-line no-console
   console.log("Done");
 }

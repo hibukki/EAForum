@@ -217,10 +217,6 @@ figure:after {
   position: static !important;
 }
 
-.comments-new-form {
-  position: static !important;
-}
-
 .image-form-invalid {
   color: #e65757;
 }
@@ -237,8 +233,10 @@ figure:after {
 }
 
 .content-editor-is-empty:before {
-    content: "Write here. Select text for formatting options. We support LaTeX! (Ctrl-4 for inline equations, Ctrl-M for block-level equations). You can switch to a markdown editor in your user settings.";
-    max-width: 640px;
+    content: "Write here. Select text for formatting options.\A
+    You can switch to a markdown editor in your user settings.\A
+    We support LaTeX! Cmd-4 for inline, Cmd-M for block-level (Ctrl on Windows).";
+    max-width: 540px;
     position: absolute;
     color: rgba(0,0,0,0.55);
     font-weight: 200;

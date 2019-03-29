@@ -1,20 +1,15 @@
 import Users from "meteor/vulcan:users";
-
-Users.addView('LWSunshinesList', function(terms) {
-  return {
-    selector: {groups:'sunshineRegiment'},
-    options: {
-      sort: terms.sort
-    }
-  }
-});
+import { ensureIndex } from '../../../collectionUtils';
 
 
 Users.addView("alignmentSuggestedUsers", function () {
   return {
     selector: {
+      $or: [
+        {afKarma: {$gte:10}},
+        {afSubmittedApplication: true},
+      ],
       groups: {$nin: ['alignmentForum']},
-      afKarma: {$gte:10},
       reviewForAlignmentForumUserId: {$exists:false}
     },
     options: {
@@ -24,3 +19,10 @@ Users.addView("alignmentSuggestedUsers", function () {
     }
   }
 })
+
+ensureIndex(Users,
+  { afKarma:1, reviewForAlignmentForumUserId:1, groups:1, createdAt:1 }
+);
+ensureIndex(Users,
+  { afSubmittedApplication:1, reviewForAlignmentForumUserId:1, groups:1, createdAt:1 }
+);

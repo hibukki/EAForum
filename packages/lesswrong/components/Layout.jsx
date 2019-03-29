@@ -1,8 +1,7 @@
 import { Components, registerComponent, getSetting } from 'meteor/vulcan:core';
-// import { InstantSearch} from 'react-instantsearch/dom';
+// import { InstantSearch} from 'react-instantsearch-dom';
 import React, { PureComponent } from 'react';
 import { withRouter } from 'react-router';
-import PropTypes from 'prop-types';
 import Helmet from 'react-helmet';
 import { withApollo } from 'react-apollo';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -10,13 +9,15 @@ import classNames from 'classnames'
 import Intercom from 'react-intercom';
 import moment from 'moment-timezone';
 
-import V0MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import { customizeTheme } from '../lib/modules/utils/theme';
 import { withStyles, withTheme } from '@material-ui/core/styles';
 import getHeaderSubtitleData from '../lib/modules/utils/getHeaderSubtitleData';
 import { UserContext } from './common/withUser';
 import { TimezoneContext } from './common/withTimezone';
 import { DialogManager } from './common/withDialog';
+import { TableOfContentsContext } from './posts/TableOfContents/TableOfContents';
+
+import Users from 'meteor/vulcan:users';
+import { SplitComponent } from 'meteor/vulcan:routing';
 
 const intercomAppId = getSetting('intercomAppId', 'wtb8z7sj');
 
@@ -41,15 +42,36 @@ const styles = theme => ({
         marginBottom: 0,
       }
     },
-  }
+  },
+  searchResultsArea: {
+    position: "absolute",
+    zIndex: theme.zIndexes.layout,
+    top: 0,
+    width: "100%",
+  },
 })
 
 class Layout extends PureComponent {
-  constructor(props) {
-    super(props);
-    this.state = {
-      timezone: null
-    };
+  state = {
+    timezone: null,
+    toc: null,
+  };
+  
+  searchResultsAreaRef = React.createRef();
+
+  setToC = (document, sectionData) => {
+    if (document) {
+      this.setState({
+        toc: {
+          document: document,
+          sections: sectionData && sectionData.sections
+        }
+      });
+    } else {
+      this.setState({
+        toc: null,
+      });
+    }
   }
 
   componentDidMount() {
@@ -61,9 +83,14 @@ class Layout extends PureComponent {
     }
   }
 
+  shouldRenderSidebar = () => {
+    const { currentUser } = this.props
+    return Users.canDo(currentUser, 'posts.moderate.all') ||
+      Users.canDo(currentUser, 'alignment.sidebar')
+  }
+
   render () {
     const {currentUser, children, currentRoute, location, params, client, classes, theme} = this.props;
-    const {userAgent} = this.context;
 
     const showIntercom = currentUser => {
       if (currentUser && !currentUser.hideIntercom) {
@@ -96,15 +123,15 @@ class Layout extends PureComponent {
     return (
       <UserContext.Provider value={currentUser}>
       <TimezoneContext.Provider value={this.state.timezone}>
-      <div className={classNames("wrapper", {'alignment-forum': getSetting('AlignmentForum', false)}) } id="wrapper">
-        <V0MuiThemeProvider muiTheme={customizeTheme(currentRoute, userAgent, params, client.store)}>
+      <TableOfContentsContext.Provider value={this.setToC}>
+        <div className={classNames("wrapper", {'alignment-forum': getSetting('AlignmentForum', false)}) } id="wrapper">
           <DialogManager>
           <div>
             <CssBaseline />
             <Helmet>
               <title>{title}</title>
               <link name="material-icons" rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-              <link name="react-instantsearch" rel="stylesheet" type="text/css" href="https://unpkg.com/react-instantsearch-theme-algolia@4.0.0/style.min.css"/>
+              <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css@7.0.0/themes/reset-min.css"/>
               <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"/>
               { theme.typography.fontDownloads &&
                   theme.typography.fontDownloads.map(
@@ -120,30 +147,24 @@ class Layout extends PureComponent {
             {/* Sign up user for Intercom, if they do not yet have an account */}
             {showIntercom(currentUser)}
             <noscript className="noscript-warning"> This website requires javascript to properly function. Consider activating javascript to get access to all site functionality. </noscript>
-            <Components.Header {...this.props}/>
-
+            <Components.Header toc={this.state.toc} searchResultsArea={this.searchResultsAreaRef} />
+            <div ref={this.searchResultsAreaRef} className={classes.searchResultsArea} />
             <div className={classes.main}>
               <Components.ErrorBoundary>
                 <Components.FlashMessages />
               </Components.ErrorBoundary>
               {children}
-              <Components.ErrorBoundary>
-                <Components.SunshineSidebar />
-              </Components.ErrorBoundary>
+              {this.shouldRenderSidebar() && <SplitComponent name="SunshineSidebar" />}
             </div>
-            {/* <Components.Footer />  Deactivated Footer, since we don't use one. Might want to add one later*/ }
+            <Components.Footer />
           </div>
           </DialogManager>
-        </V0MuiThemeProvider>
-      </div>
+        </div>
+      </TableOfContentsContext.Provider>
       </TimezoneContext.Provider>
       </UserContext.Provider>
     )
   }
-}
-
-Layout.contextTypes = {
-  userAgent: PropTypes.string,
 }
 
 Layout.displayName = "Layout";

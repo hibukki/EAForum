@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Components, replaceComponent } from 'meteor/vulcan:core';
+import { replaceComponent } from 'meteor/vulcan:core';
 import Users from 'meteor/vulcan:users';
 import Button from '@material-ui/core/Button';
 import { withTheme, withStyles } from '@material-ui/core/styles';
@@ -15,16 +15,16 @@ const styles = theme => ({
     fontFamily: commentFonts,
     fontSize: "16px",
     marginLeft: "5px",
-    
+
     "&:hover": {
       background: "rgba(0,0,0, 0.05)",
     }
   },
-  
+
   secondaryButton: {
     color: "rgba(0,0,0,0.4)",
   },
-  
+
   submitButton: {
     color: theme.palette.secondary.main,
   },
@@ -50,7 +50,7 @@ const FormSubmit = ({
     {collectionName === "posts" && <span className="post-submit-buttons">
       { !document.isEvent &&
         !document.meta &&
-        Users.canDo(currentUser, 'posts.curate.all') &&
+        Users.canDo(currentUser, 'posts.curate.all') && !document.question &&
           <Button
             type="submit"
             className={classNames(classes.formButton, classes.secondaryButton)}
@@ -74,7 +74,7 @@ const FormSubmit = ({
         Save as draft
       </Button>
 
-      {Users.canDo(currentUser, 'posts.curate.all') && !document.meta &&
+      {Users.canDo(currentUser, 'posts.curate.all') && !document.meta && !document.question &&
         <Button
           type="submit"
           className={classNames(classes.formButton, classes.secondaryButton)}
@@ -112,10 +112,6 @@ const FormSubmit = ({
     >
       {submitLabel}
     </Button>
-
-    {collectionName === "comments" && document && document.postId && <span className="comment-submit-buttons">
-      <Components.ModerationGuidelinesLink showModeratorAssistance documentId={document.postId}/>
-    </span>}
   </div>
 );
 
@@ -139,6 +135,7 @@ FormSubmit.contextTypes = {
 }
 
 
+// Replaces FormSubmit from vulcan-forms.
 replaceComponent('FormSubmit', FormSubmit,
   withUser, withTheme(),
   withStyles(styles, { name: "FormSubmit" })

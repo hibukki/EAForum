@@ -1,9 +1,8 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import Notifications from '../../lib/collections/notifications/collection.js';
 import Badge from '@material-ui/core/Badge';
-import { Components, registerComponent, withList } from 'meteor/vulcan:core';
-import IconButton from 'material-ui/IconButton';
+import { registerComponent, withList } from 'meteor/vulcan:core';
+import IconButton from '@material-ui/core/IconButton';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
 import { withStyles } from '@material-ui/core/styles';
@@ -24,7 +23,13 @@ const styles = theme => ({
     right: "1px",
     top: "1px",
     pointerEvents: "none",
-  }
+  },
+  buttonOpen: {
+    backgroundColor: "rgba(0,0,0,0.4)"
+  },
+  buttonClosed: {
+    backgroundColor: "rgba(0,0,0,0)"
+  },
 });
 
 const NotificationsMenuButton = (props) => {
@@ -37,9 +42,7 @@ const NotificationsMenuButton = (props) => {
   }
 
 
-  const notificationButtonStyle = {
-    backgroundColor: open ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0)"
-  }
+  const buttonClass = open ? classes.buttonOpen : classes.buttonClosed;
   const notificationIconStyle = {
     color: open ? "#FFFFFF" : (color || "rgba(0,0,0,0.6)"),
   }
@@ -49,7 +52,11 @@ const NotificationsMenuButton = (props) => {
       classes={{ root: classes.badgeContainer, badge: classes.badge }}
       badgeContent={(filteredResults && filteredResults.length) || ""}
     >
-      <IconButton className="notifications-menu-button" onClick={toggle} style={notificationButtonStyle} iconStyle={ notificationIconStyle }>
+      <IconButton
+          classes={{ root: buttonClass }}
+          onClick={toggle}
+          style={ notificationIconStyle }
+      >
         {filteredResults && filteredResults.length ? <NotificationsIcon /> : <NotificationsNoneIcon />}
       </IconButton>
     </Badge>
@@ -63,7 +70,8 @@ const options = {
   pollInterval: 0,
   limit: 20,
   enableTotal: false,
-  fetchPolicy: 'cache-and-network'
+  fetchPolicy: 'cache-and-network',
+  ssr: true,
 };
 
 registerComponent('NotificationsMenuButton', NotificationsMenuButton, [withList, options], withUser, withStyles(styles, { name: "NotificationsMenuButton" }))

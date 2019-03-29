@@ -7,8 +7,6 @@ import commentMockProps from '../../components/comments/CommentsItem/_comments-u
 import CommentsItem from '../../components/comments/CommentsItem/CommentsItem.jsx'
 import CommentsListSection from '../../components/comments/CommentsListSection.jsx'
 
-import { Components } from 'meteor/vulcan:core';
-
 import Adapter from 'enzyme-adapter-react-16';
 import ApolloClient from 'apollo-client';
 
@@ -37,7 +35,7 @@ describe('Commenting while banned from post --', async () => {
       />)
     expect(commentsItem.find(".comments-item-reply-link")).to.have.length(0);
   });
-  it('CommentsItem renders reply-button when user is in a Post bannedUserIds list but PostAuthor NOT in trustLevel1', async () => {
+  it('CommentsItem does not render reply-button when user is in a Post bannedUserIds list but PostAuthor NOT in trustLevel1', async () => {
     const user = await createDummyUser()
     const author = await createDummyUser()
     const post = await createDummyPost(author, {bannedUserIds:[user._id]})
@@ -48,7 +46,7 @@ describe('Commenting while banned from post --', async () => {
         currentUser={user}
         post={post}
       />)
-    expect(commentsItem.find(".comments-item-reply-link")).to.have.length(1);
+    expect(commentsItem.find(".comments-item-reply-link")).to.have.length(0);
   });
   it('CommentsItem does NOT render reply-button when user is in a User bannedUserIds list', async () => {
     const user = await createDummyUser()
@@ -128,7 +126,14 @@ describe('Commenting while banned from post --', async () => {
     )
     expect(commentsListSection.find("#posts-thread-new-comment")).to.have.length(0);
   });
-  it('commentsListSection does NOT render banned_message when user is NOT in a User bannedUserIds list', () => {
+  
+  // These tests are disabled because they were built on a brittle assumption
+  // which no longer holds: that the relevant part of the resulting React tree
+  // is present when only a shallow render is done (as opposed to a full
+  // render). We can't do a full render in this context because we don't have
+  // Apollo, and we also can't provide a user correctly without a full render
+  // because shallow rendering can't do context variables.
+  /*it('commentsListSection does NOT render banned_message when user is NOT in a User bannedUserIds list', () => {
     const commentsListSection = shallow(
       <CommentsListSection
         { ...commentListMockProps}
@@ -160,7 +165,7 @@ describe('Commenting while banned from post --', async () => {
       {context:{client:mockClient}}
     )
     expect(commentsListSection.find(".author_has_banned_you")).to.have.length(1);
-  });
+  });*/
 });
 
 // describe('BanUserSubmenu --', () => {

@@ -2,13 +2,20 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Components, registerComponent } from 'meteor/vulcan:core';
 import Typography from '@material-ui/core/Typography';
+import Hidden from '@material-ui/core/Hidden';
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
+  root: {
+    marginTop: theme.spacing.unit,
+    marginBottom: theme.spacing.unit*3
+  },
   dayTitle: {
-    marginTop: theme.spacing.unit*2,
-    marginBottom: theme.spacing.unit,
-    ...theme.typography.postStyle
+    marginBottom: theme.spacing.unit*2,
+    whiteSpace: "pre",
+    textOverflow: "ellipsis",
+    ...theme.typography.postStyle,
+    fontWeight: 600
   },
   noPosts: {
     marginLeft: "23px",
@@ -19,17 +26,23 @@ const styles = theme => ({
 class PostsDay extends PureComponent {
 
   render() {
-    const { date, posts, classes } = this.props;
+    const { date, posts, classes, currentUser } = this.props;
     const noPosts = posts.length === 0;
+    const { PostsItem2 } = Components
 
     return (
-      <div className="posts-day">
-        <Typography variant="display2" className={classes.dayTitle} >{date.format('dddd, MMMM Do YYYY')}</Typography>
+      <div className={classes.root}>
+        <Typography variant="headline" className={classes.dayTitle}>
+          <Hidden xsDown implementation="css">
+            {date.format('dddd, MMMM Do YYYY')}
+          </Hidden>
+          <Hidden smUp implementation="css">
+            {date.format('ddd, MMM Do YYYY')}
+          </Hidden>
+        </Typography>
         { noPosts ? (<div className={classes.noPosts}>No posts on {date.format('MMMM Do YYYY')}</div>) :
-          <div className="posts-list">
-            <div className="posts-list-content">
-              {posts.map((post, index) => <Components.PostsItem post={post} key={post._id} index={index} currentUser={this.props.currentUser} />)}
-            </div>
+          <div>
+            {posts.map((post, i) => <PostsItem2 key={post._id} post={post} currentUser={currentUser} index={i} />)}
           </div>
         }
       </div>
@@ -40,7 +53,6 @@ class PostsDay extends PureComponent {
 PostsDay.propTypes = {
   currentUser: PropTypes.object,
   date: PropTypes.object,
-  number: PropTypes.number
 };
 
 registerComponent('PostsDay', PostsDay, withStyles(styles, { name: "PostsDay" }));

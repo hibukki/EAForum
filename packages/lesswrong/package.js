@@ -16,28 +16,21 @@ Package.onUse( function(api) {
     'vulcan:core',
 
     // vulcan packages
-    'vulcan:voting',
     'vulcan:accounts',
-    'vulcan:email',
     'vulcan:forms',
     'vulcan:events',
     'vulcan:embed',
     'vulcan:admin',
     'vulcan:users',
-    'vulcan:voting',
+    'vulcan:routing',
   ]);
 
-  api.mainModule('server.js', 'server');
   api.mainModule('client.js', 'client');
+  api.mainModule('server.js', 'server');
 
   api.addFiles([
     'styles/main.scss',
   ], ['client']);
-
-  api.addAssets([
-    'server/emails/templates/newPost.handlebars',
-    'server/emails/templates/wrapper.handlebars',
-  ], ['server']);
 });
 
 Package.onTest(function(api) {
@@ -47,7 +40,6 @@ Package.onTest(function(api) {
     'fourseven:scss',
     'vulcan:core',
     'vulcan:users',
-    'vulcan:voting',
     'practicalmeteor:sinon',
     'coffeescript',
     'meteortesting:mocha',

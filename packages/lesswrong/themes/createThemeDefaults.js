@@ -83,7 +83,8 @@ const createLWTheme = (theme) => {
       },
       display3: {
         color: grey[800],
-        marginTop: '1.2em'
+        marginTop: '1.2em',
+        fontSize: '3rem'
       },
       display4: {
         color: grey[800],
@@ -124,7 +125,7 @@ const createLWTheme = (theme) => {
         padding: '1rem',
         whiteSpace: 'pre-wrap',
         margin: "1em 0",
-        '& a, & a:visited, & a:hover, & a:focus, & a:active': {
+        '& a, & a:hover, & a:active': {
           ...linkStyle({
             theme,
             underlinePosition: (typography.codeblock && typography.codeblock.linkUnderlinePosition) || "97%",
@@ -164,6 +165,19 @@ const createLWTheme = (theme) => {
           color:grey[300]
         }
       }
+    },
+    zIndexes: {
+      commentsMenu: 1,
+      postsVote: 1,
+      sidebarHoverOver: 2,
+      sunshineSidebar: 1000,
+      postItemMenu: 1001,
+      layout: 1100,
+      tabNavigation: 1101,
+      header: 1300,
+      karmaChangeNotifier: 1400,
+      notificationsMenu: 1500,
+      searchBar: 100000,
     },
     voting: {
       strongVoteDelay: 1000,

@@ -2,16 +2,23 @@ import {
   Components,
   registerComponent,
   withMessages,
-  withEdit
 } from 'meteor/vulcan:core';
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import Users from 'meteor/vulcan:users';
 import { Link } from 'react-router';
 import withUser from '../common/withUser';
+import { withStyles } from '@material-ui/core/styles';
 
-const placeholderLat = 37.871853;
-const placeholderLng = -122.258423;
+const styles = theme => ({
+  listDivider: {
+    marginTop: 12,
+    marginRight: 37,
+    marginLeft: 32,
+    border: 0,
+    borderTop: "1px solid #eee",
+  },
+});
 
 class CommunityHome extends Component {
   constructor(props, context) {
@@ -19,53 +26,15 @@ class CommunityHome extends Component {
     this.state = {
       newGroupFormOpen: false,
       newEventFormOpen: false,
-      currentUserLocation: this.getUserLocation(),
+      currentUserLocation: Users.getLocation(props.currentUser),
     }
   }
 
   componentDidMount() {
-    const newLocation = this.getUserLocation();
+    const { currentUser } = this.props
+    const newLocation = Users.getLocation(currentUser);
     if (!_.isEqual(this.state.currentUserLocation, newLocation)) {
-      this.setState({ currentUserLocation: this.getUserLocation() });
-    }
-  }
-
-  // Return the current user's location, as a latitude-longitude pair, plus
-  // boolean fields `loading` and `known`. If `known` is false, the lat/lng are
-  // invalid placeholders. If `loading` is true, then `known` is false, but the
-  // state might be updated with a location later.
-  //
-  // If the user is logged in, the location specified in their account settings
-  // is used first. If the user is not logged in, then no location is available
-  // for server-side rendering, but we can try to get a location client-side
-  // using the browser geolocation API. (This won't necessarily work, since not
-  // all browsers and devices support it, and it requires user permission.)
-  getUserLocation() {
-    const currentUser = this.props.currentUser;
-    const currentUserLat = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[1]
-    const currentUserLng = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[0]
-    if (currentUserLat && currentUserLng) {
-      // First return a location from the user profile, if set
-      return {lat: currentUserLat, lng: currentUserLng, loading: false, known: true}
-    } else if (Meteor.isServer) {
-      // If there's no location in the user profile, we may still be able to get
-      // a location from the browser--but not in SSR.
-      return {lat: placeholderLat, lng:placeholderLng, loading: true, known: false};
-    } else {
-      // If we're on the browser, try to get a location using the browser
-      // geolocation API. This is not always available.
-      if (typeof window !== 'undefined' && typeof navigator !== 'undefined'
-          && navigator && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          if(position && position.coords) {
-            const navigatorLat = position.coords.latitude
-            const navigatorLng = position.coords.longitude
-            return {lat: navigatorLat, lng: navigatorLng, loading: false, known: true}
-          }
-        });
-      }
-
-      return {lat: placeholderLat, lng:placeholderLng, loading: false, known: false};
+      this.setState({ currentUserLocation: Users.getLocation(currentUser) });
     }
   }
 
@@ -94,29 +63,33 @@ class CommunityHome extends Component {
   }
 
   render() {
-    const router = this.props.router;
+    const {classes, router} = this.props;
+    const filters = (router.location.query && router.location.query.filters) || [];
+    const { TabNavigationMenu } = Components
+    
     const postsListTerms = {
       view: 'nearbyEvents',
       lat: this.state.currentUserLocation.lat,
       lng: this.state.currentUserLocation.lng,
       limit: 5,
-      filters: router.location.query && router.location.query.filters || [],
+      filters: filters,
     }
     const groupsListTerms = {
       view: 'nearby',
       lat: this.state.currentUserLocation.lat,
       lng: this.state.currentUserLocation.lng,
       limit: 3,
-      filters: router.location.query && router.location.query.filters || [],
+      filters: filters,
     }
     const mapEventTerms = {
       view: 'nearbyEvents',
       lat: this.state.currentUserLocation.lat,
       lng: this.state.currentUserLocation.lng,
-      filters: router.location.query && router.location.query.filters || [],
+      filters: filters,
     }
     return (
       <div className="community-home">
+        <TabNavigationMenu />
         <Components.CommunityMapWrapper
           terms={mapEventTerms}
         />
@@ -130,32 +103,29 @@ class CommunityHome extends Component {
           <Components.SectionSubtitle>
             <Link to="/pastEvents">See past events</Link>
           </Components.SectionSubtitle>
+          <Components.SectionSubtitle>
+            <Link to="/upcomingEvents">See upcoming events</Link>
+          </Components.SectionSubtitle>
         </div>}>
-          {this.state.currentUserLocation &&
-            <div>
-              { this.state.currentUserLocation.loading
-                ? <Components.Loading />
-                : <Components.LocalGroupsList
-                    terms={groupsListTerms}
-                    showHeader={false} />}
-              <hr className="community-home-list-divider"/>
-              <Components.PostsList
-                terms={postsListTerms}
+        <div>
+          { this.state.currentUserLocation.loading
+            ? <Components.Loading />
+            : <Components.LocalGroupsList
+                terms={groupsListTerms}
                 showHeader={false} />
-            </div>}
+          }
+          <hr className={classes.listDivider}/>
+          <Components.PostsList terms={postsListTerms} />
+        </div>
         </Components.Section>
         <Components.Section title="Resources">
-          <Components.PostsList terms={{view: 'communityResourcePosts'}} showHeader={false} showLoadMore={false} />
+          <Components.PostsList terms={{view: 'communityResourcePosts'}} showLoadMore={false} />
         </Components.Section>
       </div>
     )
   }
 }
 
-
-const withEditOptions = {
-  collection: Users,
-  fragmentName: 'UsersProfile',
-};
-
-registerComponent('CommunityHome', CommunityHome, withUser, withMessages, withRouter, [withEdit, withEditOptions]);
+registerComponent('CommunityHome', CommunityHome,
+  withUser, withMessages, withRouter,
+  withStyles(styles, { name: "CommunityHome" }));

@@ -1,25 +1,37 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Components, registerComponent, getFragment, withMessages, getSetting } from 'meteor/vulcan:core';
+import { Components, registerComponent, getFragment, withMessages, withDocument } from 'meteor/vulcan:core';
 import { intlShape } from 'meteor/vulcan:i18n';
 import { Posts } from '../../lib/collections/posts';
 import { withRouter } from 'react-router'
-import Helmet from 'react-helmet';
-import withUser from '../common/withUser';
+import { withStyles } from '@material-ui/core/styles';
+
+const styles = theme => ({
+  formSubmit: {
+    display: "flex",
+    flexWrap: "wrap",
+  }
+})
 
 class PostsEditForm extends PureComponent {
 
   render() {
-    const postId = this.props.location.query.postId;
-    const eventForm = this.props.router.location.query && this.props.router.location.query.eventForm;
-    const mapsAPIKey = getSetting('googleMaps.apiKey', null);
+    const { documentId, document, eventForm, classes } = this.props;
+    const isDraft = document && document.draft;
+    const { WrappedSmartForm, PostSubmit } = Components
+    const EditPostsSubmit = (props) => {
+      return <div className={classes.formSubmit}>
+        <PostSubmit {...props} />
+      </div>
+    }
+
     return (
       <div className="posts-edit-form">
-        {eventForm && <Helmet><script src={`https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&libraries=places`}/></Helmet>}
-        <Components.SmartForm
+        <WrappedSmartForm
           collection={Posts}
-          documentId={postId}
-          mutationFragment={getFragment('LWPostsPage')}
+          documentId={documentId}
+          queryFragment={getFragment('PostsEdit')}
+          mutationFragment={getFragment('PostsRevision')}
           successCallback={post => {
             this.props.flash({ id: 'posts.edit_success', properties: { title: post.title }, type: 'success'});
             this.props.router.push({pathname: Posts.getPageUrl(post)});
@@ -37,7 +49,11 @@ class PostsEditForm extends PureComponent {
             // this.context.events.track("post deleted", {_id: documentId});
           }}
           showRemove={true}
-          submitLabel="Save"
+          submitLabel={isDraft ? "Publish" : "Publish Changes"}
+          SubmitComponent={EditPostsSubmit}
+          extraVariables={{
+            version: 'String'
+          }}
           repeatErrors
         />
       </div>
@@ -55,4 +71,15 @@ PostsEditForm.contextTypes = {
   intl: intlShape
 }
 
-registerComponent('PostsEditForm', PostsEditForm, withMessages, withRouter, withUser);
+const documentQuery = {
+  collection: Posts,
+  queryName: 'PostsEditFormQuery',
+  fragmentName: 'PostsPage',
+  ssr: true
+};
+
+registerComponent('PostsEditForm', PostsEditForm,
+  [withDocument, documentQuery],
+  withMessages, withRouter,
+  withStyles(styles, { name: "PostsEditForm" })
+  );

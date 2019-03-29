@@ -1,25 +1,34 @@
-import { Components, registerComponent, getSetting } from 'meteor/vulcan:core';
+import { registerComponent, getSetting } from 'meteor/vulcan:core';
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import withUser from '../common/withUser';
-
 import { Meteor } from 'meteor/meteor';
 import { Link } from 'react-router';
 import Users from 'meteor/vulcan:users';
 import { withApollo } from 'react-apollo';
 
-import Popover from 'material-ui/Popover';
-import Menu from 'material-ui/Menu';
-import MenuItem from 'material-ui/MenuItem';
+import Menu from '@material-ui/core/Menu';
 import Button from '@material-ui/core/Button';
-
+import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 
+import withUser from '../common/withUser';
+import withDialog from '../common/withDialog'
+
 const styles = theme => ({
-  userButton: {
+  root: {
+    marginTop: 5,
+  },
+  userButtonContents: {
     textTransform: 'none',
     fontSize: '16px',
     fontWeight: 400,
+  },
+  notAMember: {
+    marginLeft: 5,
+    opacity: 0.9
+  },
+  menu: {
+    marginTop: theme.spacing.unit*5
   }
 })
 
@@ -46,35 +55,60 @@ class UsersMenu extends PureComponent {
   }
 
   render() {
-    let { currentUser, client, classes, color } = this.props;
+    let { currentUser, client, classes, color, openDialog } = this.props;
+
+    if (!currentUser) return null;
+
+    const showNewButtons = !getSetting('AlignmentForum') || Users.canDo(currentUser, 'posts.alignment.new')
+    const showNewShortformButton = showNewButtons && !!currentUser.shortformFeedId
+    const isAfMember = currentUser.groups && currentUser.groups.includes('alignmentForum')
+
 
     return (
-      <div className="users-menu">
+      <div className={classes.root}>
         <Button onClick={this.handleClick}>
-          <span className={classes.userButton} style={{ color: color }}>
+          <span className={classes.userButtonContents} style={{ color: color }}>
             {Users.getDisplayName(currentUser)}
+            {getSetting('AlignmentForum', false) && !isAfMember && <span className={classes.notAMember}> (Not a Member) </span>}
           </span>
         </Button>
-        <Popover
+        <Menu
+          className={classes.menu}
           open={this.state.open}
           anchorEl={this.state.anchorEl}
-          anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
-          targetOrigin={{horizontal: 'right', vertical: 'top'}}
-          onRequestClose={this.handleRequestClose}
+          onClose={this.handleRequestClose}
         >
-          <Menu className="users-menu-contents">
-            { !getSetting('AlignmentForum')
-                ? <MenuItem primaryText="New Post" containerElement={<Link to={`/newPost`}/>} />
-                : Users.canDo(currentUser, 'posts.alignment.new')
-                  ? <MenuItem primaryText="New Post" containerElement={<Link to={`/newPost`}/>} />
-                  : null
+            {showNewButtons &&
+              <MenuItem onClick={()=>openDialog({componentName:"NewQuestionDialog"})}>
+                Ask Question [Beta]
+              </MenuItem>
             }
-            <MenuItem primaryText="Profile" containerElement={<Link to={`/users/${currentUser.slug}`}/>} />
-            <MenuItem primaryText="Edit Account" containerElement={<Link to={`/account`}/>} />
-            <MenuItem primaryText="Private Messages" containerElement={<Link to={`/inbox`}/>} />
-            <MenuItem primaryText="Log Out" onClick={() => Meteor.logout(() => client.resetStore())} />
-          </Menu>
-        </Popover>
+            {showNewButtons && <Link to={`/newPost`}>
+                <MenuItem>New Post</MenuItem>
+              </Link>
+            }
+            {showNewShortformButton &&
+              <Link to={`/posts/${currentUser.shortformFeedId}`}>
+                {/* TODO: set up a proper link url */}
+                <MenuItem>Shortform Feed</MenuItem>
+              </Link>
+            }
+            { getSetting('AlignmentForum', false) && !isAfMember && <MenuItem onClick={() => openDialog({componentName: "AFApplicationForm"})}>
+              Apply for Membership
+            </MenuItem> }
+            <Link to={`/users/${currentUser.slug}`}>
+              <MenuItem>Profile</MenuItem>
+            </Link>
+            <Link to={`/account`}>
+              <MenuItem>Edit Account</MenuItem>
+            </Link>
+            <Link to={`/inbox`}>
+              <MenuItem>Private Messages</MenuItem>
+            </Link>
+            <MenuItem onClick={() => Meteor.logout(() => client.resetStore())}>
+              Log Out
+            </MenuItem>
+        </Menu>
       </div>
     )
   }
@@ -89,6 +123,5 @@ UsersMenu.defaultProps = {
 }
 
 registerComponent('UsersMenu', UsersMenu,
-  withUser, withApollo,
-  withStyles(styles, { name: "UsersMenu" })
+  withUser, withApollo, withDialog, withStyles(styles, { name: "UsersMenu" })
 );

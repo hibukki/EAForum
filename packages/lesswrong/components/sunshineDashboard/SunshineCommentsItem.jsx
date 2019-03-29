@@ -3,10 +3,41 @@ import React, { Component } from 'react';
 import { Comments } from '../../lib/collections/comments';
 import Users from 'meteor/vulcan:users';
 import { Link } from 'react-router'
-import FontIcon from 'material-ui/FontIcon';
+import Icon from '@material-ui/core/Icon';
+import { withStyles } from '@material-ui/core/styles';
+import classnames from 'classnames';
 import Typography from '@material-ui/core/Typography';
 import { Posts } from '../../lib/collections/posts';
 import withUser from '../common/withUser';
+import withErrorBoundary from '../common/withErrorBoundary'
+
+const styles = theme => ({
+  icon: {
+    fontSize: "18px",
+    color:"rgba(0,0,0,.25)"
+  },
+  postAction: {
+    marginRight: 12,
+    "&:hover": {
+      cursor: "pointer",
+      "& span": {
+        color: "rgba(0,0,0,.4) !important",
+      },
+    },
+  
+    "&.clear, &.purge": {
+      "&:hover .sunshine-sidebar-posts-item-delete-overlay": {
+        background: "rgba(255,50,0,.2)",
+        position: "absolute",
+        top: 0,
+        right: 0,
+        width: 250,
+        height: "100%",
+        pointerEvents: "none",
+      }
+    }
+  },
+});
 
 class SunshineCommentsItem extends Component {
 
@@ -36,7 +67,7 @@ class SunshineCommentsItem extends Component {
   }
 
   render () {
-    const comment = this.props.comment
+    const { comment, classes } = this.props;
     if (comment) {
       return (
         <div className="sunshine-sidebar-item new-comment">
@@ -54,27 +85,25 @@ class SunshineCommentsItem extends Component {
               <Components.SunshineCommentsItemOverview comment={comment}/>
               <div className="sunshine-sidebar-posts-actions new-comment">
                 <Link
-                  className="sunshine-sidebar-posts-action new-comment clear"
+                  className={classnames(classes.postAction, "new-comment", "clear")}
                   target="_blank"
                   title="Spam (delete immediately)"
                   to={Users.getProfileUrl(comment.user)}
                   onClick={this.handleDelete}>
-                    <FontIcon
-                      style={{fontSize: "18px", color:"rgba(0,0,0,.25)"}}
-                      className="material-icons">
+                    <Icon
+                      className={classnames("material-icons", classes.icon)}>
                         clear
-                    </FontIcon>
+                    </Icon>
                     <div className="sunshine-sidebar-posts-item-delete-overlay"/>
                 </Link>
                 <span
-                  className="sunshine-sidebar-posts-action new-comment review"
+                  className={classnames(classes.postAction, "new-comment", "review")}
                   title="Mark as Reviewed"
                   onClick={this.handleReview}>
-                  <FontIcon
-                    style={{fontSize: "18px", color:"rgba(0,0,0,.25)"}}
-                    className="material-icons">
+                  <Icon
+                    className={classnames("material-icons", classes.icon)}>
                       done
-                  </FontIcon>
+                  </Icon>
                 </span>
               </div>
             </Components.SunshineListItem>
@@ -91,4 +120,5 @@ const withEditOptions = {
   collection: Comments,
   fragmentName: 'SelectCommentsList',
 }
-registerComponent('SunshineCommentsItem', SunshineCommentsItem, [withEdit, withEditOptions], withUser);
+registerComponent('SunshineCommentsItem', SunshineCommentsItem, [withEdit, withEditOptions], withUser, withErrorBoundary,
+  withStyles(styles, { name: "SunshineCommentsItem" }));

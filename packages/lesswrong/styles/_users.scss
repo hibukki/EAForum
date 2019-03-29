@@ -1,5 +1,88 @@
+
+// Used in the vulcan-accounts package
+.accounts-ui {
+
+  input, button {
+    width:100%;
+  }
+  button.btn-primary {
+    text-transform: uppercase;
+    padding:6px 16px;
+    font-size:13px;
+    line-height:23px;
+  }
+
+  input {
+    font-size:16px;
+    line-height:30px;
+    border-bottom: solid 1px rgba(0,0,0,.2);
+  }
+
+  .buttons{
+    button {
+      background-color: rgba(0,0,0,0.1);
+      color: rgba(0,0,0,0.87);
+      border: none;
+      border-radius:2px;
+
+      &:hover, &:active, &:focus {
+        background-color: rgba(0,0,0,0.2);
+        color: rgba(0,0,0,0.87);
+      }
+    }
+    a{
+      display:block;
+      text-align: center;
+      margin-bottom: $vmargin;
+    }
+  }
+  .password-or-service{
+    text-align: center;
+    margin-bottom: $vmargin;
+  }
+  .social-buttons{
+    @include flex-center;
+    justify-content: space-between;
+    button{
+      padding: 0px;
+      background-color: transparent;
+      color: black;
+      box-shadow: none;
+      border: none;
+      padding: 2px;
+      &:hover, &:active, &:focus {
+        background-color: rgba(0,0,0,0.1);
+      }
+      width: 100%;
+      &:last-child{
+        margin-right: 0 !important;
+      }
+    }
+  }
+}
+
+// Used in the vulcan-accounts package
+.password-reset-form{
+  text-align: center;
+}
+
 // Used in the vulcan-accounts package
 .accounts-ui{
+  padding: $vmargin;
+  width: 240px;
+  margin:auto;
+  .buttons{
+    .btn{
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin-bottom: $vmargin;
+      &:last-child{
+        margin-bottom: 0;
+      }
+    }
+  }
+  
   .field{
     margin-bottom: $vmargin/2;
   }
@@ -36,17 +119,6 @@
   }
 }
 
-.users-profile-recent-posts {
-  .search-form {
-    width: 120px;
-    margin-left: auto;
-    margin-bottom: 15px;
-    @include max-tiny() {
-      width:auto;
-    }
-  }
-}
-
 .users-profile-header {
   h2:before {
     display:none;
@@ -56,7 +128,7 @@
 .users-profile-actions {
   margin-left:20px;
 }
-//
+
 .users-edit-form {
   width:60%;
   margin:auto;
@@ -66,75 +138,6 @@
   }
 }
 
-
-//
-//   .change-password-link {
-//     border:solid 1px $light-grey;
-//     border-radius:3px;
-//     padding:7px;
-//     text-align:center;
-//     width:40%;
-//     margin-bottom:35px;
-//     text-transform: uppercase;
-//     @include mui-breakpoint-xs {
-//       width:100%;
-//     }
-//     a {
-//       &:hover {
-//         text-decoration: none;
-//       }
-//     }
-//     &:hover {
-//       background-color: $lighter-grey;
-//       cursor: pointer;
-//     }
-//   }
-
-//   .form-input.input-hideIntercom {
-//     margin-left:5px;
-//     .control-label.col-sm-3 {
-//       display:none;
-//     }
-//   }
-//   .form-group.email {
-//     &:before {
-//       content: ' ';
-//       clear: right;
-//       display: block;
-//     }
-//     width:100%;
-//   }
-//
-//   .form-input.input-bio .control-label.col-sm-3 {
-//     position:relative;
-//     top:3px;
-//     text-transform: uppercase;
-//     width:110px;
-//   }
-//
-//   .control-label.col-sm-3 {
-//     // TODO instead fix the col-sm-3 at a root level that isn't janky
-//     text-transform: uppercase;
-//   }
-//   .form-input.form-component-textarea {
-//     line-height:1.5em;
-//     margin-top:2em;
-//
-//     textarea {
-//       line-height:1.35em;
-//       min-height:90px;
-//     }
-//   }
-//   .form-component-checkbox {
-//     margin-left:5px;
-//     .control-label.col-sm-3 {
-//       display:none;
-//     }
-//   }
-//   .form-section-heading {
-//     padding:1em 0;
-//   }
-// }
 
 .users-profile .posts-no-results {
   font-size:18px;

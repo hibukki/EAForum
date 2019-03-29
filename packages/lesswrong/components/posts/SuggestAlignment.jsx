@@ -1,29 +1,28 @@
-import { Components , registerComponent, withEdit } from 'meteor/vulcan:core';
+import { registerComponent, withEdit } from 'meteor/vulcan:core';
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { Posts } from '../../lib/collections/posts';
 import Users from 'meteor/vulcan:users';
 import withUser from '../common/withUser';
 
 class SuggestAlignment extends Component {
   render() {
-    const { currentUser, post, editMutation } = this.props;
+    const { currentUser, post, editMutation, Container } = this.props;
 
     const userHasSuggested = post.suggestForAlignmentUserIds && post.suggestForAlignmentUserIds.includes(currentUser._id)
 
     if (Users.canSuggestPostForAlignment({currentUser, post})) {
       return <div>
           { userHasSuggested ?
-            <div>
-              <a onClick={() => Posts.unSuggestForAlignment({currentUser, post, editMutation})}>
+            <div  onClick={() => Posts.unSuggestForAlignment({currentUser, post, editMutation})}>
+              <Container>
                 Ω Unsuggest for Alignment
-              </a>
+              </Container>
             </div>
             :
-            <div>
-              <a onClick={() => Posts.suggestForAlignment({currentUser, post, editMutation})}>
+            <div  onClick={() => Posts.suggestForAlignment({currentUser, post, editMutation})}>
+              <Container>
                 Ω Suggest for Alignment
-              </a>
+              </Container>
             </div>
           }
         </div>

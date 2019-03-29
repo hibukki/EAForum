@@ -7,15 +7,17 @@ import createImagePlugin from 'draft-js-image-plugin';
 import createAlignmentPlugin from 'draft-js-alignment-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createResizeablePlugin from 'draft-js-resizeable-plugin';
-import createLinkPlugin from 'draft-js-anchor-plugin';
 import createRichButtonsPlugin from 'draft-js-richbuttons-plugin';
 import createBlockBreakoutPlugin from 'draft-js-block-breakout-plugin'
 import createDividerPlugin from './editor-plugins/divider';
 import createMathjaxPlugin from 'draft-js-mathjax-plugin'
 import createMarkdownShortcutsPlugin from './editor-plugins/markdown-shortcuts-plugin';
 import { withTheme } from '@material-ui/core/styles';
+import createLinkPlugin from 'draft-js-anchor-plugin';
 import { myKeyBindingFn } from './editor-plugins/keyBindings.js'
+import createLinkifyPlugin from './editor-plugins/linkifyPlugin'
 import ImageButton from './editor-plugins/image/ImageButton.jsx';
+import { Map } from 'immutable';
 import {
   createBlockStyleButton,
   ItalicButton,
@@ -46,6 +48,13 @@ const HeadlineTwoButton = createBlockStyleButton({
 const styleMap = theme => ({
   'CODE': theme.typography.code
 })
+
+function customBlockStyleFn(contentBlock) {
+  const type = contentBlock.getType();
+  if (type === 'spoiler') {
+    return 'spoiler';
+  }
+}
 
 class EditorForm extends Component {
   constructor(props) {
@@ -90,6 +99,8 @@ class EditorForm extends Component {
     const blockBreakoutPlugin = createBlockBreakoutPlugin()
     const markdownShortcutsPlugin = createMarkdownShortcutsPlugin();
 
+    const linkifyPlugin = createLinkifyPlugin();
+
     const imagePlugin = createImagePlugin({ decorator });
     let plugins = [
       inlineToolbarPlugin,
@@ -101,7 +112,8 @@ class EditorForm extends Component {
       richButtonsPlugin,
       blockBreakoutPlugin,
       markdownShortcutsPlugin,
-      dividerPlugin
+      dividerPlugin,
+      linkifyPlugin
     ];
 
     if (isClient) {
@@ -148,7 +160,7 @@ class EditorForm extends Component {
         <NoSsr>
         <div
           className={classNames(
-            { "content-editor-is-empty": !editorState.getCurrentContent().hasText() },
+            { "content-editor-is-empty": !(editorState && editorState.getCurrentContent && editorState.getCurrentContent().hasText()) },
             this.props.className
           )}
           onClick={this.focus}
@@ -160,6 +172,8 @@ class EditorForm extends Component {
             plugins={this.plugins}
             keyBindingFn={myKeyBindingFn}
             customStyleMap={styleMap(theme)}
+            blockStyleFn={customBlockStyleFn}
+            blockRenderMap={blockRenderMap}
             ref={(ref) => { this._ref = ref }}
           />
         </div>
@@ -170,6 +184,12 @@ class EditorForm extends Component {
     )
   }
 }
+
+const blockRenderMap = Map({
+  'spoiler': {
+    element: 'div'
+  }
+});
 
 EditorForm.propTypes = {
   isClient: PropTypes.bool,

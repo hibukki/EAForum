@@ -1,8 +1,10 @@
-import { Components, getRawComponent, registerComponent } from 'meteor/vulcan:core';
-import React from 'react';
+import { Components, registerComponent } from 'meteor/vulcan:core';
+import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import { commentBodyStyles } from '../../../themes/stylePiping'
+import { commentBodyStyles, postHighlightStyles } from '../../../themes/stylePiping'
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import { commentExcerptFromHTML } from '../../../lib/editor/ellipsize'
 
 const styles = theme => ({
   commentStyling: {
@@ -10,21 +12,97 @@ const styles = theme => ({
     maxWidth: "100%",
     overflowX: "auto",
     overflowY: "hidden",
+  },
+  answerStyling: {
+    ...postHighlightStyles(theme),
+    maxWidth: "100%",
+    overflowX: "auto",
+    overflowY: "hidden",
+    '& .read-more a, & .read-more a:hover': {
+      textShadow:"none",
+      backgroundImage: "none"
+    },
+    marginBottom: ".5em"
+  },
+  root: {
+    position: "relative",
+    '& .read-more': {
+      position: "relative",
+      fontSize: ".85em",
+    },
+    '& .read-more-default': {
+      display: "inline-block",
+      minWidth: 125,
+      color: "rgba(0,0,0,.4)",
+    },
+    '& .read-more-tooltip': {
+      display:"none",
+    },
+    "&:hover .read-more-tooltip": {
+      display:"inline-block"
+
+    },
+    '&:hover .read-more-default': {
+      display:"none"
+    },
+    '& .read-more-f-tooltip': {
+      display: "none",
+      position: "absolute",
+      background: "rgba(0,0,0,.6)",
+      color: "white",
+      padding: "7px 10px",
+      width:156,
+      borderRadius: 5,
+      top: -60,
+      left:0,
+    },
+    '& .read-more:hover .read-more-f-tooltip': {
+      display: "inline-block"
+    }
+  },
+  retracted: {
+    textDecoration: "line-through",
   }
 })
-const CommentBody = ({comment, classes}) => {
-  const htmlBody = {__html: comment.htmlBody};
-  return (
-    <div className={classes.commentStyling}>
-      {!comment.deleted && <div className="comment-body" dangerouslySetInnerHTML={htmlBody}></div>}
-      {comment.deleted && <div className="comment-body"><Components.CommentDeletedMetadata documentId={comment._id}/></div>}
-    </div>
-  )
+
+class CommentBody extends Component {
+  render () {
+    const { comment, classes, collapsed, truncationCharCount, truncated } = this.props
+    const { ContentItemBody, CommentDeletedMetadata } = Components
+    const { html = "", markdown = ""} = comment.contents || {}
+
+    const bodyClasses = classNames(
+      { [classes.commentStyling]: !comment.answer,
+        [classes.answerStyling]: comment.answer,
+        [classes.retracted]: comment.retracted }
+    );
+
+    const shouldRenderExcerpt = truncated && 
+      (markdown && markdown.length) > truncationCharCount && 
+      !collapsed
+
+    if (comment.deleted) {
+      return <CommentDeletedMetadata documentId={comment._id}/>
+    } else if (shouldRenderExcerpt) {
+      return (
+        <div className={classes.root}>
+          <ContentItemBody className={bodyClasses}
+            dangerouslySetInnerHTML={{__html: commentExcerptFromHTML(html, truncationCharCount)}}/>
+        </div>
+      )
+    } else if (!collapsed) {
+      return <ContentItemBody className={bodyClasses}
+        dangerouslySetInnerHTML={{__html: html}}/>
+    } else {
+      return null
+    }
+  }
 }
 
 CommentBody.propTypes = {
   comment: PropTypes.object.isRequired,
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  truncationCharCount: PropTypes.number
 };
 
 

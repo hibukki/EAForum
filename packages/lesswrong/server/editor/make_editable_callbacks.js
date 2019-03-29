@@ -1,19 +1,26 @@
+/* global Random */
 import { Utils } from 'meteor/vulcan:core';
 import { convertFromRaw } from 'draft-js';
 import { draftToHTML } from '../../lib/editor/utils.js';
-
+import Revisions from '../../lib/collections/revisions/collection'
+import { extractVersionsFromSemver } from '../../lib/editor/utils'
+import { ensureIndex } from '../../lib/collectionUtils'
 import TurndownService from 'turndown';
 const turndownService = new TurndownService()
 turndownService.remove('style') // Make sure we don't add the content of style tags to the markdown
 
 import markdownIt from 'markdown-it'
 import markdownItMathjax from './markdown-mathjax.js'
-var mdi = markdownIt()
+import markdownItContainer from 'markdown-it-container'
+import markdownItFootnote from 'markdown-it-footnote'
+
+const mdi = markdownIt({linkify: true})
 mdi.use(markdownItMathjax())
+mdi.use(markdownItContainer, 'spoiler')
+mdi.use(markdownItFootnote)
+
 import { addCallback } from 'meteor/vulcan:core';
 import { mjpage }  from 'mathjax-node-page'
-
-import htmlToText from 'html-to-text'
 
 function mjPagePromise(html, beforeSerializationCallback) {
   // Takes in HTML and replaces LaTeX with CommonHTML snippets
@@ -24,132 +31,150 @@ function mjPagePromise(html, beforeSerializationCallback) {
   })
 }
 
-const createHtmlHighlight = (body) => {
-  if (body.length > 2400) {
-    // drop the last paragraph
-    const highlight2400Shortened = body.slice(0,2400).split("\n").slice(0,-1).join("\n")
-    const highlightnewlineShortened = body.split("\n\n").slice(0,5).join("\n\n")
-    if (highlightnewlineShortened.length > highlight2400Shortened.length) {
-      return mdi.render(highlight2400Shortened)
-    } else {
-      return mdi.render(highlightnewlineShortened)
-    }
-  } else {
-    return mdi.render(body)
-  }
+export async function draftJSToHtmlWithLatex(draftJS) {
+  const draftJSWithLatex = await Utils.preProcessLatex(draftJS)
+  return draftToHTML(convertFromRaw(draftJSWithLatex))
 }
 
-const createExcerpt = (body) => {
-  const excerpt = body.slice(0,400)
-  if (excerpt.includes("[")) {
-    const excerptTrimLink = excerpt.split("[").slice(0, -1).join('[')
-    return mdi.render(excerptTrimLink + "... (Read More)")
-  } else {
-    return mdi.render(excerpt + "... (Read More)")
-  }
-}
-
-const convertFromContent = (content, fieldName = "") => {
-  const contentState = convertFromRaw(content);
-  const htmlBody = draftToHTML(contentState)
-  const body = htmlToMarkdown(htmlBody)
-  return {
-    [`${fieldName}htmlBody`]: htmlBody,
-    [`${fieldName}body`]: body,
-    ...getExcerptFields(body, fieldName),
-    [`${fieldName}lastEditedAs`]: 'draft-js'
-  }
-}
-
-const convertFromContentAsync = async function(content, fieldName = "") {
-  const newContent = await Utils.preProcessLatex(content)
-  return convertFromContent(newContent, fieldName)
-}
-
-const getExcerptFields = (body, fieldName = "") => {
-  const wordCount = body.split(" ").length
-  const htmlHighlight = createHtmlHighlight(body)
-  const excerpt = createExcerpt(body)
-  const plaintextExcerpt = htmlToText.fromString(excerpt)
-  return {
-    [`${fieldName}wordCount`]: wordCount,
-    [`${fieldName}htmlHighlight`]:htmlHighlight,
-    [`${fieldName}excerpt`]:excerpt,
-    [`${fieldName}plaintextExcerpt`]:plaintextExcerpt,
-  }
-}
-
-const htmlToMarkdown = (html) => {
+export function htmlToMarkdown(html) {
   return turndownService.turndown(html)
 }
 
-const convertFromHTML = (html, sanitize, fieldName = "") => {
-  const body = htmlToMarkdown(html)
-  const htmlBody = sanitize ? Utils.sanitize(html) : html
-  return {
-    [`${fieldName}htmlBody`]: htmlBody,
-    [`${fieldName}body`]: body,
-    ...getExcerptFields(body, fieldName),
-    [`${fieldName}lastEditedAs`]: "html",
+export function markdownToHtmlNoLaTeX(markdown) {
+  const randomId = Random.id()
+  return mdi.render(markdown, {docId: randomId})
+}
+
+export async function markdownToHtml(markdown) {
+  const html = markdownToHtmlNoLaTeX(markdown)
+  return await mjPagePromise(html, Utils.trimEmptyLatexParagraphs)
+}
+
+async function dataToHTML(data, type, sanitize = false) {
+  switch (type) {
+    case "html":
+      return sanitize ? Utils.sanitize(data) : data
+    case "draftJS":
+      return await draftJSToHtmlWithLatex(data)
+    case "markdown":
+      return await markdownToHtml(data)
   }
 }
 
-const convertFromMarkdown = (body, fieldName = "") => {
-  return {
-    [`${fieldName}htmlBody`]: mdi.render(body),
-    [`${fieldName}body`]: body,
-    ...getExcerptFields(body, fieldName),
-    [`${fieldName}lastEditedAs`]: "markdown"
+export function dataToMarkdown(data, type) {
+  if (!data) return ""
+  switch (type) {
+    case "markdown": {
+      return data
+    }
+    case "html": {
+      return htmlToMarkdown(data)
+    }
+    case "draftJS": {
+      try {
+        const contentState = convertFromRaw(data);
+        const html = draftToHTML(contentState)
+        return htmlToMarkdown(html)  
+      } catch(e) {
+        // eslint-disable-next-line no-console
+        console.error(e)
+      }
+      return ""
+    }
   }
 }
 
-const convertFromMarkdownAsync = async (body, fieldName = "") => {
-  const newPostFields = convertFromMarkdown(body, fieldName)
-  const newHtmlBody = await mjPagePromise(newPostFields.htmlBody, Utils.trimEmptyLatexParagraphs)
-  return {
-    ...newPostFields,
-    [`${fieldName}htmlBody`]: newHtmlBody
+export async function dataToWordCount(data, type) {
+  const markdown = dataToMarkdown(data, type) || ""
+  return markdown.split(" ").length
+}
+
+function getInitialVersion(document) {
+  if (document.draft) {
+    return '0.1.0'
+  } else {
+    return '1.0.0'
   }
 }
+
+async function getNextVersion(documentId, updateType = 'minor', fieldName, isDraft) {
+  const lastRevision = await Revisions.findOne({documentId: documentId, fieldName}, {sort: {version: -1}}) || {}
+  const { major, minor, patch } = extractVersionsFromSemver(lastRevision.version)
+  switch (updateType) {
+    case "patch":
+      return `${major}.${minor}.${patch + 1}`
+    case "minor":
+      return `${major}.${minor + 1}.0`
+    case "major":
+      return `${major+1}.0.0`
+    case "initial":
+      return isDraft ? '0.1.0' : '1.0.0'
+    default:
+      throw new Error("Invalid updateType, must be one of 'patch', 'minor' or 'major'")
+  }
+}
+
+ensureIndex(Revisions, {documentId: 1, version: 1, fieldName: 1, editedAt: 1})
 
 export function addEditableCallbacks({collection, options = {}}) {
-  const { fieldName } = options
-  // Promisified version of mjpage
+  const {
+    fieldName = "contents",
+    // deactivateNewCallback // Because of Meteor shenannigans we don't have access to the full user object when a new user is created, and this creates
+    // // bugs when we register callbacks that trigger on new user creation. So we allow the deactivation of the new callbacks.
+  } = options
 
-  async function editorSerializationNew(doc, author) {
-    let newFields = {}
-    let newDoc = {...doc}
-    if (doc.content) {
-      newFields = await convertFromContentAsync(doc.content, fieldName);
-      newDoc = {...doc, ...newFields}
-    } else if (doc.body) {
-      newFields = await convertFromMarkdownAsync(doc.body, fieldName)
-      newDoc = {...doc, ...newFields}
-    } else if (doc.htmlBody) {
-      newFields = convertFromHTML(doc.htmlBody, !author.isAdmin, fieldName);
-      newDoc = {...doc, ...newFields}
+  const { typeName } = collection.options
+
+  async function editorSerializationNew (doc, { currentUser }) {
+    if (doc[fieldName] && doc[fieldName].originalContents) {
+      if (!currentUser) { throw Error("Can't create document without current user") }
+      const { data, type } = doc[fieldName].originalContents
+      const html = await dataToHTML(data, type, !currentUser.isAdmin)
+      const wordCount = await dataToWordCount(data, type)
+      const version = getInitialVersion(doc)
+      const userId = currentUser._id
+      const editedAt = new Date()
+      return {...doc, [fieldName]: {...doc[fieldName], html, version, userId, editedAt, wordCount, updateType: 'initial'}}  
+    }
+    return doc
+  }
+
+  addCallback(`${typeName.toLowerCase()}.create.before`, editorSerializationNew);
+
+  async function editorSerializationEdit (docData, { document, currentUser }) {
+    if (docData[fieldName] && docData[fieldName].originalContents) {
+      if (!currentUser) { throw Error("Can't create document without current user") }
+      const { data, type } = docData[fieldName].originalContents
+      const html = await dataToHTML(data, type, !currentUser.isAdmin)
+      const wordCount = await dataToWordCount(data, type)
+      const defaultUpdateType = docData[fieldName].updateType || (!document[fieldName] && 'initial') || 'minor'
+      const newDocument = {...document, ...docData}
+      const isBeingUndrafted = document.draft && !newDocument.draft
+      // When a document is undrafted for the first time, we ensure that this constitutes a major update
+      const { major } = extractVersionsFromSemver((document[fieldName] && document[fieldName].version) ? document[fieldName].version : undefined)
+      const updateType = (isBeingUndrafted && (major < 1)) ? 'major' : defaultUpdateType
+      const version = await getNextVersion(document._id, updateType, fieldName, newDocument.draft)
+      const userId = currentUser._id
+      const editedAt = new Date()
+      return {...docData, [fieldName]: {...docData[fieldName], html, version, userId, editedAt, wordCount}}
+    } 
+    return docData
+  }
+  
+  addCallback(`${typeName.toLowerCase()}.update.before`, editorSerializationEdit);
+
+  async function editorSerializationCreateRevision(newDoc, { document }) {
+    if (newDoc[fieldName] && newDoc[fieldName].originalContents && 
+      (newDoc[fieldName].version !== (document && document[fieldName] && document[fieldName].version))) {
+      Revisions.insert({
+        ...newDoc[fieldName],
+        documentId: newDoc._id,
+        fieldName
+      })
     }
     return newDoc
   }
-  addCallback(`${collection.options.collectionName.toLowerCase()}.new.sync`, editorSerializationNew);
-
-  async function editorSerializationEdit (modifier, doc, author) {
-    let newFields = {}
-    let newModifier = {...modifier}
-    if (modifier.$set && modifier.$set.content) {
-      newFields = await convertFromContentAsync(modifier.$set.content, fieldName)
-      newModifier.$set = {...modifier.$set, ...newFields}
-      if (modifier.$unset) {delete modifier.$unset.htmlBody}
-    } else if (modifier.$set && modifier.$set.body) {
-      newFields = await convertFromMarkdownAsync(modifier.$set.body, fieldName)
-      newModifier.$set = {...modifier.$set, ...newFields}
-      if (modifier.$unset) {delete modifier.$unset.htmlBody}
-    } else if (modifier.$set && modifier.$set.htmlBody) {
-      newFields = convertFromHTML(modifier.$set.htmlBody, !author.isAdmin, fieldName);
-      newModifier.$set = {...modifier.$set, ...newFields}
-    }
-    return newModifier
-  }
-
-  addCallback(`${collection.options.collectionName.toLowerCase()}.edit.sync`, editorSerializationEdit);
+  
+  addCallback(`${typeName.toLowerCase()}.create.after`, editorSerializationCreateRevision)
+  addCallback(`${typeName.toLowerCase()}.update.after`, editorSerializationCreateRevision)
 }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Components, registerComponent } from 'meteor/vulcan:core';
+import { registerComponent } from 'meteor/vulcan:core';
 import { Checkbox } from 'formsy-react-components';
 
 // Ray 20017-09-09: This component is currently mostly unnecessary but is planned to turn into a real "submit" button
@@ -14,10 +14,12 @@ class SaveDraftButton extends Component {
   render() {
     return (
       <div className="posts-save-draft">
-        <Checkbox name={this.props.name}
-                  value={this.props.value}
-                  placeholder={this.props.placeholder}
-                  label={this.props.label} />
+        <Checkbox
+          name={this.props.name}
+          path={this.props.path}
+          value={this.props.value}
+          placeholder={this.props.placeholder}
+          label={this.props.label} />
       </div>
     )
   }

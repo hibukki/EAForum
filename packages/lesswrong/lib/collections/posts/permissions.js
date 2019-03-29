@@ -73,4 +73,5 @@ Users.groups.sunshineRegiment.can(sunshineRegimentActions);
 
 
 Users.groups.trustLevel1.can(['posts.moderate.own', 'posts.suggestCurate']);
+Users.groups.canModeratePersonal.can(['posts.moderate.own.personal']);
 Users.groups.canCommentLock.can(['posts.commentLock.own']);

@@ -22,15 +22,16 @@ dump/*
 settings*
 
 .idea
+.tern-project
 
 scratch
-
+.vscode/*
 .deploy
 .deploy/*
 ### Meteor template
 .meteor/local
 .meteor/meteorite
-mup.json
+mup*
 
 packages_update.py
 
@@ -60,5 +61,6 @@ yarn.lock
 
 *.swp
 *.un~
+.vscode/launch.json
 
-yarn-error.log
+.elasticbeanstalk/*

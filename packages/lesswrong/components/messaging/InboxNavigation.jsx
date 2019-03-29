@@ -5,7 +5,6 @@ The Navigation for the Inbox components
 */
 
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import { Components, registerComponent, withList } from 'meteor/vulcan:core';
 import Conversations from '../../lib/collections/conversations/collection.js';
@@ -88,7 +87,7 @@ class InboxNavigation extends Component {
                 <Typography variant="body2" className={classes.conversationItem}>
                   { Conversations.getTitle(conversation, currentUser) }
                   <span className={classes.conversationItemLatestActivity}>
-                    {conversation.latestActivity && <Components.FromNowDate date={conversation.latestActivity}/>}
+                    {conversation.latestActivity && <Components.FormatDate date={conversation.latestActivity}/>}
                   </span>
                 </Typography>
             </Link>)

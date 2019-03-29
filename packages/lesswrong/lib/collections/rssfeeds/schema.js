@@ -1,10 +1,4 @@
-import { generateIdResolverSingle } from '../../modules/utils/schemaUtils'
-
-/*
-
-A SimpleSchema-compatible JSON schema
-
-*/
+import { foreignKeyField } from '../../modules/utils/schemaUtils'
 
 const schema = {
   _id: {
@@ -13,28 +7,23 @@ const schema = {
     optional: true,
   },
   userId: {
-    type: String,
+    ...foreignKeyField({
+      idFieldName: "userId",
+      resolverName: "user",
+      collectionName: "Users",
+      type: "User"
+    }),
     hidden: true,
     viewableBy: ['guests'],
     insertableBy: ['members'],
     editableBy: ['admins'],
-    resolveAs: {
-      fieldName: 'user',
-      type: 'User',
-      resolver: generateIdResolverSingle(
-        {collectionName: 'Users', fieldName: 'userId'}
-      ),
-      addOriginalField: true,
-    },
     optional: true,
   },
   createdAt: {
     optional: true,
     type: Date,
     viewableBy: ['guests'],
-    onInsert: (document, currentUser) => {
-      return new Date();
-    },
+    onInsert: (document, currentUser) => new Date(),
   },
   ownedByUser: {
     type: Boolean,
@@ -72,6 +61,7 @@ const schema = {
     optional: true,
     order: 20,
   },
+  // Set to 'inactive' to prevent posting
   status: {
     type: String,
     viewableBy: ['guests'],

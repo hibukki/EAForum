@@ -1,13 +1,14 @@
-import React from 'react';
 import { chai } from 'meteor/practicalmeteor:chai';
 import chaiAsPromised from 'chai-as-promised';
 import { runQuery } from 'meteor/vulcan:core';
-import { createDummyUser, createDummyPost } from '../../../../testing/utils.js'
+import { createDummyUser, createDummyPost, catchGraphQLErrors, assertIsPermissionsFlavoredError } from '../../../../testing/utils.js'
 
 chai.should();
 chai.use(chaiAsPromised);
 
 describe('AlignmentForum PostsEdit', async () => {
+  let graphQLerrors = catchGraphQLErrors();
+  
   it("fails when an alignmentForum user edits a post title", async () => {
     const user = await createDummyUser({groups:['alignmentForum']})
     const post = await createDummyPost()
@@ -24,17 +25,15 @@ describe('AlignmentForum PostsEdit', async () => {
       }
     `;
     const response = runQuery(query,{},{currentUser:user})
-    return response.should.be.rejected;
+    await response.should.be.rejected;
+    assertIsPermissionsFlavoredError(graphQLerrors.getErrors());
   });
   it("fails when an alignmentForum user edits a post's content field", async () => {
     const user = await createDummyUser({groups:['alignmentForum']})
     const post = await createDummyPost()
-
-    const newContent = "New Test Title"
-
     const query = `
       mutation PostsEdit {
-        updatePost(selector: {_id:"${post._id}"},,data:{content:"${newContent}"}) {
+        updatePost(selector: {_id:"${post._id}"} ,data:{ contents: { originalContents: {type: "markdown", data: "test"} } }) {
           data {
             title
           }
@@ -42,7 +41,8 @@ describe('AlignmentForum PostsEdit', async () => {
       }
     `;
     const response = runQuery(query,{},{currentUser:user})
-    return response.should.be.rejected;
+    await response.should.be.rejected;
+    assertIsPermissionsFlavoredError(graphQLerrors.getErrors());
   });
   it("succeeds when alignmentForum user edits the suggestForAlignmentUserIds field", async () => {
     const user = await createDummyUser({groups:['alignmentForum']})
@@ -96,7 +96,8 @@ describe('AlignmentForum PostsEdit', async () => {
       }
     `;
     const response = runQuery(query,{},{currentUser:user})
-    return response.should.be.rejected;
+    await response.should.be.rejected;
+    assertIsPermissionsFlavoredError(graphQLerrors.getErrors());
   });
   it("succeeds when alignmentForumAdmin edits the reviewForAlignmentUserId field", async () => {
     const user = await createDummyUser({groups:['alignmentForumAdmins']})

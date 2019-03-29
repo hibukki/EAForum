@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Dialog from 'material-ui/Dialog';
-import FlatButton from 'material-ui/FlatButton';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogActions from '@material-ui/core/DialogActions';
+import Button from '@material-ui/core/Button';
 import { registerComponent } from 'meteor/vulcan:core';
 
 /**
@@ -27,19 +29,20 @@ class DialogGroup extends Component {
 
   render() {
     //eslint-disable-next-line react/jsx-key
-    const actions = this.props.actions.map(action => <span onClick={this.handleClose}>{action}</span>)
+    const actions = this.props.actions.map((action, i) =>
+      <span key={i} onClick={this.handleClose}>{action}</span>
+    )
 
     return (
       <span className="dialog-trigger-group">
         <span className="dialog-trigger" onClick={this.handleOpen}>{ this.props.trigger }</span>
         <Dialog
-          title={this.props.title}
-          actions={actions}
-          modal={false}
           open={this.state.open}
-          onRequestClose={this.handleClose}
+          onClose={this.handleClose}
         >
+          {this.props.title && <DialogTitle>{this.props.title}</DialogTitle>}
           {this.props.children}
+          <DialogActions>{actions}</DialogActions>
         </Dialog>
       </span>
     );
@@ -55,7 +58,7 @@ DialogGroup.propTypes = {
 }
 DialogGroup.defaultProps = {
   children: undefined,
-  actions: [ <FlatButton key='Okay' label="Okay" primary={true}/> ],
+  actions: [ <Button key='Okay' color="primary">Okay</Button> ],
   open: false,
 }
 

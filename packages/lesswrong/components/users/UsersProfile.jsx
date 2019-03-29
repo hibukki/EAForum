@@ -1,4 +1,4 @@
-import { Components, replaceComponent, registerComponent, withDocument, getSetting } from 'meteor/vulcan:core';
+import { Components, registerComponent, withDocument, getSetting } from 'meteor/vulcan:core';
 import React from 'react';
 import { FormattedMessage } from 'meteor/vulcan:i18n';
 import { Link, withRouter } from 'react-router';
@@ -7,7 +7,6 @@ import StarIcon from '@material-ui/icons/Star'
 import DescriptionIcon from '@material-ui/icons/Description'
 import MessageIcon from '@material-ui/icons/Message'
 import { withStyles } from '@material-ui/core/styles';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import withUser from '../common/withUser';
 
@@ -41,8 +40,8 @@ const UsersProfile = (props) => {
     const query = _.clone(props.router.location.query || {});
 
     const draftTerms = {view: "drafts", userId: user._id, limit: 4}
-    const unlistedTerms= {view: "unlisted", userId: user._id }
-    const terms = {view: "userPosts", ...query, userId: user._id};
+    const unlistedTerms= {view: "unlisted", userId: user._id, limit: 4}
+    const terms = {view: "userPosts", ...query, userId: user._id, authorIsUnreviewed: null};
     const sequenceTerms = {view: "userProfile", userId: user._id, limit:3}
     const sequenceAllTerms = {view: "userProfileAll", userId: user._id, limit:3}
 
@@ -53,9 +52,14 @@ const UsersProfile = (props) => {
 
       return (<div className="users-profile-actions">
         { user.twitterUsername && <div><a href={"http://twitter.com/" + user.twitterUsername}>@{user.twitterUsername}</a></div> }
-        {props.currentUser && props.currentUser.isAdmin && <Components.DialogGroup actions={[]} trigger={<Components.SectionSubtitle>Register new RSS Feed</Components.SectionSubtitle>}>
-          <div><Components.newFeedButton user={user} /></div>
-        </Components.DialogGroup>}
+        { props.currentUser && props.currentUser.isAdmin &&
+            <Components.DialogGroup
+              actions={[]}
+              trigger={<Components.SectionSubtitle>Register new RSS Feed</Components.SectionSubtitle>}
+            >
+              <div><Components.newFeedButton user={user} /></div>
+            </Components.DialogGroup>
+        }
         {Users.canEdit(currentUser, user) &&
           <Components.SectionSubtitle><Link to={Users.getEditUrl(user)}><FormattedMessage id="users.edit_account"/></Link></Components.SectionSubtitle>
         }
@@ -75,7 +79,7 @@ const UsersProfile = (props) => {
         </Components.MetaInfo>}
         { !!afKarma && <Components.OmegaIcon className={classNames(classes.icon, classes.specificalz)}/>}
         { !!afKarma && <Components.MetaInfo title="Alignment Karma">
-            {afKarma || 0}
+            {afKarma}
           </Components.MetaInfo>
         }
         <DescriptionIcon className={classNames(classes.icon, classes.specificalz)}/>
@@ -113,8 +117,8 @@ const UsersProfile = (props) => {
                 </div>
               }
             >
-              <Components.PostsList terms={draftTerms} showHeader={false}/>
-              <Components.PostsList terms={unlistedTerms} showHeader={false} showNoResults={false}/>
+              <Components.PostsList2 terms={draftTerms}/>
+              <Components.PostsList2 terms={unlistedTerms} showNoResults={false} showLoading={false}/>
             </Components.Section>
           }
         </div>
@@ -123,22 +127,22 @@ const UsersProfile = (props) => {
 
     const renderBlogPosts = (props) => {
       return (
-        <Components.Section title="Recent Posts"
-          titleComponent= {
+        <Components.Section title={`${user.displayName}'s Posts`}
+          titleComponent={
             <div className="recent-posts-title-component users-profile-recent-posts">
               <Components.PostsViews defaultView="community" hideDaily={true}/>
             </div>}
         >
-          <Components.PostsList terms={terms} showHeader={false} />
+          <Components.PostsList2 terms={terms} />
         </Components.Section>
       )
     }
 
     const displaySequenceSection = (canEdit, user)  => {
       if (getSetting('AlignmentForum', false)) {
-          return (canEdit && user.afSequenceDraftCount || user.afSequenceCount) || (!canEdit && user.afSequenceCount)
+          return ((canEdit && user.afSequenceDraftCount) || user.afSequenceCount) || (!canEdit && user.afSequenceCount)
       } else {
-          return (canEdit && user.sequenceDraftCount || user.sequenceCount) || (!canEdit && user.sequenceCount)
+          return ((canEdit && user.sequenceDraftCount) || user.sequenceCount) || (!canEdit && user.sequenceCount)
       }
     }
 
@@ -166,7 +170,7 @@ const UsersProfile = (props) => {
         { renderSequences(props) }
         { renderDrafts(props) }
         { renderBlogPosts(props) }
-        <Components.Section title="Recent Comments" >
+        <Components.Section title={`${user.displayName}'s Comments`} >
           <Components.RecentComments terms={{view: 'allRecentComments', limit: 10, userId: user._id}} fontSize="small" />
         </Components.Section>
       </div>
