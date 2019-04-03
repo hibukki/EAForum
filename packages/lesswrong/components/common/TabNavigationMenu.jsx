@@ -1,4 +1,4 @@
-import { registerComponent } from 'meteor/vulcan:core';
+import { registerComponent, Components } from 'meteor/vulcan:core';
 import { withRouter, Link } from 'react-router';
 import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
@@ -10,10 +10,10 @@ import { compassIcon } from '../icons/compassIcon';
 import { questionsGlobeIcon } from '../icons/questionsGlobeIcon';
 import { communityGlobeIcon } from '../icons/communityGlobeIcon';
 import { bookIcon } from '../icons/bookIcon'
-import { allPostsIcon } from '../icons/allPostsIcon'
-;
+import { allPostsIcon } from '../icons/allPostsIcon';
 
-const iconWidth = 30
+export const iconWidth = 30
+const smallIconSize = 23
 
 const styles = (theme) => ({
   root: {
@@ -23,11 +23,10 @@ const styles = (theme) => ({
     [theme.breakpoints.up('lg')]: {
       top: 64,
       left:0,
-      width:220,
+      width:270,
     },
     [theme.breakpoints.down('md')]: {
       position: "unset",
-      height: 80,
     },
   },
   tabMenu: {
@@ -41,13 +40,11 @@ const styles = (theme) => ({
       flexDirection: "column",
     },
     [theme.breakpoints.down('md')]: {
-      position: "absolute",
-      top: 74,
+      position: "fixed",
+      bottom: 0,
       left: 0,
-      width: "100%"
-    },
-    [theme.breakpoints.down('xs')]: {
-      top: 66,
+      width: "100%",
+      backgroundColor: theme.palette.grey[300]
     },
   },
   selected: {
@@ -58,6 +55,9 @@ const styles = (theme) => ({
       color: theme.palette.grey[900],
       fontWeight: 600,
     },
+    [theme.breakpoints.down('md')]: {
+      backgroundColor: theme.palette.grey[400]
+    }
   },
   navButton: {
     [theme.breakpoints.down('md')]: {
@@ -77,24 +77,10 @@ const styles = (theme) => ({
       flexDirection: "row",
     },
     [theme.breakpoints.down('md')]: {
-      paddingTop: theme.spacing.unit*2,
-      paddingBottom: theme.spacing.unit,
+      paddingTop: theme.spacing.unit,
+      paddingBottom: 2,
       width: "100%",
       flexDirection: "column",
-    }
-  },
-  subItem: {
-    ...theme.typography.body2,
-    display: "block",
-    paddingBottom: theme.spacing.unit,
-    // padding reflects how large an icon+padding is
-    paddingLeft: (theme.spacing.unit*2) + (iconWidth + (theme.spacing.unit*2)),
-    paddingRight: theme.spacing.unit*2,
-    color: theme.palette.grey[600],
-    fontSize: "1rem",
-    whiteSpace: "nowrap",
-    [theme.breakpoints.down('md')]: {
-      display: "none"
     }
   },
   icon: {
@@ -105,15 +91,23 @@ const styles = (theme) => ({
     [theme.breakpoints.up('lg')]: {
       marginRight: theme.spacing.unit*2,
       display: "inline",
+    },
+    [theme.breakpoints.down('md')]: {
+      opacity: .45,
+      width: smallIconSize,
+      height: smallIconSize,
+      '& svg': {
+        width: smallIconSize,
+        height: smallIconSize,
+      }
     }
   },
   navText: {
     ...theme.typography.body2,
     color: theme.palette.grey[600],
     [theme.breakpoints.down('md')]: {
-      fontSize: '1rem',
-      marginBottom: 3,
-      marginTop: 8,
+      fontSize: '.8rem',
+      color: theme.palette.grey[700],
     },
     [theme.breakpoints.up('lg')]: {
       textTransform: "none !important",
@@ -133,22 +127,38 @@ const styles = (theme) => ({
     '& svg': {
       height: 29,
       position: "relative",
-      top: -1
+      top: -1,
+      [theme.breakpoints.down('md')]: {
+        height: smallIconSize,
+        width: smallIconSize
+      }
     }
   },
 })
 
 const TabNavigationMenu = ({
+  currentUser,
   classes,
   location,
-  currentUser
 }) => {
 
   const { pathname } = location
+  const { TabNavigationSubItem, TabNavigationEventsList } = Components
   
-  // TODO: BETA Remove the admin requirements on this component once it's ready to be deployed to master.
-
-  if (!(currentUser && currentUser.isAdmin)) { return null }
+  const lat = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[1]
+  const lng = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[0]
+  let eventsListTerms = {
+    view: 'events',
+    limit: 3,
+  }
+  if (lat && lng) {
+    eventsListTerms = {
+      view: 'nearbyEvents',
+      lat: lat,
+      lng: lng,
+      limit: 3,
+    }
+  }
 
   return (
     <div className={classes.root}>
@@ -164,7 +174,7 @@ const TabNavigationMenu = ({
           </Link>
         </Tooltip>
 
-        <Tooltip placement="right" title={<div>
+        <Tooltip placement="right-start" title={<div>
           <div>• Ask simple newbie questions.</div>
           <div>• Collaborate on open research questions.</div>
           <div>• Pose and resolve confusions.</div>
@@ -178,6 +188,7 @@ const TabNavigationMenu = ({
             </span>
           </Link>
         </Tooltip>
+
         {/* TODO: Events here */}
         <Tooltip placement="right" title="See all posts, filtered and sorted however you like.">
           <Link to="/allPosts" className={classNames(classes.navButton, {[classes.selected]: pathname === "/allPosts"})}>

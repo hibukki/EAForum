@@ -4,24 +4,8 @@ import React from 'react';
 import { Link } from 'react-router';
 import withUser from '../common/withUser';
 
-const Home2 = (props) => {
-  const { currentUser } = props;
+const Home2 = ({ currentUser }) => {
   const { SingleColumnSection, SectionTitle, PostsList2, RecentDiscussionThreadsList, SubscribeWidget, HomeLatestPosts, TabNavigationMenu } = Components
-
-  const lat = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[1]
-  const lng = currentUser && currentUser.mongoLocation && currentUser.mongoLocation.coordinates[0]
-  let eventsListTerms = {
-    view: 'events',
-    limit: 3,
-  }
-  if (lat && lng) {
-    eventsListTerms = {
-      view: 'nearbyEvents',
-      lat: lat,
-      lng: lng,
-      limit: 3,
-    }
-  }
 
   return (
     <React.Fragment>
