@@ -68,7 +68,7 @@ Users.addView("usersWithBannedUsers", function () {
 })
 
 Users.addView("sunshineNewUsers", function () {
-  let reCaptchaSelector = {signUpReCaptchaRating: {$gt: 0.3}}
+  let reCaptchaSelector = {signUpReCaptchaRating: {$gte: getSetting('reCaptchaMinPass')}}
   if (!getSetting('requireReCaptcha')) {
     reCaptchaSelector = {
       $or: [

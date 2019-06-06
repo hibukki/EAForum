@@ -1,8 +1,9 @@
 import Users from "meteor/vulcan:users";
-import { addCallback, getSetting } from 'meteor/vulcan:core';
+import { addCallback, runCallbacksAsync, getSetting } from 'meteor/vulcan:core';
 import { Posts } from '../posts'
 import { Comments } from '../comments'
 import request from 'request';
+import moment from 'moment'
 
 const MODERATE_OWN_PERSONAL_THRESHOLD = 50
 const TRUSTLEVEL1_THRESHOLD = 2000
@@ -102,22 +103,42 @@ const getCaptchaRating = async (token) => {
     );
   });
 }
-async function addReCaptchaRating (user) {
-  if (reCaptchaSecret) {
-    const reCaptchaToken = user?.profile?.reCaptchaToken 
-    if (reCaptchaToken) {
-      const reCaptchaResponse = await getCaptchaRating(reCaptchaToken)
-      const reCaptchaData = JSON.parse(reCaptchaResponse)
-      if (reCaptchaData.success && reCaptchaData.action == "login/signup") {
-        Users.update(user._id, {$set: {signUpReCaptchaRating: reCaptchaData.score}})
-      } else {
-        // eslint-disable-next-line no-console
-        console.log("reCaptcha check failed:", reCaptchaData)
+async function processReCaptcha (user) {
+  if (!reCaptchaSecret) return
+  let update = {}
+  let banned = false
+  const reCaptchaToken = user?.profile?.reCaptchaToken
+  if (reCaptchaToken) {
+    const reCaptchaResponse = await getCaptchaRating(reCaptchaToken)
+    const reCaptchaData = JSON.parse(reCaptchaResponse)
+    // TODO; temp mock ---
+    reCaptchaData.success = true
+    reCaptchaData.action = 'login/signup'
+    reCaptchaData.score = .3
+    // ---
+    if (reCaptchaData.success && reCaptchaData.action == "login/signup") {
+      update.signUpReCaptchaRating = reCaptchaData.score
+      if (reCaptchaData.score < getSetting('reCaptchaMinPass') && getSetting('requireReCaptcha')) {
+        banned = true
       }
+    } else {
+      // eslint-disable-next-line no-console
+      console.log("reCaptcha check failed:", reCaptchaData)
     }
+  } else if (getSetting('requireReCaptcha')) {
+    banned = true
   }
+  if (banned) {
+    console.log('banhammer!')
+    update.banned = moment().add(12, 'months').toDate()
+    update.deleteContent = true
+    runCallbacksAsync('users.ban.async', user);
+    runCallbacksAsync('users.deleteContent.async', user);
+  }
+  // TODO; can we run this with await style?
+  Users.update(user._id, {$set: update})
 }
-addCallback('users.new.async', addReCaptchaRating);
+addCallback('users.new.async', processReCaptcha);
 
 async function subscribeOnSignup (user) {
   // If the subscribed-to-curated checkbox was checked, set the corresponding config setting
