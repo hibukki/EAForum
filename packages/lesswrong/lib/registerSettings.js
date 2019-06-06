@@ -59,6 +59,6 @@ registerSetting('akismet.url', null, 'Akismet url as entered into their site')
 
 // Spam strictness settings
 registerSetting('requireReCaptcha', false, 'Users must come with recaptcha scores or be banned')
-registerSetting('reCaptchaMinPass', .4, 'ReCaptcha score below which all users are banned')
+registerSetting('reCaptchaMinPass', .4, 'ReCaptcha score below which all users are hidden/banned')
 registerSetting('hideUnreviewedAuthorComments', false, 'Hide comments by unreviewed authors (prevents spam, but delays new user engagement)')
 
