@@ -233,7 +233,7 @@ const options = {
   queryName: 'postsDailyListQuery',
   fragmentName: 'PostsList',
   limit: 0,
-  ssr: true,
+  ssr: false, // TODO; for testing
 };
 
 registerComponent('PostsDailyList', PostsDailyList, withCurrentUser, [withList, options], withTimezone, withStyles(styles, {name: "PostsDailyList"}));

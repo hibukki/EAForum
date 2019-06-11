@@ -84,11 +84,15 @@ class AllPostsPage extends Component {
     // TODO; and that user preference is remembered
     // TODO; and that queries are king
     console.log('renderPostsList')
-    const timeframe = 'monthly'
+    const timeframe = 'daily'
+    const sortedBy = 'new'
+    const filter = 'frontpage'
     const numberOfDays = 2 // getSetting('forum.numberOfDays', 5);
     const dailyTerms = {
       karmaThreshold: DEFAULT_LOW_KARMA_THRESHOLD,
-      ...query,
+      sortedBy,
+      filter,
+      // ...query,
     };
     console.log('  dailyTerms', dailyTerms)
 

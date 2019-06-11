@@ -8,25 +8,106 @@ import moment from 'moment';
 export const DEFAULT_LOW_KARMA_THRESHOLD = -10
 export const MAX_LOW_KARMA_THRESHOLD = -1000
 
+// TODO; submit this file separately
 // TODO; maybe get indexing tutorial
 
 // In lieu of a proper debugging solution, hack in a single flag
 // TODO: Get a proper logging library
 // Set this to true when you want to see the view params
-const DEBUG_POSTS_VIEWS = false
+const DEBUG_POSTS_VIEWS = true
 function localDebug (...args) {
   if (!DEBUG_POSTS_VIEWS) return
   // eslint-disable-next-line no-console
   console.log('posts/views.js > ', ...args)
 }
 
+let frontpageSelector = {frontpageDate: {$gte: new Date(0)}}
+if (getSetting('forumType') === 'EAForum') frontpageSelector.meta = {$ne: true}
+
+const setStickies = (sortOptions, terms) => {
+  if (terms.af && terms.forum) {
+    return { afSticky: -1, ...sortOptions}
+  } else if (terms.meta && terms.forum) {
+    return { metaSticky: -1, ...sortOptions}
+  } else if (terms.forum) {
+    return { sticky: -1, ...sortOptions}
+  }
+  return sortOptions
+}
+
+const stickiesIndexPrefix = {
+  afSticky: -1, metaSticky: -1
+};
+
+// TODO; doc
+const viewOrFilterIs = (terms, filter) => {
+  return [terms.view, terms.filter].includes(filter)
+}
+
+const viewOrSortedByIs = (terms, sortedBy) => {
+  return [terms.view, terms.sortedBy].includes(sortedBy)
+}
+
+// mutates params
+const applyFilter = (terms, params) => {
+  if (viewOrFilterIs(terms, "curated")) {
+    params.selector.curatedDate ={$gt: new Date(0)}
+  }
+  if (viewOrFilterIs(terms, "frontpage")) {
+    params.selector = {...frontpageSelector, ...params.selector}
+  }
+  if (viewOrFilterIs(terms, "frontpageAndMeta")) {
+    // NB: currently only used on EA Forum
+    params.selector.$or = [
+      {frontpageDate: {$gt: new Date(0)}},
+      {meta: true}
+    ]
+  }
+  if (viewOrFilterIs(terms, "all")) {
+    params.selector.groupId = null
+  }
+  if (viewOrFilterIs(terms, "questions")) {
+    params.selector.question = true
+    params.selector.hiddenRelatedQuestion = viewFieldAllowAny
+  }
+  if (viewOrFilterIs(terms, "events")) {
+    params.selector.isEvent = true
+  }
+  if (viewOrFilterIs(terms, "meta")) {
+    params.selector.meta = true
+  }
+  return params
+}
+
+const applySort = (terms, params) => {
+  // TODO; special case for curated?
+  if (viewOrSortedByIs(terms, 'magic')) {
+    params.options = {sort: setStickies({score: -1}, terms)}
+  }
+  if (viewOrSortedByIs(terms, 'top')) {
+    params.options = {sort: setStickies({baseScore: -1}, terms)}
+  }
+  if (viewOrSortedByIs(terms, 'new')) {
+    // TODO; timefield? (helps with curated)
+    params.options = {sort: setStickies({postedAt: -1}, terms)}
+  }
+  if (viewOrSortedByIs(terms, 'old')) {
+    params.options = {sort: {postedAt: 1}}
+  }
+  if (viewOrSortedByIs(terms, 'recentComments')) {
+    params.options = {sort: {lastCommentedAt:-1}}
+  }
+  return params
+}
+
 /**
  * @summary Base parameters that will be common to all other view unless specific properties are overwritten
  */
 Posts.addDefaultView(terms => {
-  localDebug('default view terms', terms)
+  localDebug('defaultView')
+  console.log('defaultView full terms', terms)
   const validFields = _.pick(terms, 'userId', 'meta', 'groupId', 'af','question', 'authorIsUnreviewed');
-  localDebug('default view validFields', validFields)
+  localDebug('defaultView validFields', validFields)
   // Also valid fields: before, after, timeField (select on postedAt), and
   // karmaThreshold (selects on baseScore).
 
@@ -44,7 +125,7 @@ Posts.addDefaultView(terms => {
       ...alignmentForum
     }
   }
-  localDebug('default view initial params\n ', params)
+  localDebug('defaultView initial params\n ', params)
   if (terms.karmaThreshold && terms.karmaThreshold !== "0") {
     params.selector.baseScore = {$gte: parseInt(terms.karmaThreshold, 10)}
     params.selector.maxBaseScore = {$gte: parseInt(terms.karmaThreshold, 10)}
@@ -55,33 +136,12 @@ Posts.addDefaultView(terms => {
   if (terms.includeRelatedQuestions === "true") {
     params.selector.hiddenRelatedQuestion = viewFieldAllowAny
   }
-  if (terms.filter === "curated") {
-    params.selector.curatedDate ={$gt: new Date(0)}
-  }
-  if (terms.filter === "frontpage") {
-    params.selector.frontpageDate = {$gt: new Date(0)}
-  }
-  if (terms.filter === 'frontpageAndMeta') {
-    // NB: currently only used on EA Forum
-    params.selector.$or = [
-      {frontpageDate: {$gt: new Date(0)}},
-      {meta: true}
-    ]
-  }
-  if (terms.filter === "all") {
-    params.selector.groupId = null
-  }
-  if (terms.filter === "questions") {
-    params.selector.question = true
-    params.selector.hiddenRelatedQuestion = viewFieldAllowAny
-  }
-  if (terms.filter === "events") {
-    params.selector.isEvent = true
-  }
-  if (terms.filter === "meta") {
-    params.selector.meta = true
-  }
-  localDebug('default view params post processing\n ', params)
+  localDebug('defaultView view', terms.view)
+  localDebug('defaultView filter', terms.filter)
+  localDebug('defaultView sortedBy', terms.sortedBy)
+  params = applyFilter(terms, params)
+  params = applySort(terms, params)
+  localDebug('defaultView params post processing\n ', params)
   return params;
 })
 
@@ -94,6 +154,72 @@ export function augmentForDefaultView(indexFields)
   });
 }
 
+
+ensureIndex(Posts,
+  augmentForDefaultView({ score:-1 }),
+  {
+    name: "posts.score",
+  }
+);
+ensureIndex(Posts,
+  augmentForDefaultView({ afSticky:-1, score:-1 }),
+  {
+    name: "posts.afSticky_score",
+  }
+);
+ensureIndex(Posts,
+  augmentForDefaultView({ metaSticky:-1, score:-1 }),
+  {
+    name: "posts.metaSticky_score",
+  }
+);
+ensureIndex(Posts,
+  augmentForDefaultView({ userId: 1, hideAuthor: 1, ...stickiesIndexPrefix, score:-1 }),
+  {
+    name: "posts.userId_stickies_score",
+  }
+);
+
+
+// top
+ensureIndex(Posts,
+  augmentForDefaultView({ ...stickiesIndexPrefix, baseScore:-1 }),
+  {
+    name: "posts.stickies_baseScore",
+  }
+);
+ensureIndex(Posts,
+  augmentForDefaultView({ userId: 1, hideAuthor: 1, ...stickiesIndexPrefix, baseScore:-1 }),
+  {
+    name: "posts.userId_stickies_baseScore",
+  }
+);
+
+// new
+ensureIndex(Posts,
+  augmentForDefaultView({ ...stickiesIndexPrefix, postedAt:-1 }),
+  {
+    name: "posts.stickies_postedAt",
+  }
+);
+ensureIndex(Posts,
+  augmentForDefaultView({ userId: 1, hideAuthor: 1, ...stickiesIndexPrefix, postedAt:-1 }),
+  {
+    name: "posts.userId_stickies_postedAt",
+  }
+);
+
+// recentComments
+// TODO; does this have an index?
+
+// used to be daily
+// TODO; indexes man?
+ensureIndex(Posts,
+  augmentForDefaultView({ postedAt:1, baseScore:1}),
+  {
+    name: "posts.postedAt_baseScore",
+  }
+);
 
 /**
  * @summary User posts view
@@ -126,122 +252,8 @@ ensureIndex(Posts,
   }
 );
 
-const setStickies = (sortOptions, terms) => {
-  if (terms.af && terms.forum) {
-    return { afSticky: -1, ...sortOptions}
-  } else if (terms.meta && terms.forum) {
-    return { metaSticky: -1, ...sortOptions}
-  } else if (terms.forum) {
-    return { sticky: -1, ...sortOptions}
-  }
-  return sortOptions
-}
 
-const stickiesIndexPrefix = {
-  afSticky: -1, metaSticky: -1
-};
-
-
-Posts.addView("magic", terms => ({
-  options: {sort: setStickies({score: -1}, terms)}
-}))
-ensureIndex(Posts,
-  augmentForDefaultView({ score:-1 }),
-  {
-    name: "posts.score",
-  }
-);
-ensureIndex(Posts,
-  augmentForDefaultView({ afSticky:-1, score:-1 }),
-  {
-    name: "posts.afSticky_score",
-  }
-);
-ensureIndex(Posts,
-  augmentForDefaultView({ metaSticky:-1, score:-1 }),
-  {
-    name: "posts.metaSticky_score",
-  }
-);
-ensureIndex(Posts,
-  augmentForDefaultView({ userId: 1, hideAuthor: 1, ...stickiesIndexPrefix, score:-1 }),
-  {
-    name: "posts.userId_stickies_score",
-  }
-);
-
-
-Posts.addView("top", terms => {
-  localDebug('top view, terms', terms)
-  return{
-    options: {sort: setStickies({baseScore: -1}, terms)}
-  }
-})
-ensureIndex(Posts,
-  augmentForDefaultView({ ...stickiesIndexPrefix, baseScore:-1 }),
-  {
-    name: "posts.stickies_baseScore",
-  }
-);
-ensureIndex(Posts,
-  augmentForDefaultView({ userId: 1, hideAuthor: 1, ...stickiesIndexPrefix, baseScore:-1 }),
-  {
-    name: "posts.userId_stickies_baseScore",
-  }
-);
-
-
-Posts.addView("new", terms => ({
-  options: {sort: setStickies({postedAt: -1}, terms)}
-}))
-ensureIndex(Posts,
-  augmentForDefaultView({ ...stickiesIndexPrefix, postedAt:-1 }),
-  {
-    name: "posts.stickies_postedAt",
-  }
-);
-ensureIndex(Posts,
-  augmentForDefaultView({ userId: 1, hideAuthor: 1, ...stickiesIndexPrefix, postedAt:-1 }),
-  {
-    name: "posts.userId_stickies_postedAt",
-  }
-);
-
-Posts.addView("recentComments", terms => ({
-  options: {sort: {lastCommentedAt:-1}}
-}))
-
-
-Posts.addView("old", terms => ({
-  options: {sort: setStickies({postedAt: 1}, terms)}
-}))
-// Covered by the same index as `new`
-
-// Posts.addView("timeframe", terms => {
-//   localDebug('timeframe view')
-//   return {
-//     options: {
-//       sort: {score: -1}
-//     }
-//   }
-// });
-// TODO; indexes man?
-ensureIndex(Posts,
-  augmentForDefaultView({ postedAt:1, baseScore:1}),
-  {
-    name: "posts.postedAt_baseScore",
-  }
-);
-
-let frontpageSelector = {frontpageDate: {$gte: new Date(0)}}
-if (getSetting('forumType') === 'EAForum') frontpageSelector.meta = {$ne: true}
-
-Posts.addView("frontpage", terms => ({
-  selector: frontpageSelector,
-  options: {
-    sort: {sticky: -1, score: -1}
-  }
-}));
+// frontpage
 ensureIndex(Posts,
   augmentForDefaultView({ sticky: -1, score: -1, frontpageDate:1 }),
   {
@@ -258,6 +270,7 @@ Posts.addView("frontpage-rss", terms => ({
 }));
 // Covered by the same index as `frontpage`
 
+// TODO; keep for now
 Posts.addView("curated", terms => ({
   selector: {
     curatedDate: {$gt: new Date(0)},
@@ -284,8 +297,10 @@ Posts.addView("curated-rss", terms => ({
 }));
 // Covered by the same index as `curated`
 
+// TODO; what the hell is this?
 Posts.addView("community", terms => ({
   selector: {
+    // TODO; this was copy pasted directly but is a noop
     frontpageDatgroupId: { $exists: false },
     isEvent: false,
   },
@@ -325,7 +340,7 @@ Posts.addView("meta-rss", terms => ({
 
 Posts.addView('rss', Posts.views['community-rss']); // default to 'community-rss' for rss
 
-
+// TODO; port to new filter sort system?
 Posts.addView("topQuestions", terms => ({
   selector: {
     question: true,
