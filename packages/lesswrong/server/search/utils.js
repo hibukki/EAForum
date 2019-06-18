@@ -404,7 +404,13 @@ export async function algoliaIndexDocumentBatch({ documents, collection, algolia
   if (importBatch.length > 0) {
     const subBatches = subBatchArray(importBatch, 1000)
     for (const subBatch of subBatches) {
-      const err = await addOrUpdateIfNeeded(algoliaIndex, _.map(subBatch, _.clone));
+      let err
+      try {
+        err = await addOrUpdateIfNeeded(algoliaIndex, _.map(subBatch, _.clone));
+      } catch (uncaughtErr) {
+        console.warn(' ||||||||||||||||||||| Uncaught error!', uncaughtErr)
+        err = uncaughtErr
+      }
       if (err) errors.push(err)
     }
   }

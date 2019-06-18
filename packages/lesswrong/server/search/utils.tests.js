@@ -3,8 +3,7 @@ import { subBatchArray } from './utils'
 
 chai.should();
 
-// TODO; remove only
-describe.only('subBatchArray', () => {
+describe('subBatchArray', () => {
   it('divides a large array', () => {
     const arr = [1, 2, 3, 4, 5]
     const outputArrs = subBatchArray(arr, 2)
