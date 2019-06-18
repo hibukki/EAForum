@@ -296,6 +296,7 @@ export async function algoliaGetAllDocuments(algoliaIndex) {
 // (We do this rather than add blindly, because addObjects called are expensive
 // -- both in the traditional performance sense, and also in the sense that
 // Algolia's usage-based billing is built around it.)
+// TODO: This used to return any errors encountered, but now throws them
 async function addOrUpdateIfNeeded(algoliaIndex, objects) {
   if (objects.length == 0) return;
   
@@ -374,7 +375,9 @@ export async function algoliaDocumentExport({ documents, collection, updateFunct
   }
 }
 
-// export for testing
+// Sometimes 100 posts generate more index requests than algolia will willingly
+// handle - split them up in that case
+// Export for testing
 export function subBatchArray (arr, maxSize) {
   const result = []
   while (arr.length > 0) {
@@ -400,7 +403,6 @@ export async function algoliaIndexDocumentBatch({ documents, collection, algolia
     }
   }
 
-  console.log('importBatch.length', importBatch.length)
   if (importBatch.length > 0) {
     const subBatches = subBatchArray(importBatch, 1000)
     for (const subBatch of subBatches) {
@@ -408,7 +410,6 @@ export async function algoliaIndexDocumentBatch({ documents, collection, algolia
       try {
         err = await addOrUpdateIfNeeded(algoliaIndex, _.map(subBatch, _.clone));
       } catch (uncaughtErr) {
-        console.warn(' ||||||||||||||||||||| Uncaught error!', uncaughtErr)
         err = uncaughtErr
       }
       if (err) errors.push(err)
