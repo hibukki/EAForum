@@ -374,11 +374,21 @@ export async function algoliaDocumentExport({ documents, collection, updateFunct
   }
 }
 
+// export for testing
+export function subBatchArray (arr, maxSize) {
+  const result = []
+  while (arr.length > 0) {
+    result.push(arr.slice(0, maxSize))
+    arr = arr.slice(maxSize, arr.length)
+  }
+  return result
+}
+
 export async function algoliaIndexDocumentBatch({ documents, collection, algoliaIndex, errors, updateFunction })
 {
   let importBatch = [];
   let itemsToDelete = [];
-  
+
   for (let item of documents) {
     if (updateFunction) updateFunction(item)
     
@@ -389,10 +399,14 @@ export async function algoliaIndexDocumentBatch({ documents, collection, algolia
       itemsToDelete.push(item._id);
     }
   }
-  
+
+  console.log('importBatch.length', importBatch.length)
   if (importBatch.length > 0) {
-    const err = await addOrUpdateIfNeeded(algoliaIndex, _.map(importBatch, _.clone));
-    if (err) errors.push(err)
+    const subBatches = subBatchArray(importBatch, 1000)
+    for (const subBatch of subBatches) {
+      const err = await addOrUpdateIfNeeded(algoliaIndex, _.map(subBatch, _.clone));
+      if (err) errors.push(err)
+    }
   }
   
   if (itemsToDelete.length > 0) {
