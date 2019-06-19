@@ -4,7 +4,6 @@ import { withStyles } from '@material-ui/core/styles';
 import moment from 'moment';
 import { withRouter } from '../../lib/reactRouterWrapper.js';
 import withUser from '../common/withUser';
-import SettingsIcon from '@material-ui/icons/Settings';
 import Tooltip from '@material-ui/core/Tooltip';
 import Users from 'meteor/vulcan:users';
 import Typography from '@material-ui/core/Typography'
@@ -21,10 +20,6 @@ const styles = theme => ({
       padding: 0,
     }
   },
-  settingsIcon: {
-    color: theme.palette.grey[400],
-    marginRight: theme.spacing.unit,
-  },
   title: {
     cursor: "pointer",
     '&:hover $settingsIcon, &:hover $sortedBy': {
@@ -32,6 +27,7 @@ const styles = theme => ({
     }
   },
   sortedBy: {
+    marginLeft: theme.spacing.unit,
     fontStyle: "italic",
     display: "inline-block"
   }
@@ -117,7 +113,7 @@ class AllPostsPage extends Component {
     console.log('AllPostsPage render()')
     const { classes, currentUser, router } = this.props
     const { showSettings } = this.state
-    const { PostsListSettings, SingleColumnSection, SectionTitle, MetaInfo, TabNavigationMenu } = Components
+    const { SingleColumnSection, SectionTitle, SettingsIcon, MetaInfo, PostsListSettings } = Components
     const query = _.clone(router.location.query) || {}
 
     const currentView = query.view || (currentUser && currentUser.allPostsView) || "daily"

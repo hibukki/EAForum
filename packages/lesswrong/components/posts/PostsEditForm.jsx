@@ -21,7 +21,10 @@ class PostsEditForm extends PureComponent {
     const { WrappedSmartForm, PostSubmit } = Components
     const EditPostsSubmit = (props) => {
       return <div className={classes.formSubmit}>
-        <PostSubmit {...props} />
+        <PostSubmit
+          saveDraftLabel={isDraft ? "Save as draft" : "Move to Drafts"}
+          {...props}
+        />
       </div>
     }
 
