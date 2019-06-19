@@ -8,25 +8,11 @@ import moment from 'moment';
 export const DEFAULT_LOW_KARMA_THRESHOLD = -10
 export const MAX_LOW_KARMA_THRESHOLD = -1000
 
-// TODO; maybe get indexing tutorial
-
-// In lieu of a proper debugging solution, hack in a single flag
-// TODO: Get a proper logging library
-// Set this to true when you want to see the view params
-const DEBUG_POSTS_VIEWS = false
-function localDebug (...args) {
-  if (!DEBUG_POSTS_VIEWS) return
-  // eslint-disable-next-line no-console
-  console.log('posts/views.js > ', ...args)
-}
-
 /**
  * @summary Base parameters that will be common to all other view unless specific properties are overwritten
  */
 Posts.addDefaultView(terms => {
-  localDebug('default view terms', terms)
   const validFields = _.pick(terms, 'userId', 'meta', 'groupId', 'af','question', 'authorIsUnreviewed');
-  localDebug('default view validFields', validFields)
   // Also valid fields: before, after, timeField (select on postedAt), and
   // karmaThreshold (selects on baseScore).
 
@@ -44,7 +30,6 @@ Posts.addDefaultView(terms => {
       ...alignmentForum
     }
   }
-  localDebug('default view initial params\n ', params)
   if (terms.karmaThreshold && terms.karmaThreshold !== "0") {
     params.selector.baseScore = {$gte: parseInt(terms.karmaThreshold, 10)}
     params.selector.maxBaseScore = {$gte: parseInt(terms.karmaThreshold, 10)}
@@ -81,7 +66,6 @@ Posts.addDefaultView(terms => {
   if (terms.filter === "meta") {
     params.selector.meta = true
   }
-  localDebug('default view params post processing\n ', params)
   return params;
 })
 
@@ -171,12 +155,9 @@ ensureIndex(Posts,
 );
 
 
-Posts.addView("top", terms => {
-  localDebug('top view, terms', terms)
-  return{
-    options: {sort: setStickies({baseScore: -1}, terms)}
-  }
-})
+Posts.addView("top", terms => ({
+  options: {sort: setStickies({baseScore: -1}, terms)}
+}))
 ensureIndex(Posts,
   augmentForDefaultView({ ...stickiesIndexPrefix, baseScore:-1 }),
   {
@@ -217,15 +198,11 @@ Posts.addView("old", terms => ({
 }))
 // Covered by the same index as `new`
 
-// Posts.addView("timeframe", terms => {
-//   localDebug('timeframe view')
-//   return {
-//     options: {
-//       sort: {score: -1}
-//     }
-//   }
-// });
-// TODO; indexes man?
+Posts.addView("daily", terms => ({
+  options: {
+    sort: {score: -1}
+  }
+}));
 ensureIndex(Posts,
   augmentForDefaultView({ postedAt:1, baseScore:1}),
   {
