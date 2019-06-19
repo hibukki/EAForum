@@ -34,21 +34,26 @@ const styles = theme => ({
 });
 
 export const timeframes = {
-  daily: "Daily",
-  monthly: "Monthly",
+  daily: 'Daily',
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+  yearly: 'Yearly',
+  allTime: 'All Time',
 }
 
 const timeframeToTimeBlock = {
   daily: 'days',
+  weekly: 'weekly',
   monthly: 'months',
+  yearly: 'years',
 }
 
 export const sortings = {
-  magic: "Magic (New & Upvoted)",
-  recentComments: "Recent Comments",
-  new: "New",
-  old: "Old",
-  top: "Top",
+  magic: 'Magic (New & Upvoted)',
+  recentComments: 'Recent Comments',
+  new: 'New',
+  old: 'Old',
+  top: 'Top',
 }
 
 class AllPostsPage extends Component {
@@ -87,8 +92,8 @@ class AllPostsPage extends Component {
     console.log('  dailyTerms', dailyTerms)
 
     const {PostsDailyList, PostsList2} = Components
-    // currentView === "daily"
-    if (true) return <div className={classes.daily}>
+    // timeframe !== 'allTime'
+    if (false) return <div className={classes.daily}>
       <PostsDailyList
         // TODO; title unused?
         title="Posts by Day"
@@ -98,12 +103,6 @@ class AllPostsPage extends Component {
         dimWhenLoading={showSettings}
       />
     </div>
-    // // TODO; factor out component
-    // if (currentView === "monthly") return <div>
-    //   <Typography variant="headline">
-    //     June
-    //   </Typography>
-    // </div>
     return <PostsList2 terms={terms} showHeader={false} dimWhenLoading={showSettings} />
   }
 
@@ -116,6 +115,7 @@ class AllPostsPage extends Component {
     // maintain backward compatibility with bookmarks
     const querySorting = query.sortedBy || query.view
 
+    const currentTimeframe = 'allTime' // TODO;
     // TODO[WIP] migration for allPostsView
     // maintain backward compatibility with previous user setting during
     // transition
@@ -150,6 +150,7 @@ class AllPostsPage extends Component {
           </Tooltip>
           <PostsListSettings
             hidden={!showSettings}
+            currentTimeframe={currentTimeframe}
             currentSorting={currentSorting}
             currentFilter={currentFilter}
             currentShowLowKarma={currentShowLowKarma}
