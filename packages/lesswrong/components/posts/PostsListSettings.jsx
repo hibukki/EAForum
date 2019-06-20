@@ -143,7 +143,7 @@ const styles = theme => ({
 })
 
 // TODO; could this be on the component?
-const SettingsColumn = ({type, title, options, currentOption, classes, selectOption}) => {
+const SettingsColumn = ({type, title, options, currentOption, classes, setSetting}) => {
   const { MetaInfo } = Components
 
   return <div className={classes.selectionList}>
@@ -155,7 +155,7 @@ const SettingsColumn = ({type, title, options, currentOption, classes, selectOpt
       return (
         <Link
           key={name}
-          onClick={() => selectOption(type, name)}
+          onClick={() => setSetting(type, name)}
           // TODO; Can the query have an ordering that matches the column ordering?
           to={loc=> ({...loc, query: {...loc.query, [type]: name}})}
         >
@@ -211,7 +211,7 @@ class PostsListSettings extends Component {
           title={'Timeframe:'}
           options={timeframes}
           currentOption={currentTimeframe}
-          selectOption={this.setSetting}
+          setSetting={this.setSetting}
           classes={classes}
         />
 
@@ -220,7 +220,7 @@ class PostsListSettings extends Component {
           title={'Sorted by:'}
           options={sortings}
           currentOption={currentSorting}
-          selectOption={this.setSetting}
+          setSetting={this.setSetting}
           classes={classes}
         />
 
@@ -229,7 +229,7 @@ class PostsListSettings extends Component {
           title={'Filtered by:'}
           options={FILTERS}
           currentOption={currentFilter}
-          selectOption={this.setSetting}
+          setSetting={this.setSetting}
           classes={classes}
         />
 
