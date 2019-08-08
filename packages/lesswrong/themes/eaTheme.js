@@ -157,6 +157,13 @@ const theme = createLWTheme({
         fontSize: "1rem",
         padding: ".7rem",
       }
+    },
+    Divider: {
+      compass: {
+        height: 35,
+        width: 35,
+        opacity: .4
+      }
     }
   }
 });
