@@ -1,11 +1,11 @@
 import { registerComponent, Components } from 'meteor/vulcan:core';
 import React from 'react';
-import { withRouter } from '../../../lib/reactRouterWrapper.js';
 import { withStyles } from '@material-ui/core/styles';
 import MenuItem from '@material-ui/core/MenuItem';
 import { Link } from '../../../lib/reactRouterWrapper.js';
 import classNames from 'classnames';
 import Tooltip from '@material-ui/core/Tooltip';
+import { useLocation } from '../../../lib/routeUtil.js';
 
 export const iconWidth = 30
 
@@ -63,9 +63,9 @@ const styles = theme => ({
   },
 })
 
-const TabNavigationItem = ({tab, onClick, location, classes}) => {
+const TabNavigationItem = ({tab, onClick, classes}) => {
   const { TabNavigationSubItem } = Components
-  const { pathname } = location
+  const { pathname } = useLocation()
 
   return <Tooltip placement='right-start' title={tab.tooltip || ''}>
     <MenuItem
@@ -98,5 +98,5 @@ const TabNavigationItem = ({tab, onClick, location, classes}) => {
 
 registerComponent(
   'TabNavigationItem', TabNavigationItem,
-  withRouter, withStyles(styles, { name: 'TabNavigationItem'})
+  withStyles(styles, { name: 'TabNavigationItem'})
 );

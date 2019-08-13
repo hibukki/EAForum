@@ -1,9 +1,9 @@
 import React from 'react';
 import { Components, registerComponent } from 'meteor/vulcan:core';
 import { withStyles } from '@material-ui/core/styles'
-import { withRouter, Link } from '../../../lib/reactRouterWrapper.js';
+import { Link } from '../../../lib/reactRouterWrapper.js';
 import Icon from '@material-ui/core/Icon';
-import { Posts } from "../../../lib/collections/posts";
+import { Comments } from "../../../lib/collections/comments";
 import classNames from 'classnames';
 
 const styles = theme => ({
@@ -33,35 +33,20 @@ const styles = theme => ({
   },
 });
 
-const CommentsItemDate = ({comment, post, router, showPostTitle, scrollOnClick=false, scrollIntoView, classes }) => {
-  const handleLinkClick = (event) => {
-    event.preventDefault()
-    router.replace({...router.location, hash: "#" + comment._id})
-    scrollIntoView(event);
-  };
-  
+const CommentsItemDate = ({comment, post, showPostTitle, classes }) => {
   return (
     <div className={classNames(classes.root, {
       [classes.date]: !comment.answer,
       [classes.answerDate]: comment.answer,
     })}>
-      { !scrollOnClick ?
-        <Link to={Posts.getPageUrl(post) + "#" + comment._id}>
-          <Components.FormatDate date={comment.postedAt} format={comment.answer && "MMM DD, YYYY"}/>
-          <Icon className={classNames("material-icons", classes.icon)}> link </Icon>
-          {showPostTitle && post.title && <span className={classes.postTitle}> { post.title }</span>}
-        </Link>
-      :
-      <a href={Posts.getPageUrl(post) + "#" + comment._id} onClick={handleLinkClick}>
-        <Components.FormatDate date={comment.postedAt}/>
+      <Link to={Comments.getPageUrlFromIds(post._id, post.slug, comment._id)}>
+        <Components.FormatDate date={comment.postedAt} format={comment.answer && "MMM DD, YYYY"}/>
         <Icon className={classNames("material-icons", classes.icon)}> link </Icon>
         {showPostTitle && post.title && <span className={classes.postTitle}> { post.title }</span>}
-      </a>
-      }
+      </Link>
     </div>
   );
 }
 
 registerComponent('CommentsItemDate', CommentsItemDate,
-  withRouter,
   withStyles(styles, {name: "CommentsItemDate"}));

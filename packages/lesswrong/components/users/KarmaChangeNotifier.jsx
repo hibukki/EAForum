@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
-import { registerComponent, withDocument, withEdit } from 'meteor/vulcan:core';
+import { registerComponent, withDocument, withUpdate } from 'meteor/vulcan:core';
 import { withStyles } from '@material-ui/core/styles';
 import withUser from '../common/withUser';
 import withErrorBoundary from '../common/withErrorBoundary'
 import Popper from '@material-ui/core/Popper';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
-import { Link } from '../../lib/reactRouterWrapper.js';
+import { Link } from 'react-router-dom';
 import Users from 'meteor/vulcan:users';
 import Typography from '@material-ui/core/Typography';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -183,9 +183,9 @@ class KarmaChangeNotifier extends PureComponent {
       anchorEl: null,
     });
     if (this.props.document && this.props.document.karmaChanges) {
-      this.props.editMutation({
-        documentId: this.props.currentUser._id,
-        set: {
+      this.props.updateUser({
+        selector: {_id: this.props.currentUser._id},
+        data: {
           karmaChangeLastOpened: this.props.document.karmaChanges.endDate,
           karmaChangeBatchStart: this.props.document.karmaChanges.startDate
         }
@@ -254,7 +254,7 @@ registerComponent('KarmaChangeNotifier', KarmaChangeNotifier,
     queryName: 'UserKarmaChangesQuery',
     fragmentName: 'UserKarmaChanges'
   }],
-  [withEdit, {
+  [withUpdate, {
     collection: Users,
     fragmentName: 'UsersCurrent',
   }],

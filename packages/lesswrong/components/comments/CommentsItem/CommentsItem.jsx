@@ -106,7 +106,7 @@ class CommentsItem extends Component {
   shouldComponentUpdate(nextProps, nextState) {
     if(!shallowEqual(this.state, nextState))
       return true;
-    if(!shallowEqualExcept(this.props, nextProps, ["post", "editMutation"]))
+    if(!shallowEqualExcept(this.props, nextProps, ["post", "updateComment"]))
       return true;
     if ((nextProps.post && nextProps.post.contents && nextProps.post.contents.version) !== (this.props.post && this.props.post.contents && this.props.post.contents.version))
       return true;
@@ -155,7 +155,7 @@ class CommentsItem extends Component {
   }
 
   render() {
-    const { comment, currentUser, postPage, nestingLevel=1, showPostTitle, classes, post, collapsed, scrollIntoView, isParentComment, parentCommentId } = this.props
+    const { comment, currentUser, postPage, nestingLevel=1, showPostTitle, classes, post, collapsed, isParentComment, parentCommentId } = this.props
 
     const { ShowParentComment, CommentsItemDate, CommentUserName } = Components
 
@@ -208,8 +208,6 @@ class CommentsItem extends Component {
             <CommentsItemDate
               comment={comment} post={post}
               showPostTitle={showPostTitle}
-              scrollIntoView={scrollIntoView}
-              scrollOnClick={postPage && !isParentComment}
             />
             <Components.CommentsVote comment={comment} currentUser={currentUser} />
 
