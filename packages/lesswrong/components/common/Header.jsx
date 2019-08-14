@@ -224,12 +224,14 @@ class Header extends PureComponent {
               <Typography className={classes.title} variant="title" color="textSecondary">
                 <Hidden smDown implementation="css">
                   <Link to="/" className={classes.titleLink}>
+                    <div className={classes.siteLogo}><Components.SiteLogo/></div>
                     {getSetting('forumSettings.headerTitle', 'LESSWRONG')}
                   </Link>
                   <HeaderSubtitle />
                 </Hidden>
                 <Hidden mdUp implementation="css">
                   <Link to="/" className={classes.titleLink}>
+                    <div className={classes.siteLogo}><Components.SiteLogo/></div>
                     {getSetting('forumSettings.shortForumTitle', 'LW')}
                   </Link>
                 </Hidden>
