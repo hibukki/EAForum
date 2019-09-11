@@ -1,14 +1,9 @@
 import { Posts } from './collection.js';
 import Users from 'meteor/vulcan:users';
-import { Utils, getSetting, registerSetting } from 'meteor/vulcan:core';
+import { Utils, getSetting } from 'meteor/vulcan:core';
 
 
 // EXAMPLE-FORUM Helpers
-
-registerSetting('forum.outsideLinksPointTo', 'link', 'Whether to point RSS links to the linked URL (“link”) or back to the post page (“page”)');
-registerSetting('forum.requirePostsApproval', false, 'Require posts to be approved manually');
-registerSetting('twitterAccount', null, 'Twitter account associated with the app');
-registerSetting('siteUrl', null, 'Main site URL');
 
 //////////////////
 // Link Helpers //
@@ -103,25 +98,6 @@ Posts.current = function () {
 };
 
 /**
- * @summary Check to see if a post is a link to a video
- * @param {Object} post
- */
-Posts.isVideo = function (post) {
-  return post.media && post.media.type === 'video';
-};
-
-/**
- * @summary Get the complete thumbnail url whether it is hosted on Embedly or on an external website, or locally in the app.
- * @param {Object} post
- */
-Posts.getThumbnailUrl = (post) => {
-  const thumbnailUrl = post.thumbnailUrl;
-  if (!!thumbnailUrl) {
-    return thumbnailUrl.indexOf('//') > -1 ? Utils.addHttp(thumbnailUrl) : Utils.getSiteUrl().slice(0,-1) + thumbnailUrl;
-  }
-};
-
-/**
  * @summary Get URL for sharing on Twitter.
  * @param {Object} post
  */
@@ -159,21 +135,22 @@ ${Posts.getLink(post, true, false)}
  * @summary Get URL of a post page.
  * @param {Object} post
  */
-Posts.getPageUrl = function(post, isAbsolute = false){
+Posts.getPageUrl = function(post, isAbsolute = false, sequenceId=null) {
   const prefix = isAbsolute ? Utils.getSiteUrl().slice(0,-1) : '';
 
   // LESSWRONG – included event and group post urls
-  if (post.isEvent) {
+  if (sequenceId) {
+    return `${prefix}/s/${sequenceId}/p/${post._id}`;
+  } else if (post.isEvent) {
     return `${prefix}/events/${post._id}/${post.slug}`;
-  }
-  if (post.groupId) {
+  } else if (post.groupId) {
     return `${prefix}/g/${post.groupId}/p/${post._id}/`;
   }
   return `${prefix}/posts/${post._id}/${post.slug}`;
 };
 
 Posts.getCommentCount = (post) => {
-  if (getSetting('AlignmentForum', false)) {
+  if (getSetting('forumType') === 'AlignmentForum') {
     return post.afCommentCount || 0;
   } else {
     return post.commentCount || 0;
@@ -196,7 +173,7 @@ Posts.getCommentCountStr = (post, commentCount) => {
 
 
 Posts.getLastCommentedAt = (post) => {
-  if (getSetting('AlignmentForum')) {
+  if (getSetting('forumType') === 'AlignmentForum') {
     return post.afLastCommentedAt;
   } else {
     return post.lastCommentedAt;
@@ -212,4 +189,9 @@ Posts.canDelete = (currentUser, post) => {
     return true
   }
   return Users.owns(currentUser, post) && post.draft
+}
+
+Posts.getKarma = (post) => {
+  const baseScore = getSetting('forumType') === 'AlignmentForum' ? post.afBaseScore : post.baseScore
+  return baseScore || 0
 }

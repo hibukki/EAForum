@@ -1,6 +1,8 @@
+import React from 'react';
 import Users from 'meteor/vulcan:users'
 import { Utils } from 'meteor/vulcan:core'
 import { ContentType } from '../collections/revisions/schema'
+import { accessFilterMultiple } from '../modules/utils/schemaUtils.js';
 import SimpleSchema from 'simpl-schema'
 
 const RevisionStorageType = new SimpleSchema({
@@ -32,8 +34,8 @@ const defaultOptions = {
   enableMarkDownEditor: true
 }
 
-export let editableCollections = new Set()
-export let editableCollectionsFields = {}
+export const editableCollections = new Set()
+export const editableCollectionsFields = {}
 
 export const makeEditable = ({collection, options = {}}) => {
   options = {...defaultOptions, ...options}
@@ -44,6 +46,17 @@ export const makeEditable = ({collection, options = {}}) => {
     formGroup,
     permissions,
     fieldName = "",
+    hintText = <div>
+      <div>
+        Write here. Select text for formatting options.
+      </div>
+      <div>
+        We support LaTeX: Cmd-4 for inline, Cmd-M for block-level (Ctrl on Windows).
+      </div>
+      <div>
+        You can switch between rich text and markdown in your user settings.
+      </div>
+  </div>,
     order,
     enableMarkDownEditor
   } = options
@@ -91,7 +104,7 @@ export const makeEditable = ({collection, options = {}}) => {
           }
         },
         form: {
-          hintText:"Plain Markdown Editor",
+          hintText: hintText,
           multiLine:true,
           fullWidth:true,
           disableUnderline:true,
@@ -113,12 +126,9 @@ export const makeEditable = ({collection, options = {}}) => {
           type: '[Revision]',
           arguments: 'limit: Int = 5',
           resolver: async (post, { limit }, { currentUser, Revisions }) => {
-            const { checkAccess } = Revisions
             const field = fieldName || "contents"
             const resolvedDocs = await Revisions.find({documentId: post._id, fieldName: field}, {sort: {editedAt: -1}, limit}).fetch()
-            const filteredDocs = checkAccess ? _.filter(resolvedDocs, d => checkAccess(currentUser, d)) : resolvedDocs
-            const restrictedDocs = Users.restrictViewableFields(currentUser, Revisions, filteredDocs)
-            return restrictedDocs
+            return accessFilterMultiple(currentUser, Revisions, resolvedDocs);
           }
         }
       }

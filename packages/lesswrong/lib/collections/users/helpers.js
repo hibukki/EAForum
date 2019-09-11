@@ -5,6 +5,17 @@ import { Votes } from '../votes';
 import { Comments } from '../comments'
 import { Posts } from '../posts'
 
+// Overwrite user display name getter from Vulcan
+Users.getDisplayName = (user) => {
+  if (!user) {
+    return "";
+  } else {
+    return getSetting('forumType') === 'AlignmentForum' ? 
+      (user.fullName || user.displayName) :
+      (user.displayName || Users.getUserName(user))
+  }
+};
+
 Users.ownsAndInGroup = (group) => {
   return (user, document) => {
     return Users.owns(user, document) && Users.isMemberOf(user, group)
@@ -39,13 +50,19 @@ Users.canModeratePost = (user, post) => {
     (
       Users.canDo(user,"posts.moderate.own") &&
       Users.owns(user, post) &&
-      ((post.moderationGuidelines && post.moderationGuidelines.html) || post.moderationStyle)
+      // Because of a bug in Vulcan that doesn't adequately deal with nested fields in document validation,
+      // we check for originalContents instead of html here, which causes some problems with empty strings, but 
+      // should overall be fine
+    ((post.moderationGuidelines?.originalContents) || post.moderationStyle)
     )
     ||
     (
       Users.canDo(user, "posts.moderate.own.personal") &&
       Users.owns(user, post) &&
-      ((post.moderationGuidelines && post.moderationGuidelines.html) || post.moderationStyle) &&
+      // Because of a bug in Vulcan that doesn't adequately deal with nested fields in document validation,
+      // we check for originalContents instead of html here, which causes some problems with empty strings, but 
+      // should overall be fine
+      ((post.moderationGuidelines?.originalContents) || post.moderationStyle) &&
       !post.frontpageDate
     )
   )
@@ -121,7 +138,7 @@ Users.isAllowedToComment = (user, post) => {
     return false
   }
 
-  if (getSetting('AlignmentForum', false)) {
+  if (getSetting('forumType') === 'AlignmentForum') {
     if (!Users.canDo(user, 'comments.alignment.new')) {
       return Users.owns(user, post) && Users.canDo(user, 'votes.alignment')
     }
@@ -139,9 +156,9 @@ Users.blockedCommentingReason = (user, post) => {
     return "This post's author has blocked you from commenting."
   }
 
-  if (getSetting('AlignmentForum', false)) {
+  if (getSetting('forumType') === 'AlignmentForum') {
     if (!Users.canDo(user, 'comments.alignment.new')) {
-      return "You must be approved by an admin to comment on Alignment Forum"
+      return "You must be approved by an admin to comment on the AI Alignment Forum"
     }
   }
   if (Users.userIsBannedFromAllPosts(user, post)) {
@@ -278,7 +295,7 @@ Users.getAggregateKarma = async (user) => {
 }
 
 Users.getPostCount = (user) => {
-  if (getSetting('AlignmentForum')) {
+  if (getSetting('forumType') === 'AlignmentForum') {
     return user.afPostCount;
   } else {
     return user.postCount;
@@ -286,7 +303,7 @@ Users.getPostCount = (user) => {
 }
 
 Users.getCommentCount = (user) => {
-  if (getSetting('AlignmentForum')) {
+  if (getSetting('forumType') === 'AlignmentForum') {
     return user.afCommentCount;
   } else {
     return user.commentCount;

@@ -2,6 +2,7 @@
 import { getSetting } from 'meteor/vulcan:core';
 import { DebouncerEvents } from '../lib/collections/debouncerEvents/collection.js';
 import { addCronJob } from './cronUtil.js';
+import Sentry from '@sentry/node';
 
 let eventDebouncersByName = {};
 
@@ -59,8 +60,9 @@ export class EventDebouncer
   // Parameters:
   //  * name: (String)
   //  * key: (JSON)
-  //  * eventData: (JSON)
-  recordEvent = async (key, eventData) => {
+  //  * data: (JSON)
+  //  * af: (bool)
+  recordEvent = async ({key, data, af=false}) => {
     const now = new Date();
     const msPerMin = 60*1000;
     const newDelayTime = new Date(now.getTime() + (this.delayMinutes * msPerMin));
@@ -69,13 +71,14 @@ export class EventDebouncer
     // On rawCollection because minimongo doesn't support $max/$min on Dates
     await DebouncerEvents.rawCollection().update({
       name: this.name,
+      af: af,
       key: JSON.stringify(key),
       dispatched: false,
     }, {
       $max: { delayTime: newDelayTime.getTime() },
       $min: { upperBoundTime: newUpperBoundTime.getTime() },
       $push: {
-        pendingEvents: eventData,
+        pendingEvents: data,
       }
     }, {
       upsert: true
@@ -107,6 +110,7 @@ const dispatchEvent = async (event) => {
 
 export const dispatchPendingEvents = async () => {
   const now = new Date().getTime();
+  const af = getSetting('forumType') === 'AlignmentForum'
   let eventToHandle = null;
   
   do {
@@ -119,6 +123,7 @@ export const dispatchPendingEvents = async () => {
     const queryResult = await DebouncerEvents.rawCollection().findOneAndUpdate(
       {
         dispatched: false,
+        af: af,
         $or: [
           { delayTime: {$lt: now} },
           { upperBoundTime: {$lt: now} }
@@ -131,7 +136,17 @@ export const dispatchPendingEvents = async () => {
     eventToHandle = queryResult.value;
     
     if (eventToHandle) {
-      await dispatchEvent(eventToHandle);
+      try {
+        await dispatchEvent(eventToHandle);
+      } catch (e) {
+        DebouncerEvents.update({
+          _id: eventToHandle._id
+        }, {
+          $set: { failed: true }
+        });
+        Sentry.captureException(new Error(`Exception thrown while handling debouncer event ${eventToHandle._id}: ${e}`));
+        Sentry.captureException(e);
+      }
     }
     
     // Keep checking for more events to handle so long as one was handled.
@@ -142,10 +157,14 @@ export const dispatchPendingEvents = async () => {
 // would do this interactively if you're testing and don't want to wait.
 export const forcePendingEvents = async () => {
   let eventToHandle = null;
+  const af = getSetting('forumType') === 'AlignmentForum'
   
   do {
     const queryResult = await DebouncerEvents.rawCollection().findOneAndUpdate(
-      { dispatched: false, },
+      {
+        dispatched: false,
+        af: af,
+      },
       { $set: { dispatched: true } },
     );
     eventToHandle = queryResult.value;

@@ -9,7 +9,6 @@ const styles = theme => ({
     top:0,
     right:0,
     height: "100%",
-    maxHeight: 80,
     display:"flex",
     alignItems: "center",
     backgroundColor: theme.palette.grey[50],
@@ -26,7 +25,5 @@ const SidebarActionMenu = ({children, classes}) => {
 SidebarActionMenu.propTypes = {
   classes: PropTypes.object.isRequired
 };
-
-SidebarActionMenu.displayName = "SidebarActionMenu";
 
 registerComponent('SidebarActionMenu', SidebarActionMenu, withStyles(styles, { name: 'SidebarActionMenu'}));

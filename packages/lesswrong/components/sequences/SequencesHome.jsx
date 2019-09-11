@@ -1,6 +1,5 @@
 import React from 'react';
-import { Components, registerComponent } from 'meteor/vulcan:core';
-import { Link } from '../../lib/reactRouterWrapper.js';
+import { Components, registerComponent, getSetting } from 'meteor/vulcan:core';
 import { withStyles } from '@material-ui/core/styles';
 import { legacyBreakpoints } from '../../lib/modules/utils/theme';
 import Typography from '@material-ui/core/Typography';
@@ -33,18 +32,14 @@ const styles = theme => ({
   listDescription: {
     marginTop: theme.spacing.unit*2,
     ...postBodyStyles(theme)
-  },
-  newSequence: {
-    color: theme.palette.primary.light
   }
 });
 
 const SequencesHome = ({classes}) => {
 
-  const { SingleColumnSection, SectionTitle, TabNavigationMenu, Divider } = Components
+  const { SingleColumnSection, SectionTitle, Divider, SequencesNewButton } = Components
   // TODO: decide on terms for community sequences
   return <React.Fragment>
-    <TabNavigationMenu />
     {/* Title */}
     <SingleColumnSection>
       <div className={classes.header}>
@@ -55,16 +50,16 @@ const SequencesHome = ({classes}) => {
         <Typography variant="body1" className={classes.listDescription}>
           Sequences are collections of posts that are curated by the community and
           are structured similarly to books. This is the place where you can find
-          the best posts on LessWrong in easy to read formats.
+          the best posts in easy to read formats.
         </Typography>
       </div>
     </SingleColumnSection>
 
-    <SingleColumnSection>
+    {getSetting('forumType') === 'LessWrong' && <SingleColumnSection>
       <SectionTitle title="Core Reading" />
       <Components.CoreReading />
       <Divider />
-    </SingleColumnSection>
+    </SingleColumnSection>}
 
     <SingleColumnSection>
       <SectionTitle title="Curated Sequences" />
@@ -77,10 +72,10 @@ const SequencesHome = ({classes}) => {
       </div>
       <Divider />
     </SingleColumnSection>
-    
+
     <SingleColumnSection>
       <SectionTitle  title="Community Sequences" >
-        <Typography className={classes.newSequence} variant="body2"><Link to={"/sequencesnew"}> Create New Sequence </Link></Typography>
+        <SequencesNewButton />
       </SectionTitle>
       <div className={classes.sequencesGridWrapperWrapper}>
         <Components.SequencesGridWrapper

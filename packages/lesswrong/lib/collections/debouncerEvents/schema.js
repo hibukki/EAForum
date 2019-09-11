@@ -7,7 +7,13 @@ const schema = {
   name: {
     type: String,
   },
+  af: {
+    type: Boolean,
+  },
   dispatched: {
+    type: Boolean,
+  },
+  failed: {
     type: Boolean,
   },
   

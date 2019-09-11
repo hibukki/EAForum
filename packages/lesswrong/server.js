@@ -1,3 +1,5 @@
+import { getSetting} from 'meteor/vulcan:core';
+
 export * from './lib/index.js';
 
 import './server/database-import/database_import_new.js';
@@ -6,6 +8,7 @@ import './server/rss-integration/callbacks.js';
 import './server/database-import/force_batch_update_scores.js';
 import './server/database-import/cleanup_scripts.js';
 import './server/robots.js';
+import './server/ckEditorToken';
 
 // Scripts
 import './server/scripts/sscImport.js';
@@ -13,7 +16,6 @@ import './server/scripts/hpmorImport.js';
 import './server/scripts/algoliaExport.js';
 import './server/scripts/algoliaConfigureIndexes.js';
 import './server/scripts/brokenLinksReport.js';
-import './server/scripts/exportForAprilFoolsTraining.js';
 import './server/scripts/fixBodyField.js';
 import './server/scripts/fixKarmaField.js';
 import './server/scripts/fixEmailField.js';
@@ -29,12 +31,16 @@ import './server/scripts/localgroupsEditCallbacks.js';
 import './server/scripts/nullifyVotes.js';
 import './server/scripts/fixSSCDrafts.js';
 import './server/scripts/invites.js';
+
+import './server/scripts/oneOffBanSpammers'
+import './server/scripts/exportPostDetails.js';
 import './server/scripts/legacyKarma_aggregate2.js';
 import './server/scripts/removeObsoleteIndexes.js';
 import './server/scripts/logMongoQueries.js';
 import './server/scripts/fillMissing.js';
 import './server/scripts/recomputeDenormalized.js';
 import './server/scripts/validateDatabase.js';
+import './server/scripts/validateMakeEditableDenormalization.js';
 import './server/migrations';
 
 import './server/legacy-redirects/routes.js';
@@ -46,6 +52,7 @@ import './server/posts/index.js';
 
 import './server/debouncer.js';
 import './server/logging.js';
+import './server/markAsUnread.js';
 import './server/rss.js';
 import './server/akismet.js';
 import './server/votingCron.js';
@@ -55,6 +62,9 @@ import './server/siteAdminMetadata.js';
 import './server/callbacks.js';
 import './server/notificationCallbacks.js';
 import './server/voteServer.js';
+import './server/recommendations.js';
+import './server/emails/emailTokens.js';
+import './server/partiallyReadSequences.js';
 
 import './lib/collections/comments/callbacks.js';
 import './lib/collections/comments/graphql.js';
@@ -69,14 +79,16 @@ import './lib/collections/users/validate_login.js';
 import './lib/collections/users/callbacks.js';
 import './lib/collections/bans/callbacks.js';
 import './lib/collections/posts/tableOfContents.js';
-import './lib/collections/localgroups/callbacks.js';
+if (getSetting('hasEvents', true)) {
+  import './lib/collections/localgroups/callbacks.js';
+}
 
 import './lib/collections/revisions/resolvers.js';
 import './lib/collections/posts/serverSchema.js';
 import './lib/collections/users/serverSchema.js';
 
 import './lib/events/server.js';
-
+import './lib/events/callbacks_async.js';
 import './lib/modules/connection_logs.js';
 
 

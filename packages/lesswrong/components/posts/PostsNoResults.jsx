@@ -2,22 +2,20 @@ import { registerComponent } from 'meteor/vulcan:core';
 import React from 'react';
 import { FormattedMessage } from 'meteor/vulcan:i18n';
 import { withStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 
 const styles = theme => ({
   root: {
-    marginLeft: 10,
-    marginTop: 15,
-    fontSize: 18,
+    marginLeft: theme.spacing.unit,
     fontStyle: "italic",
+    color: theme.palette.grey[500]
   }
 });
 
-const PostsNoResults = props =>
-  <p className="posts-no-results">
+const PostsNoResults = ({classes}) =>
+  <Typography variant="body2" className={classes.root}>
     <FormattedMessage id="posts.no_results"/>
-  </p>;
-
-PostsNoResults.displayName = "PostsNoResults";
+  </Typography>;
 
 registerComponent('PostsNoResults', PostsNoResults,
   withStyles(styles, {name: "PostsNoResults"}));

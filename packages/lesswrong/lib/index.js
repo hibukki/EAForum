@@ -1,5 +1,6 @@
-// # Vulcan Modifications
 
+// Settings
+import './registerSettings.js'
 // schema utils
 import './modules/utils/schemaUtils.js'
 // Permissions
@@ -48,7 +49,6 @@ import './collections/rssfeeds/views.js'
 // Reports
 import Reports from './collections/reports/collection.js'
 import './collections/reports/views.js'
-import './collections/reports/permissions.js'
 
 // LWEvents
 import { LWEvents } from './collections/lwevents/index.js';
@@ -56,6 +56,9 @@ import { LWEvents } from './collections/lwevents/index.js';
 // DebouncerEvents
 import './collections/debouncerEvents/collection.js';
 
+
+// ReadStatuses
+import './collections/readStatus/collection.js';
 // Bans
 import { Bans } from './collections/bans/index.js'
 // Chapters
@@ -80,6 +83,7 @@ import './collections/books/fragments.js';
 import './collections/books/views.js';
 import './collections/collections/fragments.js';
 import './collections/collections/views.js';
+import './collections/collections/helpers.js';
 import './modules/alignment-forum/posts/fragments.js';
 import './modules/alignment-forum/users/fragments.js';
 
@@ -107,6 +111,7 @@ import Revisions from './collections/revisions/collection.js'
 // Users
 import './collections/users/helpers.js';
 import './collections/users/custom_fields.js';
+import './collections/users/recommendationSettings.js';
 import './collections/users/karmaChangesGraphQL.js';
 import './collections/users/views.js';
 import './collections/users/permissions.js';
@@ -127,7 +132,8 @@ import './scrollRestoration.js';
 
 import './components.js';
 
-import './recommendations.js';
+// PostRelation
+import './collections/postRelations';
 
 // Alignment Forum
 import './modules/alignment-forum/callbacks.js';
@@ -146,13 +152,11 @@ import './modules/alignment-forum/comments/views.js';
 import './modules/alignment-forum/comments/fragments.js';
 
 import './modules/alignment-forum/sequences/custom_fields.js'
-import './modules/alignment-forum/sequences/callbacks.js';
 
 import './modules/alignment-forum/users/callbacks.js';
 import './modules/alignment-forum/users/custom_fields.js';
 import './modules/alignment-forum/users/helpers.js';
 import './modules/alignment-forum/users/views.js';
-
 
 
 //

@@ -22,37 +22,45 @@ class TableOfContentsList extends Component {
   render() {
     const { sectionData, document} = this.props;
     const { currentSection } = this.state;
-    const { TableOfContentsRow } = Components;
+    const { TableOfContentsRow, AnswerTocRow } = Components;
     // const Row = TableOfContentsRow;
 
     if (!sectionData)
       return <div/>
 
-    const { sections, headingsCount } = sectionData;
+    const { sections } = sectionData;
 
     const title = (document && document.title) || (sectionData.document && sectionData.document.title);
-    
+
     return <div>
       <div>
         <TableOfContentsRow key="postTitle"
           href="#"
           onClick={ev => this.jumpToY(0, ev)}
           highlighted={currentSection && currentSection.anchor === topSection}
+          title
         >
-          {title}
+          {title?.trim()}
         </TableOfContentsRow>
-        {sections && sections.map((section, index) =>
-          <TableOfContentsRow
-            key={section.anchor}
-            indentLevel={section.level}
-            highlighted={section.anchor === currentSection}
-            href={"#"+section.anchor}
-            onClick={(ev) => this.jumpToAnchor(section.anchor, ev)}
-            answersStyling={headingsCount > 1}
-          >
-            {section.title}
-          </TableOfContentsRow>
-        )}
+        {sections && sections.map((section, index) => {
+          return (
+            <TableOfContentsRow
+              key={section.anchor}
+              indentLevel={section.level}
+              divider={section.divider}
+              highlighted={section.anchor === currentSection}
+              href={"#"+section.anchor}
+              onClick={(ev) => this.jumpToAnchor(section.anchor, ev)}
+              answer={!!section.answer}
+            >
+                {section.answer ?
+                  <AnswerTocRow answer={section.answer} />
+                  :
+                  <span>{section.title?.trim()}</span>
+                }
+            </TableOfContentsRow>
+          )
+        })}
       </div>
     </div>
   }
@@ -93,14 +101,18 @@ class TableOfContentsList extends Component {
     if (this.props.onClickSection) {
       this.props.onClickSection();
     }
+    try {
+      window.scrollTo({
+        top: y - this.getCurrentSectionMark() + 1,
+        behavior: "smooth"
+      });
 
-    window.scrollTo({
-      top: y - this.getCurrentSectionMark() + 1,
-      behavior: "smooth"
-    });
+      if (ev) ev.preventDefault();
+    } catch(e) {
+      // eslint-disable-next-line no-console
+      console.warn("scrollTo not supported, using link fallback", e)
+    }
 
-    if (ev)
-      ev.preventDefault();
   }
 
   updateHighlightedSection = () => {

@@ -1,11 +1,10 @@
 import {
   Components,
   registerComponent,
-  Utils
 } from 'meteor/vulcan:core';
 import NoSSR from 'react-no-ssr';
 import React, { PureComponent } from 'react';
-import { Link, withRouter } from '../../lib/reactRouterWrapper.js';
+import { Link } from '../../lib/reactRouterWrapper.js';
 import classNames from 'classnames';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
@@ -15,16 +14,15 @@ import { legacyBreakpoints } from '../../lib/modules/utils/theme';
 const styles = theme => ({
   root: {
     ...theme.typography.postStyle,
-    cursor: 'pointer',
-    
-    width: 233,
+
+    width: "33%",
     padding: 15,
-    
+
     "&:hover": {
       boxShadow: "0 1px 6px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.12)",
       color: "rgba(0,0,0,0.87)",
     },
-    
+
     [legacyBreakpoints.maxSmall]: {
       width: "335px !important",
     },
@@ -33,21 +31,18 @@ const styles = theme => ({
       padding: "14px 10px 12px 10px !important",
     },
   },
-  
+
   top: {
     height: 44,
     lineHeight: 1.1,
     borderTopStyle: "solid",
     paddingTop: 7,
   },
-  
+
   topWithAuthor: {
     height: 68,
   },
-  
-  link: {
-  },
-  
+
   title: {
     fontSize: 16,
     lineHeight: 1.0,
@@ -64,12 +59,12 @@ const styles = theme => ({
       textDecoration: "none",
     }
   },
-  
+
   draft: {
     textTransform: "uppercase",
     color: "rgba(100, 169, 105, 0.9)",
   },
-  
+
   author: {
     marginTop: 3,
     color: "rgba(0,0,0,0.5)",
@@ -81,27 +76,20 @@ const styles = theme => ({
       }
     }
   },
-  
-  bottom: {
-  },
-  
+
   image: {
-    width: 203,
-    height: 80,
-    backgroundColor: "rgba(0,0,0,0.05)",
+    width: "100%",
+    display: 'block',
     [legacyBreakpoints.maxTiny]: {
       width: "100%",
-    },
-    [theme.breakpoints.down('sm')]: {
-      height: "auto",
     },
     "& img": {
       [legacyBreakpoints.maxSmall]: {
         width: "305px !important",
         height: "auto !important",
       },
-      width: 203,
-      height: 80,
+      width: "100%",
+      height: 95,
       [legacyBreakpoints.maxTiny]: {
         width: "100% !important",
       },
@@ -114,18 +102,14 @@ class SequencesGridItem extends PureComponent {
     return '/s/' + this.props.sequence._id
   }
 
-  handleClick = (event) => {
-    const url = this.getSequenceUrl()
-    const navigate = this.props.router.push
-    Utils.manualClickNavigation(event, url, navigate)
-  }
-
   render() {
     const { sequence, showAuthor=false, classes } = this.props
+    const { LinkCard, SequenceTooltip } = Components;
+    const url = this.getSequenceUrl()
 
-    return <div className={classes.root} onClick={this.handleClick}>
+    return <LinkCard className={classes.root} to={url} tooltip={<SequenceTooltip sequence={sequence}/>}>
       <div className={classNames(classes.top, {[classes.topWithAuthor]: showAuthor})} style={{borderTopColor: sequence.color}}>
-        <Link key={sequence._id} className={classes.link} to={this.getSequenceUrl()}>
+        <Link key={sequence._id} to={url}>
           <Typography variant='title' className={classes.title}>
             {sequence.draft && <span className={classes.draft}>[Draft] </span>}
             {sequence.title}
@@ -136,21 +120,17 @@ class SequencesGridItem extends PureComponent {
             by <Components.UsersName user={sequence.user} />
           </div>}
       </div>
-      <div className={classes.bottom}>
-        <div className={classes.image}>
-          <NoSSR>
-            <Components.CloudinaryImage
-              publicId={sequence.gridImageId || "sequences/vnyzzznenju0hzdv6pqb.jpg"}
-              height={124}
-              width={315}
-            />
-          </NoSSR>
-        </div>
+      <div className={classes.image}>
+        <NoSSR>
+          <Components.CloudinaryImage
+            publicId={sequence.gridImageId || "sequences/vnyzzznenju0hzdv6pqb.jpg"}
+            height={124}
+            width={315}
+          />
+        </NoSSR>
       </div>
-    </div>;
+    </LinkCard>
   }
 }
 
-SequencesGridItem.displayName = "SequencesGridItem";
-
-registerComponent('SequencesGridItem', SequencesGridItem, withUser, withStyles(styles, { name: "SequencesGridItem" }), withRouter);
+registerComponent('SequencesGridItem', SequencesGridItem, withUser, withStyles(styles, { name: "SequencesGridItem" }));

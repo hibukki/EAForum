@@ -1,38 +1,44 @@
 import { Components, registerComponent } from 'meteor/vulcan:core';
-import { getSetting } from 'meteor/vulcan:lib';
 import React from 'react';
-import { Link } from '../../lib/reactRouterWrapper.js';
 import withUser from '../common/withUser';
+import Users from 'meteor/vulcan:users';
+import { useLocation } from '../../lib/routeUtil';
+import { withStyles } from '@material-ui/core/styles';
 
-const Home2 = ({ currentUser }) => {
-  const { SingleColumnSection, SectionTitle, PostsList2, RecentDiscussionThreadsList, SubscribeWidget, HomeLatestPosts, TabNavigationMenu } = Components
+const styles = theme => ({
+  map: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none'
+    }
+  }
+})
 
+const Home2 = ({currentUser, classes}) => {
+  const { RecentDiscussionThreadsList, HomeLatestPosts, RecommendationsAndCurated, CommunityMapWrapper } = Components
+
+  const shouldRenderSidebar = Users.canDo(currentUser, 'posts.moderate.all') ||
+      Users.canDo(currentUser, 'alignment.sidebar')
+  const { lat, lng } = Users.getLocation(currentUser)
+  const { query } = useLocation()
+  const mapEventTerms = { view: 'nearbyEvents', lat, lng, filters: query?.filters || []}
+  
   return (
     <React.Fragment>
-      <Components.HeadTags image={getSetting('siteImage')} />
-      <TabNavigationMenu />
-
-      {!currentUser && <SingleColumnSection>
-        <SectionTitle title="Core Reading" />
-        <Components.CoreReading />
-      </SingleColumnSection>}
-
-      <SingleColumnSection>
-        <SectionTitle title="Curated" />
-        <PostsList2 terms={{view:"curated", limit:3}} showLoadMore={false}>
-          <Link to={"/allPosts?filter=curated&view=new"}>View All Curated Posts</Link>
-          <SubscribeWidget view={"curated"} />
-        </PostsList2>
-      </SingleColumnSection>
-
+      {shouldRenderSidebar && <Components.SunshineSidebar/>}
+      {!currentUser?.hideFrontpageMap && <div className={classes.map}>
+        <CommunityMapWrapper terms={mapEventTerms} />
+      </div>}
+      
+      <RecommendationsAndCurated configName="frontpage" />
       <HomeLatestPosts />
-
-      <SingleColumnSection>
-        <SectionTitle title="Recent Discussion" />
-        <RecentDiscussionThreadsList terms={{view: 'recentDiscussionThreadsList', limit:6}}/>
-      </SingleColumnSection>
+      <RecentDiscussionThreadsList
+        terms={{view: 'recentDiscussionThreadsList', limit:20}}
+        commentsLimit={4}
+        maxAgeHours={18}
+        af={false}
+      />
     </React.Fragment>
   )
-};
+}
 
-registerComponent('Home2', Home2, withUser);
+registerComponent('Home2', Home2, withUser, withStyles(styles, {name: "Home2"}));

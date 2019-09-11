@@ -18,7 +18,7 @@ const styles = theme => ({
 })
 
 const AlignmentCrosspostMessage = ({post, classes}) => {
-  if (post.af && !getSetting('AlignmentForum', false)) {
+  if (post.af && getSetting('forumType') !== 'AlignmentForum') {
     return (
       <div className={classes.root}>
         Crossposted from the <a href={`https://alignmentforum.org/posts/${post._id}/${post.slug}`}>AI Alignment Forum</a>. May contain more technical jargon than usual.
@@ -28,8 +28,6 @@ const AlignmentCrosspostMessage = ({post, classes}) => {
     return null
   }
 }
-
-AlignmentCrosspostMessage.displayName = "LinkPostMessage";
 
 AlignmentCrosspostMessage.propTypes = {
   post: PropTypes.object.isRequired,

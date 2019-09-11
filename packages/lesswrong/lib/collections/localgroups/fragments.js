@@ -1,7 +1,7 @@
 import { registerFragment } from 'meteor/vulcan:core';
 
 registerFragment(`
-  fragment localGroupsHomeFragment on Localgroup {
+  fragment localGroupsBase on Localgroup {
     _id
     createdAt
     organizerIds
@@ -14,11 +14,28 @@ registerFragment(`
     googleLocation
     mongoLocation
     types
-    contents {
-      ...RevisionDisplay
-    }
     contactInfo
     facebookLink
     website
+    inactive
   }
 `);
+
+registerFragment(`
+  fragment localGroupsHomeFragment on Localgroup {
+    ...localGroupsBase
+    contents {
+      ...RevisionDisplay
+    }
+  }
+`);
+
+registerFragment(`
+  fragment localGroupsEdit on Localgroup {
+    ...localGroupsBase
+    contents {
+      ...RevisionEdit
+    }
+  }
+`);
+

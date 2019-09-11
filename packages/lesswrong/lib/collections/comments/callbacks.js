@@ -1,14 +1,15 @@
 import { Posts } from "../posts";
 import { Comments } from './collection'
-import { addCallback, runCallbacksAsync, newMutation, editMutation, removeMutation, registerSetting, getSetting, Utils } from 'meteor/vulcan:core';
+import { addCallback, runCallbacksAsync, newMutation, editMutation, removeMutation, getSetting } from 'meteor/vulcan:core';
 import Users from "meteor/vulcan:users";
 import { performVoteServer } from '../../../server/voteServer.js';
-import { createError } from 'apollo-errors';
 import Messages from '../messages/collection.js';
 import Conversations from '../conversations/collection.js';
 
 import { addEditableCallbacks } from '../../../server/editor/make_editable_callbacks.js'
 import { makeEditableOptions } from './custom_fields.js'
+
+const MINIMUM_APPROVAL_KARMA = 5
 
 const getLessWrongAccount = async () => {
   let account = Users.findOne({username: "LessWrong"});
@@ -27,26 +28,48 @@ const getLessWrongAccount = async () => {
   return account;
 }
 
-// EXAMPLE-FORUM CALLBACKS:
+async function createShortformPost (comment, currentUser) {
+  if (comment.shortform && !comment.postId) {
+    if (currentUser.shortformFeedId) {
+      return ({
+        ...comment,
+        postId: currentUser.shortformFeedId
+      });
+    }
+    
+    const post = await newMutation({
+      collection: Posts,
+      document: {
+        userId: currentUser._id,
+        shortform: true,
+        title: `${ currentUser.displayName }'s Shortform`
+      },
+      validate: false,
+    })
+    await editMutation({
+      collection:Users,
+      documentId: currentUser._id,
+      set: {
+        shortformFeedId: post.data._id
+      },
+      unset: {},
+      validate: false,
+    })
 
-//////////////////////////////////////////////////////
-// comments.new.sync                                //
-//////////////////////////////////////////////////////
+    return ({
+      ...comment,
+      postId: post.data._id
+    })
+  }
+  return comment
+}
+addCallback('comments.new.validate', createShortformPost);
 
 function CommentsNewOperations (comment) {
 
-  var userId = comment.userId;
-
-  // increment comment count
-  Users.update({_id: userId}, {
-    $inc:       {'commentCount': 1}
-  });
-
   // update post
   Posts.update(comment.postId, {
-    $inc:       {commentCount: 1},
     $set:       {lastCommentedAt: new Date()},
-    $addToSet:  {commenters: userId}
   });
 
   return comment;
@@ -74,22 +97,15 @@ addCallback('comments.new.async', UpvoteAsyncCallbacksAfterDocumentInsert);
 //////////////////////////////////////////////////////
 
 function CommentsRemovePostCommenters (comment, currentUser) {
-  const { userId, postId } = comment;
-
-  // dec user's comment count
-  Users.update({_id: userId}, {
-    $inc: {'commentCount': -1}
-  });
+  const { postId } = comment;
 
   const postComments = Comments.find({postId}, {sort: {postedAt: -1}}).fetch();
 
-  const commenters = _.uniq(postComments.map(comment => comment.userId));
   const lastCommentedAt = postComments[0] && postComments[0].postedAt;
 
-  // update post with a decremented comment count, a unique list of commenters and corresponding last commented at date
+  // update post with a decremented comment count, and corresponding last commented at date
   Posts.update(postId, {
-    $inc: {commentCount: -1},
-    $set: {lastCommentedAt, commenters},
+    $set: {lastCommentedAt},
   });
 
   return comment;
@@ -144,7 +160,7 @@ function UsersRemoveDeleteComments (user, options) {
 }
 addCallback('users.remove.async', UsersRemoveDeleteComments);
 
-registerSetting('forum.commentInterval', 15, 'How long users should wait in between comments (in seconds)');
+
 
 function CommentsNewRateLimit (comment, user) {
   if (!Users.isAdmin(user)) {
@@ -153,7 +169,7 @@ function CommentsNewRateLimit (comment, user) {
 
     // check that user waits more than 15 seconds between comments
     if((timeSinceLastComment < commentInterval)) {
-      throw new Error(Utils.encodeIntlError({id: 'comments.rate_limit_error', value: commentInterval-timeSinceLastComment}));
+      throw new Error(`Please wait ${commentInterval-timeSinceLastComment} seconds before commenting again.`);
     }
   }
   return comment;
@@ -183,7 +199,6 @@ function ModerateCommentsPostUpdate (comment, oldComment) {
     documentId: comment.postId,
     set: {
       lastCommentedAt:new Date(lastCommentedAt),
-      commentCount:comments.length
     },
     unset: {},
     validate: false,
@@ -194,8 +209,7 @@ addCallback("comments.moderate.async", ModerateCommentsPostUpdate);
 function NewCommentsEmptyCheck (comment) {
   const { data } = (comment.contents && comment.contents.originalContents) || {}
   if (!data) {
-    const EmptyCommentError = createError('comments.comment_empty_error', {message: 'You cannot submit an empty comment'});
-    throw new EmptyCommentError({data: {break: true, value: comment}});
+    throw new Error("You cannot submit an empty comment");
   }
   return comment;
 }
@@ -260,6 +274,15 @@ export async function CommentsDeleteSendPMAsync (newComment) {
   }
 }
 addCallback("comments.moderate.async", CommentsDeleteSendPMAsync);
+
+// Duplicate of PostsNewUserApprovedStatus
+function CommentsNewUserApprovedStatus (comment) {
+  const commentAuthor = Users.findOne(comment.userId);
+  if (!commentAuthor.reviewedByUserId && (commentAuthor.karma || 0) < MINIMUM_APPROVAL_KARMA) {
+    return {...comment, authorIsUnreviewed: true}
+  }
+}
+addCallback("comments.new.sync", CommentsNewUserApprovedStatus);
 
 /**
  * @summary Make users upvote their own new comments
@@ -357,3 +380,34 @@ function HandleReplyToAnswer (comment, properties)
   }
 }
 addCallback('comment.create.before', HandleReplyToAnswer);
+
+function SetTopLevelCommentId (comment, context)
+{
+  let visited = {};
+  let rootComment = comment;
+  while (rootComment?.parentCommentId) {
+    // This relies on Meteor fibers (rather than being async/await) because
+    // Vulcan callbacks aren't async-safe.
+    rootComment = Comments.findOne({_id: rootComment.parentCommentId});
+    if (rootComment && visited[rootComment._id])
+      throw new Error("Cyclic parent-comment relations detected!");
+    visited[rootComment?._id] = true;
+  }
+  
+  if (rootComment && rootComment._id !== comment._id) {
+    return {
+      ...comment,
+      topLevelCommentId: rootComment._id
+    };
+  }
+}
+addCallback('comment.create.before', SetTopLevelCommentId);
+
+async function updateTopLevelCommentLastCommentedAt (comment) {
+  // TODO: Make this work for all parent comments. For now, this is just updating the lastSubthreadActivity of the top comment because that's where we're using it 
+  if (comment.topLevelCommentId) {
+    Comments.update({ _id: comment.topLevelCommentId }, { $set: {lastSubthreadActivity: new Date()}})
+  }
+  return comment;
+}
+addCallback("comment.create.after", updateTopLevelCommentLastCommentedAt)

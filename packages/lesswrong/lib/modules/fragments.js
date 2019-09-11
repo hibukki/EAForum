@@ -1,7 +1,19 @@
-import { registerFragment, extendFragment } from 'meteor/vulcan:core';
+import { registerFragment } from 'meteor/vulcan:core';
 
-extendFragment('UsersAdmin', `
-  karma
+registerFragment(`
+  fragment UsersAdmin on User {
+    _id
+    username
+    createdAt
+    isAdmin
+    displayName
+    email
+    slug
+    groups
+    services
+    
+    karma
+  }
 `);
 
 registerFragment(`
@@ -14,6 +26,8 @@ registerFragment(`
     participants {
       ...UsersMinimumInfo
     }
+    archivedByIds
+    messageCount
   }
 `);
 
@@ -58,46 +72,75 @@ registerFragment(`
   }
 `);
 
-extendFragment('UsersCurrent', `
-  ...UsersMinimumInfo
-  voteBanned
-  banned
-  nullifyVotes
-  hideIntercom
-  currentFrontpageFilter
-  allPostsView
-  allPostsFilter
-  allPostsShowLowKarma
-  allPostsOpenSettings
-  lastNotificationsCheck
-  subscribedItems
-  groups
-  bannedUserIds
-  moderationStyle
-  moderationGuidelines {
-    ...RevisionEdit
+registerFragment(`
+  fragment UsersCurrent on User {
+    ...UsersMinimumInfo
+  
+    _id
+    username
+    createdAt
+    isAdmin
+    displayName
+    email
+    slug
+    groups
+    services
+    pageUrl
+    locale
+    defaultToCKEditor
+    voteBanned
+    banned
+    isReviewed
+    nullifyVotes
+    hideIntercom
+    hideNavigationSidebar
+    currentFrontpageFilter
+    allPostsTimeframe
+    allPostsSorting
+    allPostsFilter
+    allPostsShowLowKarma
+    allPostsOpenSettings
+    lastNotificationsCheck
+    subscribedItems
+    groups
+    bannedUserIds
+    moderationStyle
+    moderationGuidelines {
+      ...RevisionEdit
+    }
+    markDownPostEditor
+    commentSorting
+    location
+    googleLocation
+    mongoLocation
+    mapLocation
+    mapLocationSet
+    mapMarkerText
+    htmlMapMarkerText
+    nearbyEventsNotifications
+    nearbyEventsNotificationsLocation
+    nearbyEventsNotificationsRadius
+    nearbyPeopleNotificationThreshold
+    hideFrontpageMap
+    emailSubscribedToCurated
+    unsubscribeFromAll
+    emails
+    whenConfirmationEmailSent
+    noCollapseCommentsFrontpage
+    noCollapseCommentsPosts
+    noSingleLineComments
+    karmaChangeNotifierSettings
+    karmaChangeLastOpened
+    shortformFeedId
+    viewUnreviewedComments
+    sunshineShowNewUserContent
+    recommendationSettings
   }
-  markDownPostEditor
-  commentSorting
-  location
-  googleLocation
-  mongoLocation
-  emailSubscribedToCurated
-  emails
-  whenConfirmationEmailSent
-  noCollapseCommentsFrontpage
-  noCollapseCommentsPosts
-  karmaChangeNotifierSettings
-  karmaChangeLastOpened
-  shortformFeedId
-  viewUnreviewedComments
-  sunshineShowNewUserContent
-  # TODO: Remove this after april fools
-  blockedGPT2
 `);
 
 registerFragment(`
   fragment UserKarmaChanges on User {
+    _id
     karmaChanges {
       totalChange
       updateFrequency
@@ -204,6 +247,8 @@ registerFragment(`
   fragment SunshineUsersList on User {
     ...UsersMinimumInfo
     karma
+    bio
+    htmlBio
     createdAt
     email
     commentCount
@@ -215,6 +260,7 @@ registerFragment(`
     bigDownvoteCount
     banned
     reviewedByUserId
+    signUpReCaptchaRating
   }
 `);
 
@@ -314,11 +360,11 @@ registerFragment(`
     # vulcan:users
     _id
     slug
+    oldSlugs
     createdAt
     username
     displayName
     fullName
-    emailHash
     karma
     afKarma
     deleted
@@ -326,8 +372,11 @@ registerFragment(`
     htmlBio
     postCount
     commentCount
-    afPostCount 
+    sequenceCount
+    afPostCount
     afCommentCount
+    beta
+    spamRiskScore
   }
 `);
 
@@ -347,6 +396,7 @@ registerFragment(`
     frontpagePostCount
     # example-forum
     commentCount
+    sequenceCount
     afCommentCount
     sequenceCount
     afSequenceCount
@@ -359,11 +409,17 @@ registerFragment(`
     bannedUserIds
     location
     googleLocation
+    mapLocation
+    mapLocationSet
+    mapMarkerText
+    htmlMapMarkerText
     mongoLocation
     shortformFeedId
     viewUnreviewedComments
     auto_subscribe_to_my_posts
     auto_subscribe_to_my_comments
+    sunshineShowNewUserContent
+    defaultToCKEditor
   }
 `);
 
@@ -382,11 +438,14 @@ registerFragment(`
     currentFrontpageFilter
     noCollapseCommentsPosts
     noCollapseCommentsFrontpage
+    noSingleLineComments
+    sunshineShowNewUserContent
 
     # Emails
     email
     whenConfirmationEmailSent
     emailSubscribedToCurated
+    unsubscribeFromAll
 
     # Moderation
     moderatorAssistance
@@ -423,8 +482,9 @@ registerFragment(`
     karmaChangeLastOpened
     karmaChangeNotifierSettings
 
-    # TODO: Remove this after april fools
-    blockedGPT2
+    recommendationSettings
+
+    hideFrontpageMap
   }
 `)
 
@@ -572,6 +632,7 @@ registerFragment(`
     html
     markdown
     draftJS
+    ckEditorMarkup
     wordCount
     htmlHighlight
     plaintextDescription

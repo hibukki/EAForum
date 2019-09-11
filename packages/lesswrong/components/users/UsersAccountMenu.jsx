@@ -55,7 +55,7 @@ class UsersAccountMenu extends PureComponent {
           anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
           onClose={this.handleRequestClose}
         >
-          <Components.AccountsLoginForm />
+          {this.state.open && <Components.WrappedLoginForm />}
         </Popover>
       </div>
     )

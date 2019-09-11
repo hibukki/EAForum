@@ -11,49 +11,59 @@ import './emailComponents/EmailWrapper.jsx';
 import './emailComponents/NewPostEmail.jsx';
 import './emailComponents/PrivateMessagesEmail.jsx';
 import { EventDebouncer } from './debouncer.js';
+import { UnsubscribeAllToken } from './emails/emailTokens.js';
 
-import { addCallback, newMutation } from 'meteor/vulcan:core';
+import { Components, addCallback, newMutation } from 'meteor/vulcan:core';
 
-import { Components } from 'meteor/vulcan:core';
 import React from 'react';
 import keyBy from 'lodash/keyBy';
+import Sentry from '@sentry/node';
 
-const createNotifications = (userIds, notificationType, documentType, documentId) => {
-  userIds.forEach(userId => {
-
-    let user = Users.findOne({ _id:userId });
-
-    let notificationData = {
-      userId: userId,
-      documentId: documentId,
-      documentType: documentType,
-      message: notificationMessage(notificationType, documentType, documentId),
-      type: notificationType,
-      link: getLink(documentType, documentId),
-    }
-
-    newMutation({
-      action: 'notifications.new',
-      collection: Notifications,
-      document: notificationData,
-      currentUser: user,
-      validate: false
-    });
-  });
+const createNotifications = async (userIds, notificationType, documentType, documentId) => {
+  return Promise.all(
+    userIds.map(async userId => {
+      let user = Users.findOne({ _id:userId });
+  
+      let notificationData = {
+        userId: userId,
+        documentId: documentId,
+        documentType: documentType,
+        message: notificationMessage(notificationType, documentType, documentId),
+        type: notificationType,
+        link: getLink(notificationType, documentType, documentId),
+      }
+  
+      await newMutation({
+        action: 'notifications.new',
+        collection: Notifications,
+        document: notificationData,
+        currentUser: user,
+        validate: false
+      });
+    })
+  );
 }
 
 const sendPostByEmail = async (users, postId, reason) => {
-  let post = Posts.findOne(postId);
+  let post = await Posts.findOne(postId);
 
   for(let user of users) {
     if(!reasonUserCantReceiveEmails(user)) {
-      await renderAndSendEmail({
-        user,
-        subject: post.title,
-        bodyComponent: <Components.EmailWrapper>
-          <Components.NewPostEmail documentId={post._id} reason={reason}/>
-        </Components.EmailWrapper>
-      });
+      try {
+        const unsubscribeAllLink = await UnsubscribeAllToken.generateLink(user._id);
+        await renderAndSendEmail({
+          user,
+          subject: post.title,
+          bodyComponent: <Components.EmailWrapper
+            user={user}
+            unsubscribeAllLink={unsubscribeAllLink}
+          >
+            <Components.NewPostEmail documentId={post._id} reason={reason}/>
+          </Components.EmailWrapper>
+        });
+      } catch(e) {
+        Sentry.captureException(e);
+      }
     } else {
       //eslint-disable-next-line no-console
       console.log(`Skipping user ${user.username} when emailing: ${reasonUserCantReceiveEmails(user)}`);
@@ -61,9 +71,17 @@ const sendPostByEmail = async (users, postId, reason) => {
   }
 }
 
-const getLink = (documentType, documentId) => {
+const getLink = (notificationType, documentType, documentId) => {
   let document = getDocument(documentType, documentId);
 
+  switch(notificationType) {
+    case "emailVerificationRequired":
+      return "/resendVerificationEmail";
+    default:
+      // Fall through to based on document-type
+      break;
+  }
+  
   switch(documentType) {
     case "post":
       return Posts.getPageUrl(document);
@@ -108,6 +126,10 @@ const notificationMessage = (notificationType, documentType, documentId) => {
     case "newMessage":
       let conversation = Conversations.findOne(document.conversationId);
       return Users.findOne(document.userId).displayName + ' sent you a new message' + (conversation.title ? (' in the conversation ' + conversation.title) : "") + '!';
+    case "emailVerificationRequired":
+      return "Verify your email address to activate email subscriptions.";
+    case "postSharedWithUser":
+      return `You have been shared on the ${document.draft ? "draft" : "post"} ${document.title}`
     default:
       //eslint-disable-next-line no-console
       console.error("Invalid notification type");
@@ -115,6 +137,8 @@ const notificationMessage = (notificationType, documentType, documentId) => {
 }
 
 const getDocument = (documentType, documentId) => {
+  if (!documentId) return null;
+  
   switch(documentType) {
     case "post":
       return Posts.findOne(documentId);
@@ -126,7 +150,7 @@ const getDocument = (documentType, documentId) => {
       return Messages.findOne(documentId);
     default:
       //eslint-disable-next-line no-console
-      console.error("Invalid documentType type");
+      console.error(`Invalid documentType type: ${documentType}`);
   }
 }
 
@@ -184,7 +208,7 @@ function postsNewNotifications (post) {
 addCallback("posts.new.async", postsNewNotifications);
 
 function findUsersToEmail(filter) {
-  let usersMatchingFilter = Users.find(filter, {fields: {_id:1, email:1, emails:1}}).fetch();
+  let usersMatchingFilter = Users.find(filter).fetch();
 
   let usersToEmail = usersMatchingFilter.filter(u => {
     if (u.email && u.emails && u.emails.length) {
@@ -223,7 +247,11 @@ const curationEmailDelay = new EventDebouncer({
 
 function PostsCurateNotification (post, oldPost) {
   if(post.curatedDate && !oldPost.curatedDate) {
-    curationEmailDelay.recordEvent(post._id, null);
+    curationEmailDelay.recordEvent({
+      key: post._id,
+      data: null,
+      af: false
+    });
   }
 }
 addCallback("posts.edit.async", PostsCurateNotification);
@@ -295,17 +323,26 @@ async function sendPrivateMessagesEmail(conversationId, messageIds) {
     const otherParticipants = _.filter(participants, u=>u._id != recipientUser._id);
     const subject = `Private message conversation with ${otherParticipants.map(u=>u.displayName).join(', ')}`;
     
-    await renderAndSendEmail({
-      user: recipientUser,
-      subject: subject,
-      bodyComponent: <Components.EmailWrapper>
-        <Components.PrivateMessagesEmail
-          conversation={conversation}
-          messages={messages}
-          participantsById={participantsById}
-        />
-      </Components.EmailWrapper>
-    });
+    if(!reasonUserCantReceiveEmails(recipientUser)) {
+      const unsubscribeAllLink = await UnsubscribeAllToken.generateLink(recipientUser._id);
+      await renderAndSendEmail({
+        user: recipientUser,
+        subject: subject,
+        bodyComponent: <Components.EmailWrapper
+          user={recipientUser}
+          unsubscribeAllLink={unsubscribeAllLink}
+        >
+          <Components.PrivateMessagesEmail
+            conversation={conversation}
+            messages={messages}
+            participantsById={participantsById}
+          />
+        </Components.EmailWrapper>
+      });
+    } else {
+      //eslint-disable-next-line no-console
+      console.log(`Skipping user ${recipientUser.username} when emailing: ${reasonUserCantReceiveEmails(recipientUser)}`);
+    }
   }
 }
 
@@ -330,6 +367,32 @@ function messageNewNotification(message) {
   createNotifications(recipients, 'newMessage', 'message', message._id);
   
   // Generate debounced email notifications
-  privateMessagesDebouncer.recordEvent(conversationId, message._id);
+  privateMessagesDebouncer.recordEvent({
+    key: conversationId,
+    data: message._id,
+    af: conversation.af,
+  });
 }
 addCallback("messages.new.async", messageNewNotification);
+
+export async function bellNotifyEmailVerificationRequired (user) {
+  await createNotifications([user._id], 'emailVerificationRequired', null, null);
+}
+
+async function PostsEditNotifyUsersSharedOnPost (newPost, oldPost) {
+  if (!_.isEqual(newPost.shareWithUsers, oldPost.shareWithUsers)) {
+    // Right now this only creates notifications when users are shared (and not when they are "unshared")
+    // because currently notifications are hidden from you if you don't have view-access to a post.
+    // TODO: probably fix that, such that users can see when they've lost access to post. [but, eh, I'm not sure this matters that much]
+    const sharedUsers = _.difference(newPost.shareWithUsers || [], oldPost.shareWithUsers || [])
+    createNotifications(sharedUsers, "postSharedWithUser", "post", newPost._id)
+  }
+}
+addCallback("posts.edit.async", PostsEditNotifyUsersSharedOnPost);
+
+async function PostsNewNotifyUsersSharedOnPost (post) {
+  if (post.shareWithUsers?.length) {
+    createNotifications(post.shareWithUsers, "postSharedWithUser", "post", post._id)
+  }
+}
+addCallback("posts.new.async", PostsNewNotifyUsersSharedOnPost);

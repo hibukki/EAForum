@@ -44,7 +44,7 @@ const styles = theme => ({
 class PostsVote extends PureComponent {
   render() {
     const { post, classes, currentUser, collection, vote } = this.props
-    const baseScore = getSetting('AlignmentForum', false) ? post.afBaseScore : post.baseScore
+    const baseScore = getSetting('forumType') === 'AlignmentForum' ? post.afBaseScore : post.baseScore
 
     return (
         <div className={classes.voteBlock}>
@@ -74,16 +74,16 @@ class PostsVote extends PureComponent {
               <Typography variant="headline" className={classes.voteScore}>{baseScore || 0}</Typography>
             </Tooltip>
 
-            {!!post.af && !!post.afBaseScore && !getSetting('AlignmentForum', false) &&
+            {!!post.af && !!post.afBaseScore && getSetting('forumType') !== 'AlignmentForum' &&
               <Tooltip
-                title="Alignment Forum karma"
+                title="AI Alignment Forum karma"
                 placement="right"
                 classes={{tooltip: classes.tooltip}}
               >
                 <Typography
                   variant="headline"
                   className={classNames(classes.voteScore, classes.secondaryVoteScore)}>
-                  Ω	{post.afBaseScore}
+                  Ω {post.afBaseScore}
                 </Typography>
               </Tooltip>
             }

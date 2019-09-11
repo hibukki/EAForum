@@ -1,48 +1,22 @@
 import { Components, registerComponent, withUpdate } from 'meteor/vulcan:core';
 import React, { PureComponent } from 'react';
 import withUser from '../common/withUser';
-import { withStyles } from '@material-ui/core/styles'
 import Tooltip from '@material-ui/core/Tooltip';
-import Checkbox from '@material-ui/core/Checkbox';
 import Users from 'meteor/vulcan:users';
-import { withRouter, Link } from '../../lib/reactRouterWrapper.js';
-
-const styles = theme => ({
-  checkbox: {
-    padding: "1px 8px 0 0",
-    '& svg': {
-      height: "1.3rem",
-      width: "1.3rem",
-      position: "relative",
-      top: -2
-    }
-  },
-  checked: {
-    '&&': {
-      color: theme.palette.lwTertiary.main,
-    }
-  },
-  checkboxGroup: {
-    display: "flex",
-    color: theme.palette.grey[800],
-    alignItems: "center",
-    [theme.breakpoints.down('xs')]: {
-      marginBottom: theme.spacing.unit*2,
-      flex: `1 0 100%`,
-      order: 0
-    }
-  },
-})
+import { Link } from '../../lib/reactRouterWrapper.js';
+import { withLocation, withNavigation } from '../../lib/routeUtil';
+import qs from 'qs'
 
 class HomeLatestPosts extends PureComponent {
 
   toggleFilter = () => {
-    const { updateUser, currentUser, router } = this.props
-
-    let query = _.clone(router.location.query) || {view: "magic"}
-    const currentFilter = query.filter || (currentUser && currentUser.currentFrontpageFilter) || "frontpage";
-
+    const { updateUser, currentUser } = this.props
+    const { location, history } = this.props // From withLocation, withNavigation
+    const { query, pathname } = location;
+    let newQuery = _.isEmpty(query) ? {view: "magic"} : query
+    const currentFilter = newQuery.filter || (currentUser && currentUser.currentFrontpageFilter) || "frontpage";
     const newFilter = (currentFilter === "frontpage") ? "includeMetaAndPersonal" : "frontpage"
+
     if (currentUser) {
       updateUser({
         selector: { _id: currentUser._id},
@@ -51,16 +25,16 @@ class HomeLatestPosts extends PureComponent {
         },
       })
     }
-    query.filter = newFilter
-    const location = { pathname: router.location.pathname, query };
-    router.replace(location);
+
+    newQuery.filter = newFilter
+    const newLocation = { pathname: pathname, search: qs.stringify(newQuery)};
+    history.replace(newLocation);
   }
 
   render () {
-    const { currentUser, classes, router } = this.props;
-    const { SingleColumnSection, SectionTitle, PostsList2 } = Components
-
-    const query = _.clone(router.location.query) || {}
+    const { currentUser, location } = this.props;
+    const { query } = location;
+    const { SingleColumnSection, SectionTitle, PostsList2, SectionFooterCheckbox } = Components
     const currentFilter = query.filter || (currentUser && currentUser.currentFrontpageFilter) || "frontpage";
     const limit = parseInt(query.limit) || 10
 
@@ -73,28 +47,56 @@ class HomeLatestPosts extends PureComponent {
     }
 
     const latestTitle = (
-      <p>
+      <div>
         <p>Recent posts, sorted by a mix of 'new' and 'highly upvoted'.</p>
         <p>By default shows only frontpage posts, and can optionally include personal blogposts.</p>
-        <p><em>Moderators promote posts to frontpage if they seem to be:</em>
-          <ul>
-            <li>Aiming to explain rather than persuade</li>
-            <li>Relatively timeless (avoiding reference to current events or local social knowledge)</li>
-            <li>Reasonably relevant to the average LW user</li>
-          </ul>
-        </p>
-      </p>
+        <p><em>Moderators promote posts to frontpage if they seem to be:</em></p>
+        <ul>
+          <li>Aiming to explain rather than persuade</li>
+          <li>Relatively timeless (avoiding reference to current events or local social knowledge)</li>
+          <li>Reasonably relevant to the average LW user</li>
+        </ul>
+      </div>
     )
+
+    const personalBlogpostTooltip = <div>
+      <div>
+        By default, the home page only displays Frontpage Posts, which meet criteria including:
+      </div>
+      <ul>
+        <li>Usefulness, novelty and relevance</li>
+        <li>Timeless content (minimize reference to current events</li>
+        <li>Explain, rather than persuade</li>
+      </ul>
+      <div>
+        Members can write about whatever they want on their personal blog. Personal blogposts are a good fit for:
+      </div>
+      <ul>
+        <li>Niche topics, less relevant to most members</li>
+        <li>Meta-discussion of LessWrong (site features, interpersonal community dynamics)</li>
+        <li>Topics that are difficult to discuss rationally</li>
+        <li>Personal ramblings</li>
+      </ul>
+      <div>
+        All posts are submitted as personal blogposts. Moderators manually move some to frontpage
+      </div>
+    </div>
 
     return (
       <SingleColumnSection>
-        <SectionTitle title={<Tooltip title={latestTitle} placement="left-start"><span>Latest Posts</span></Tooltip>}/>
+        <SectionTitle title={<Tooltip title={latestTitle} placement="left-start"><span>Latest Posts</span></Tooltip>}>
+          <Tooltip title={personalBlogpostTooltip}>
+            <div>
+              <SectionFooterCheckbox 
+                onClick={this.toggleFilter} 
+                value={!(currentFilter === "frontpage")} 
+                label={"Include Personal Blogposts"} 
+                />
+            </div>
+          </Tooltip>
+        </SectionTitle>
         <PostsList2 terms={recentPostsTerms}>
-          <Link to={"/allPosts"}>View All Posts</Link>
-          <span className={classes.checkBoxGroup} onClick={this.toggleFilter}>
-            <Checkbox disableRipple classes={{root: classes.checkbox, checked: classes.checked}} checked={!(currentFilter === "frontpage")} />
-            Include Personal Posts
-          </span>
+          <Link to={"/allPosts"}>Advanced Sorting/Filtering</Link>
         </PostsList2>
       </SingleColumnSection>
     )
@@ -106,4 +108,6 @@ const withUpdateOptions = {
   fragmentName: 'UsersCurrent',
 }
 
-registerComponent('HomeLatestPosts', HomeLatestPosts, withUser, withRouter, withStyles(styles, {name:"HomeLatestPosts"}), [withUpdate, withUpdateOptions]);
+registerComponent('HomeLatestPosts', HomeLatestPosts,
+  withUser, withLocation, withNavigation,
+  [withUpdate, withUpdateOptions]);

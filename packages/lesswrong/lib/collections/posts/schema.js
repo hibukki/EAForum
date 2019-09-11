@@ -1,10 +1,9 @@
 import Users from 'meteor/vulcan:users';
-import { Utils, /*getSetting,*/ registerSetting, getCollection } from 'meteor/vulcan:core';
+import { Utils, getCollection } from 'meteor/vulcan:core';
 import moment from 'moment';
 import { foreignKeyField, resolverOnlyField } from '../../modules/utils/schemaUtils'
 import { schemaDefaultValue } from '../../collectionUtils';
-
-registerSetting('forum.postExcerptLength', 30, 'Length of posts excerpts in words');
+import { PostRelations } from "../postRelations/collection.js"
 
 
 const formGroups = {
@@ -15,6 +14,11 @@ const formGroups = {
     label: "Admin Options",
     startCollapsed: true,
   },
+  visibleOptions: {
+    name: "visibleOptions",
+    order: 30,
+    defaultStyle: true,
+  }
 };
 
 const schema = {
@@ -89,11 +93,11 @@ const schema = {
     optional: true,
     viewableBy: ['guests'],
     onInsert: (post) => {
-      return Utils.slugify(post.title);
+      return Utils.getUnusedSlugByCollectionName("Posts", Utils.slugify(post.title))
     },
     onEdit: (modifier, post) => {
       if (modifier.$set.title) {
-        return Utils.slugify(modifier.$set.title);
+        return Utils.getUnusedSlugByCollectionName("Posts", Utils.slugify(modifier.$set.title), false, post._id)
       }
     }
   },
@@ -295,14 +299,6 @@ const schema = {
     }
   }),
 
-  commentsCount: resolverOnlyField({
-    type: Number,
-    viewableBy: ['guests'],
-    resolver: (post, args, { Comments }) => {
-      return Comments.find({ postId: post._id }).count();
-    },
-  }),
-
   emailShareUrl: resolverOnlyField({
     type: String,
     viewableBy: ['guests'],
@@ -361,6 +357,7 @@ const schema = {
       return contents.html;
     }
   }),
+
   submitToFrontpage: {
     type: Boolean,
     viewableBy: ['guests'],
@@ -375,12 +372,102 @@ const schema = {
       return true
     },
     onUpdate: ({data, document}) => {
-      // Not actually the real new document, but good enough for checking the two fields we care about
-      const newDocument= {...document, ...data} 
-      const updatedDocIsEvent = ('isEvent' in newDocument) ? newDocument.isEvent : false
+      const updatedDocIsEvent = ('isEvent' in document) ? document.isEvent : false
       if (updatedDocIsEvent) return false
-      return ('submitToFrontpage' in newDocument) ? newDocument.submitToFrontpage : true
+      return ('submitToFrontpage' in document) ? document.submitToFrontpage : true
     }
+  },
+
+  hiddenRelatedQuestion: {
+    type: Boolean,
+    viewableBy: ['guests'],
+    insertableBy: ['members'],
+    editableBy: [Users.owns, 'admins', 'sunshineRegiment'],
+    hidden: true,
+    optional: true,
+    ...schemaDefaultValue(false),
+  },
+
+  originalPostRelationSourceId: {
+    type: String,
+    optional: true,
+    viewableBy: ['guests'],
+    insertableBy: ['members'],
+    hidden: true,
+  },
+
+  sourcePostRelations: resolverOnlyField({
+    type: Array,
+    graphQLtype: '[PostRelation!]',
+    viewableBy: ['guests'],
+    resolver: async (post, args, { Posts }) => {
+      return await PostRelations.find({targetPostId: post._id}).fetch()
+    }
+  }),
+  'sourcePostRelations.$': {
+    type: String,
+    optional: true,
+  },
+
+  targetPostRelations: resolverOnlyField({
+    type: Array,
+    graphQLtype: '[PostRelation!]',
+    viewableBy: ['guests'],
+    resolver: async (post, args, { Posts }) => {
+      const postRelations = await Posts.rawCollection().aggregate([
+        { $match: { _id: post._id }},
+        { $graphLookup: { 
+            from: "postrelations", 
+            as: "relatedQuestions", 
+            startWith: post._id, 
+            connectFromField: "targetPostId", 
+            connectToField: "sourcePostId", 
+            maxDepth: 3 
+          } 
+        },
+        { 
+          $project: {
+            relatedQuestions: 1
+          }
+        }, 
+        {
+          $unwind: "$relatedQuestions"
+        }, 
+        {
+          $replaceRoot: {
+            newRoot: "$relatedQuestions"
+          }
+        }
+     ]).toArray()
+     if (!postRelations || postRelations.length < 1) return []
+     return postRelations
+    }
+  }),
+  'targetPostRelations.$': {
+    type: String,
+    optional: true,
+  },
+  
+  // A post should have the shortform flag set iff its author's shortformFeedId
+  // field is set to this post's ID.
+  shortform: {
+    type: Boolean,
+    optional: true,
+    hidden: true,
+    viewableBy: ['guests'],
+    insertableBy: ['admins'],
+    editableBy: ['admins'],
+    denormalized: true,
+    ...schemaDefaultValue(false),
+  },
+
+  canonicalSource: {
+    type: String,
+    optional: true,
+    hidden: true,
+    viewableBy: ['guests'],
+    insertableBy: ['admins'],
+    editableBy: ['admins'],
   }
 };
 

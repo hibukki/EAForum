@@ -1,128 +1,119 @@
-import { Components, registerComponent, withMessages, withDocument } from 'meteor/vulcan:core';
-import React, { Component } from 'react';
+import { Components, registerComponent, withMessages, useSingle } from 'meteor/vulcan:core';
+import React from 'react';
 import { Localgroups } from '../../lib/index.js';
-import { withRouter, Link } from '../../lib/reactRouterWrapper.js';
+import { Link } from '../../lib/reactRouterWrapper.js';
+import { withLocation } from '../../lib/routeUtil';
 import { Posts } from '../../lib/collections/posts';
 import withUser from '../common/withUser';
 import { withStyles } from '@material-ui/core/styles';
 import { postBodyStyles } from '../../themes/stylePiping'
-import Typography from '@material-ui/core/Typography';
+import { sectionFooterLeftStyles } from '../users/UsersProfile'
+import qs from 'qs'
 
 const styles = theme => ({
-  root: {
-    marginTop: 500,
+  root: {},
+  groupInfo: {
+    ...sectionFooterLeftStyles
   },
-  groupSidebar: {
-    // HACK/TODO: Move the group page action links down past the title and
-    // metadata lines so they line up with the description.
-    marginTop: "93px",
-  },
-
   groupName: {
     ...theme.typography.headerStyle,
     fontSize: "30px",
-
     marginTop: "0px",
     marginBottom: "0.5rem"
   },
   groupSubtitle: {
+    marginBottom: theme.spacing.unit * 2
+  },
+  leftAction: {
+    [theme.breakpoints.down('xs')]: {
+      textAlign: 'left'
+    }
   },
   groupLocation: {
     ...theme.typography.body2,
-
     display: "inline-block",
     color: "rgba(0,0,0,0.7)",
+    maxWidth: 260
   },
   groupLinks: {
     display: "inline-block",
-    marginTop: "-7px",
-    marginLeft: "10px",
-    marginBottom: "20px",
   },
   groupDescription: {
-    marginLeft: "24px",
     marginBottom: "30px",
-
     [theme.breakpoints.down('xs')]: {
       marginLeft: 0
     }
   },
-
   groupDescriptionBody: {
     ...postBodyStyles(theme),
+    padding: theme.spacing.unit,
   }
 });
 
-class LocalGroupPage extends Component {
-  renderTitleComponent = () => {
-    const { classes } = this.props;
-    const { groupId } = this.props.params;
-    const group = this.props.document;
-    return (
-      <div className={classes.groupSidebar}>
-        {this.props.currentUser
-          && <Components.SectionSubtitle>
-            <Components.SubscribeTo document={group} />
-          </Components.SectionSubtitle>}
-        {Posts.options.mutations.new.check(this.props.currentUser)
-          && <Components.SectionSubtitle>
-            <Link to={{pathname:"/newPost", query: {eventForm: true, groupId}}}>
-              Create new event
-            </Link>
-          </Components.SectionSubtitle>}
-        {Posts.options.mutations.new.check(this.props.currentUser)
-          && <Components.SectionSubtitle>
-            <Link to={{pathname:"/newPost", query: {groupId}}}>
-              Create new group post
-            </Link>
-          </Components.SectionSubtitle>}
-        {Localgroups.options.mutations.edit.check(this.props.currentUser, group)
-          && <Components.GroupFormLink documentId={groupId} label="Edit group" />}
-      </div>
-    )
-  }
-  render() {
-    const { classes } = this.props;
-    const { groupId } = this.props.params;
-    const group = this.props.document;
-    const { html = ""} = (group && group.contents) || {}
-    const htmlBody = {__html: html}
-    if (this.props.document) {
-      const { googleLocation: { geometry: { location } }} = group;
-      return (
-        <div className={classes.root}>
-          <Components.CommunityMapWrapper
-            terms={{view: "events", groupId: groupId}}
-            groupQueryTerms={{view: "single", groupId: groupId}}
-            mapOptions={{zoom:11, center: location, initialOpenWindows:[groupId]}}
-          />
-          <Components.Section titleComponent={this.renderTitleComponent()}>
-            {group && <div className={classes.groupDescription}>
-              <Typography variant="display2" className={classes.groupName}>{group.name}</Typography>
-              <div className={classes.groupSubtitle}>
-                <div className={classes.groupLocation}>{group.location}</div>
-                <div className={classes.groupLinks}><Components.GroupLinks document={group} /></div>
-              </div>
-              <div dangerouslySetInnerHTML={htmlBody} className={classes.groupDescriptionBody}/>
-            </div>}
-            <Components.PostsList terms={{view: 'groupPosts', groupId: groupId}} />
-          </Components.Section>
-        </div>
-      )
-    } else {
-      return <Components.Loading />
-    }
+const LocalGroupPage = ({ classes, documentId: groupId, currentUser }) => {
+  const { CommunityMapWrapper, SingleColumnSection, SectionTitle, GroupLinks, PostsList2, Loading,
+    SectionButton, SubscribeTo, SectionFooter, GroupFormLink, ContentItemBody, Error404 } = Components
 
-  }
+  const { document: group, loading } = useSingle({
+    collection: Localgroups,
+    queryName: 'LocalGroupPageQuery',
+    fragmentName: 'localGroupsHomeFragment',
+    documentId: groupId
+  })
+
+  if (loading) return <Loading />
+  if (!group) return <Error404 />
+
+  const { html = ""} = group.contents || {}
+  const htmlBody = {__html: html}
+
+  const { googleLocation: { geometry: { location } }} = group;
+  return (
+    <div className={classes.root}>
+      <CommunityMapWrapper
+        terms={{view: "events", groupId: groupId}}
+        groupQueryTerms={{view: "single", groupId: groupId}}
+        mapOptions={{zoom:11, center: location, initialOpenWindows:[groupId]}}
+      />
+      <SingleColumnSection>
+        <SectionTitle title={`${group.inactive ? "[Inactive] " : " "}${group.name}`}>
+          {currentUser && <SectionButton>
+            <SubscribeTo document={group} />
+          </SectionButton>}
+        </SectionTitle>
+        <div className={classes.groupDescription}>
+          <div className={classes.groupSubtitle}>
+            <SectionFooter>
+              <span className={classes.groupInfo}>
+                <div className={classes.groupLocation}>{group.location}</div>
+                <div className={classes.groupLinks}><GroupLinks document={group} /></div>
+              </span>
+              {Posts.options.mutations.new.check(currentUser) &&
+                <React.Fragment>
+                  <SectionButton>
+                    <Link to={{pathname:"/newPost", search: `?${qs.stringify({eventForm: true, groupId})}`}} className={classes.leftAction}>
+                      Create new event
+                    </Link>
+                  </SectionButton>
+                  <SectionButton>
+                    <Link to={{pathname:"/newPost", search: `?${qs.stringify({groupId})}`}} className={classes.leftAction}>
+                      Create new group post
+                    </Link>
+                  </SectionButton>
+                </React.Fragment>}
+              {Localgroups.options.mutations.edit.check(currentUser, group) && 
+                <span className={classes.leftAction}><GroupFormLink documentId={groupId} label="Edit group" /></span>
+              }
+            </SectionFooter>
+          </div>
+          <ContentItemBody dangerouslySetInnerHTML={htmlBody} className={classes.groupDescriptionBody}/>
+        </div>
+        <PostsList2 terms={{view: 'groupPosts', groupId: groupId}} />
+      </SingleColumnSection>
+    </div>
+  )
 }
 
-const options = {
-  collection: Localgroups,
-  queryName: 'LocalGroupPageQuery',
-  fragmentName: 'localGroupsHomeFragment',
-};
-
 registerComponent('LocalGroupPage', LocalGroupPage,
-  withUser, withMessages, withRouter,
-  withStyles(styles, { name: "LocalGroupPage" }),
-  [withDocument, options]);
+  withUser, withMessages, withLocation,
+  withStyles(styles, { name: "LocalGroupPage" }),);

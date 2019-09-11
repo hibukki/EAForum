@@ -148,7 +148,8 @@ const createLWTheme = (theme) => {
         fontWeight: 400,
         backgroundColor: grey[100],
         borderRadius: 2,
-        padding: 3,
+        paddingTop: 3,
+        paddingBottom: 3,
         lineHeight: 1.42
       },
       li: {
@@ -176,16 +177,28 @@ const createLWTheme = (theme) => {
       }
     },
     zIndexes: {
+      continueReadingImage: -1,
       commentsMenu: 1,
+      sequencesPageContent: 1,
+      sequencesImageScrim: 1,
       postsVote: 1,
+      singleLineCommentMeta: 2,
+      postItemTitle: 2,
       sidebarHoverOver: 2,
+      singleLineCommentHover: 3,
+      questionPageWhitescreen: 3,
+      textbox: 4,
+      nextUnread: 999,
       sunshineSidebar: 1000,
       postItemMenu: 1001,
       layout: 1100,
       tabNavigation: 1101,
+      searchResults: 1102,
       header: 1300,
       karmaChangeNotifier: 1400,
       notificationsMenu: 1500,
+      lwPopper: 10000,
+      lwPopperTooltip: 10001,
       searchBar: 100000,
     },
     voting: {

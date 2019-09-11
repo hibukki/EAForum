@@ -1,12 +1,11 @@
 import Users from "meteor/vulcan:users";
-import { getSetting } from "meteor/vulcan:core"
-import { foreignKeyField, addFieldsDict, resolverOnlyField } from '../../modules/utils/schemaUtils'
+import { getSetting, Utils } from "meteor/vulcan:core"
+import { foreignKeyField, addFieldsDict, resolverOnlyField, denormalizedCountOfReferences, denormalizedField } from '../../modules/utils/schemaUtils'
 import { makeEditable } from '../../editor/make_editable.js'
-import { addUniversalFields } from '../../collectionUtils'
+import { addUniversalFields, schemaDefaultValue } from '../../collectionUtils'
 import SimpleSchema from 'simpl-schema'
-import { schemaDefaultValue } from '../../collectionUtils';
 
-
+export const MAX_NOTIFICATION_RADIUS = 300
 export const formGroups = {
   moderationGroup: {
     order:60,
@@ -35,21 +34,31 @@ export const formGroups = {
     label: "Admin Options",
     startCollapsed: true,
   },
+  truncationOptions: {
+    name: "truncationOptions",
+    order: 9,
+    label: "Comment Truncation Options",
+    startCollapsed: false,
+  },
 }
 
 export const karmaChangeNotifierDefaultSettings = {
   // One of the string keys in karmaNotificationTimingChocies
   updateFrequency: "daily",
-  
+
   // Time of day at which daily/weekly batched updates are released, a number
   // of hours [0,24). Always in GMT, regardless of the user's time zone.
   // Default corresponds to 3am PST.
   timeOfDayGMT: 11,
-  
+
   // A string day-of-the-week name, spelled out and capitalized like "Monday".
   // Always in GMT, regardless of the user's timezone (timezone matters for day
   // of the week because time zones could take it across midnight.)
   dayOfWeekGMT: "Saturday",
+
+  // A boolean that determines whether we hide or show negative karma updates.
+  // False by default because people tend to drastically overweigh negative feedback
+  showNegativeKarma: false,
 };
 
 const karmaChangeSettingsType = new SimpleSchema({
@@ -68,8 +77,43 @@ const karmaChangeSettingsType = new SimpleSchema({
     type: String,
     optional: true,
     allowedValues: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  },
+  showNegativeKarma: {
+    type: Boolean,
+    optional: true,
   }
 })
+
+const partiallyReadSequenceItem = new SimpleSchema({
+  sequenceId: {
+    type: String,
+    foreignKey: "Sequences",
+    optional: true,
+  },
+  collectionId: {
+    type: String,
+    foreignKey: "Collections",
+    optional: true,
+  },
+  lastReadPostId: {
+    type: String,
+    foreignKey: "Posts",
+  },
+  nextPostId: {
+    type: String,
+    foreignKey: "Posts",
+  },
+  numRead: {
+    type: SimpleSchema.Integer,
+  },
+  numTotal: {
+    type: SimpleSchema.Integer,
+  },
+  lastReadTime: {
+    type: Date,
+    optional: true,
+  },
+});
 
 addFieldsDict(Users, {
   createdAt: {
@@ -135,7 +179,7 @@ addFieldsDict(Users, {
           {value:'postCommentsNew', label: 'most recent'},
           {value:'postCommentsOld', label: 'oldest'},
         ];
-        if (getSetting('AlignmentForum', false)) {
+        if (getSetting('forumType') === 'AlignmentForum') {
           return commentViews.concat([
             {value:'postLWComments', label: 'magical algorithm (include LW)'}
           ])
@@ -176,7 +220,23 @@ addFieldsDict(Users, {
     order: 20,
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
   },
+  hideNavigationSidebar: {
+    type: Boolean,
+    optional: true,
+    canRead: Users.owns,
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: Users.owns,
+    hidden: true,
+  },
   currentFrontpageFilter: {
+    type: String,
+    optional: true,
+    canRead: Users.owns,
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: Users.owns,
+    hidden: true,
+  },
+  allPostsTimeframe: {
     type: String,
     optional: true,
     canRead: Users.owns,
@@ -192,7 +252,7 @@ addFieldsDict(Users, {
     canCreate: Users.owns,
     hidden: true,
   },
-  allPostsView: {
+  allPostsSorting: {
     type: String,
     optional: true,
     hidden: true,
@@ -356,7 +416,7 @@ addFieldsDict(Users, {
     foreignKey: "Users",
     optional: true
   },
-  
+
   // Legacy ID: ID used in the original LessWrong database
   legacyId: {
     type: String,
@@ -378,20 +438,6 @@ addFieldsDict(Users, {
     label: 'Delete this user',
     control: 'checkbox',
     hidden: true,
-  },
-
-  // legacyData: A complete dump of all the legacy data we have on this post in a
-  // single blackbox object. Never queried on the client, but useful for a lot
-  // of backend functionality, and simplifies the data import from the legacy
-  // LessWrong database
-  legacyData: {
-    type: Object,
-    optional: true,
-    canRead: ['admins'],
-    canCreate: ['admins'],
-    canUpdate: ['admins'],
-    hidden: true,
-    blackbox: true,
   },
 
   // voteBanned: All future votes of this user have weight 0
@@ -471,7 +517,7 @@ addFieldsDict(Users, {
     group: formGroups.notifications,
     label: "Notifications For Replies to My Comments",
   },
-  
+
   // Karma-change notifier settings
   karmaChangeNotifierSettings: {
     group: formGroups.notifications,
@@ -483,7 +529,7 @@ addFieldsDict(Users, {
     canCreate: [Users.owns, 'admins', 'sunshineRegiment'],
     ...schemaDefaultValue(karmaChangeNotifierDefaultSettings)
   },
-  
+
   // Time at which the karma-change notification was last opened (clicked)
   karmaChangeLastOpened: {
     hidden: true,
@@ -493,7 +539,7 @@ addFieldsDict(Users, {
     canUpdate: [Users.owns, 'admins'],
     canRead: [Users.owns, 'admins'],
   },
-  
+
   // If, the last time you opened the karma-change notifier, you saw more than
   // just the most recent batch (because there was a batch you hadn't viewed),
   // the start of the date range of that batch.
@@ -515,7 +561,17 @@ addFieldsDict(Users, {
     label: "Email me new posts in Curated",
     canCreate: ['members'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: ['AlignmentForum', 'EAForum'].includes(getSetting('forumType')),
     canRead: ['members'],
+  },
+  unsubscribeFromAll: {
+    type: Boolean,
+    optional: true,
+    group: formGroups.emails,
+    label: "Do not send me any emails (unsubscribe from all)",
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    canRead: [Users.owns, 'sunshineRegiment', 'admins'],
   },
 
   // Hide the option to change your displayName (for now) TODO: Create proper process for changing name
@@ -529,26 +585,44 @@ addFieldsDict(Users, {
     type: Number,
     denormalized: true,
     optional: true,
-    canRead: ['guests'],
     onInsert: (document, currentUser) => 0,
+
+
+    ...denormalizedCountOfReferences({
+      fieldName: "frontpagePostCount",
+      collectionName: "Users",
+      foreignCollectionName: "Posts",
+      foreignTypeName: "post",
+      foreignFieldName: "userId",
+      filterFn: post => !!post.frontpageDate
+    }),
+    canRead: ['guests'],
   },
 
   // sequenceCount: count of how many non-draft, non-deleted sequences you have
   sequenceCount: {
-    type: Number,
-    denormalized: true,
-    optional: true,
+    ...denormalizedCountOfReferences({
+      fieldName: "sequenceCount",
+      collectionName: "Users",
+      foreignCollectionName: "Sequences",
+      foreignTypeName: "sequence",
+      foreignFieldName: "userId",
+      filterFn: sequence => !sequence.draft && !sequence.isDeleted
+    }),
     canRead: ['guests'],
-    onInsert: (document, currentUser) => 0,
   },
 
   // sequenceDraftCount: count of how many draft, non-deleted sequences you have
   sequenceDraftCount: {
-    type: Number,
-    denormalized: true,
-    optional: true,
+    ...denormalizedCountOfReferences({
+      fieldName: "sequenceDraftCount",
+      collectionName: "Users",
+      foreignCollectionName: "Sequences",
+      foreignTypeName: "sequence",
+      foreignFieldName: "userId",
+      filterFn: sequence => sequence.draft && !sequence.isDeleted
+    }),
     canRead: ['guests'],
-    onInsert: (document, currentUser) => 0,
   },
 
   mongoLocation: {
@@ -566,10 +640,12 @@ addFieldsDict(Users, {
     canRead: ['guests'],
     canCreate: ['members'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: !getSetting('hasEvents', true),
     label: "Group Location",
     control: 'LocationFormComponent',
     blackbox: true,
-    optional: true
+    optional: true,
+    order: 42,
   },
 
   location: {
@@ -582,6 +658,102 @@ addFieldsDict(Users, {
     optional: true
   },
 
+  mapLocation: {
+    type: Object,
+    canRead: ['guests'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: true,
+    label: "Your location on the community map",
+    control: 'LocationFormComponent',
+    blackbox: true,
+    optional: true,
+    order: 43,
+  },
+
+  mapLocationSet: {
+    type: Boolean, 
+    canRead: ['guests'],
+    ...denormalizedField({
+      needsUpdate: data => ('mapLocation' in data),
+      getValue: async (user) => {
+        return !!user.mapLocation
+      }
+    }),
+  },
+
+  mapMarkerText: {
+    type: String,
+    canRead: ['guests'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: true,
+    label: "Your text on the community map",
+    control: "MuiTextField",
+    optional: true,
+    order: 44
+  },
+
+  htmlMapMarkerText: {
+    type: String,
+    canRead: ['guests'],
+    optional: true, 
+    denormalized: true
+  },
+
+  nearbyEventsNotifications: {
+    type: Boolean,
+    canRead: ['guests'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: true,
+    optional: true,
+    ...schemaDefaultValue(false),
+  },
+
+  nearbyEventsNotificationsLocation: {
+    type: Object,
+    canRead: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: true,
+    control: 'LocationFormComponent',
+    blackbox: true,
+    optional: true,
+  },
+
+  nearbyEventsNotificationsRadius: {
+    type: Number,
+    canRead: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: true,
+    optional: true,
+    min: 0,
+    max: MAX_NOTIFICATION_RADIUS
+  },
+
+  nearbyPeopleNotificationThreshold: {
+    type: Number,
+    canRead: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    hidden: true,
+    optional: true
+  },
+
+  hideFrontpageMap: {
+    type: Boolean, 
+    canRead: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: ['members'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    optional: true, 
+    order: 43,
+    label: "Hide the frontpage map"
+  },
+
+  // Set after a moderator has approved or purged a new user. NB: reviewed does
+  // not imply approval, the user might have been banned
   reviewedByUserId: {
     ...foreignKeyField({
       idFieldName: "reviewedByUserId",
@@ -595,6 +767,43 @@ addFieldsDict(Users, {
     canCreate: ['sunshineRegiment', 'admins'],
     group: formGroups.adminOptions,
   },
+
+  isReviewed: resolverOnlyField({
+    type: Boolean,
+    canRead: [Users.owns, 'sunshineRegiment', 'admins'],
+    resolver: (user, args, context) => !!user.reviewedByUserId,
+  }),
+
+  // A number from 0 to 1, where 0 is almost certainly spam, and 1 is almost
+  // certainly not-spam. This is the same scale as ReCaptcha, except that it
+  // also includes post-signup activity like moderator approval, upvotes, etc.
+  // Scale:
+  //   0    Banned and purged user
+  //   0-0.8: Unreviewed user, based on ReCaptcha rating on signup (times 0.8)
+  //   0.9: Reviewed user
+  //   1.0: Reviewed user with 20+ karma
+  spamRiskScore: resolverOnlyField({
+    type: Number,
+    graphQLtype: "Float",
+    canRead: ['guests'],
+    resolver: (user, args, context) => {
+      const isReviewed = !!user.reviewedByUserId;
+      const { karma, signUpReCaptchaRating } = user;
+
+      if (user.deleteContent && user.banned) return 0.0;
+      else if (Users.isAdmin(user)) return 1.0;
+      else if (isReviewed && karma>=20) return 1.0;
+      else if (isReviewed && karma>=0) return 0.9;
+      else if (isReviewed) return 0.8;
+      else if (signUpReCaptchaRating>=0) {
+        // Rescale recaptcha ratings to [0,.8]
+        return signUpReCaptchaRating * 0.8;
+      } else {
+        // No recaptcha rating present; score it .8
+        return 0.8;
+      }
+    }
+  }),
 
   allVotes: resolverOnlyField({
     type: Array,
@@ -664,31 +873,48 @@ addFieldsDict(Users, {
     type: String,
     optional: true,
     canRead: ['guests'],
-    canUpdate: [Users.owns, 'sunshineRegiment']
+    canUpdate: [Users.owns, 'sunshineRegiment'],
+    hidden: !['LessWrong', 'AlignmentForum'].includes(getSetting('forumType')),
+    order: 39,
+  },
+
+  noSingleLineComments: {
+    order: 70,
+    type: Boolean,
+    optional: true,
+    group: formGroups.truncationOptions,
+    defaultValue: false,
+    canRead: ['guests'],
+    canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
+    canCreate: ['members'],
+    control: 'checkbox',
+    label: "Do not collapse comments to Single Line"
   },
 
   noCollapseCommentsPosts: {
     order: 70,
     type: Boolean,
     optional: true,
+    group: formGroups.truncationOptions,
     defaultValue: false,
     canRead: ['guests'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
     canCreate: ['members'],
     control: 'checkbox',
-    label: "Do not collapse comments (in large threads on Post Pages)"
+    label: "Do not truncate comments (in large threads on Post Pages)"
   },
 
   noCollapseCommentsFrontpage: {
     order: 70,
     type: Boolean,
     optional: true,
+    group: formGroups.truncationOptions,
     defaultValue: false,
     canRead: ['guests'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
     canCreate: ['members'],
     control: 'checkbox',
-    label: "Do not collapse comments (on home page)"
+    label: "Do not truncate comments (on home page)"
   },
 
   shortformFeedId: {
@@ -724,13 +950,81 @@ addFieldsDict(Users, {
     group: formGroups.adminOptions,
     order: 0,
   },
-  // TODO: Remove this after april fools
-  blockedGPT2: {
+
+  partiallyReadSequences: {
+    type: Array,
+    canRead: [Users.owns],
+    canUpdate: [Users.owns],
+    optional: true,
+    hidden: true,
+  },
+  "partiallyReadSequences.$": {
+    type: partiallyReadSequenceItem,
+    optional: true,
+  },
+
+  beta: {
     type: Boolean,
     optional: true,
     canRead: ['guests'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
-    label: "Auto-collapse comments from GPT2"
+    tooltip: "Get early access to new in-development features",
+    label: "Opt into experimental features"
+  },
+  defaultToCKEditor: {
+    type: Boolean,
+    optional: true,
+    canRead: ['guests'],
+    canUpdate: ['admins'],
+    group: formGroups.adminOptions,
+    label: "Activate CKEditor by default"
+  },
+  // ReCaptcha v3 Integration
+  // From 0 to 1. Lower is spammier, higher is humaner.
+  signUpReCaptchaRating: {
+    type: Number,
+    optional: true,
+    canRead: [Users.owns, 'sunshineRegiment', 'admins']
+  },
+  // Unique user slug for URLs, copied over from Vulcan-Accounts
+  slug: {
+    type: String,
+    optional: true,
+    canRead: ['guests'],
+    canUpdate: ['admins'],
+    group: formGroups.adminOptions,
+    order: 40,
+    onInsert: user => {
+      // create a basic slug from display name and then modify it if this slugs already exists;
+      const displayName = createDisplayName(user);
+      const basicSlug = Utils.slugify(displayName);
+      return Utils.getUnusedSlugByCollectionName('Users', basicSlug, true);
+    },
+    onUpdate: async ({data, document}) => {
+      //Make sure to update this callback for Apollo2 upgrade
+      if (data.slug && data.slug !== document.slug) {
+        const slugIsUsed = await Utils.slugIsUsed("Users", data.slug)
+        if (slugIsUsed) {
+          throw Error(`Specified slug is already used: ${data.slug}`)
+        }
+      }
+    }
+  },
+  oldSlugs: {
+    type: Array,
+    optional: true,
+    canRead: ['guests'],
+    onUpdate: ({data, document}) => {
+      // Make sure to update this callback for Apollo2 upgrade
+      if (data.slug && data.slug !== document.slug)  {
+        return [...(document.oldSlugs || []), document.slug]
+      }
+    }
+  },
+  'oldSlugs.$': {
+    type: String,
+    optional: true,
+    canRead: ['guests'],
   }
 });
 
@@ -747,8 +1041,7 @@ export const makeEditableOptionsModeration = {
     viewableBy: ['guests'],
     editableBy: [Users.owns, 'sunshineRegiment', 'admins'],
     insertableBy: [Users.owns, 'sunshineRegiment', 'admins']
-  },
-  deactivateNewCallback: true, // Fix to avoid triggering the editable operations on incomplete users during creation
+  }
 }
 
 makeEditable({
@@ -757,3 +1050,16 @@ makeEditable({
 })
 
 addUniversalFields({collection: Users})
+
+// Copied over utility function from Vulcan
+const createDisplayName = user => {
+  const profileName = Utils.getNestedProperty(user, 'profile.name');
+  const twitterName = Utils.getNestedProperty(user, 'services.twitter.screenName');
+  const linkedinFirstName = Utils.getNestedProperty(user, 'services.linkedin.firstName');
+  if (profileName) return profileName;
+  if (twitterName) return twitterName;
+  if (linkedinFirstName) return `${linkedinFirstName} ${Utils.getNestedProperty(user, 'services.linkedin.lastName')}`;
+  if (user.username) return user.username;
+  if (user.email) return user.email.slice(0, user.email.indexOf('@'));
+  return undefined;
+}

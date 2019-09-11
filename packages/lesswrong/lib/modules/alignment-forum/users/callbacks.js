@@ -42,12 +42,12 @@ export async function NewAlignmentUserSendPMAsync (newUser, oldUser, context) {
 
     let firstMessageContent =
         `<div>
-            <p>You've been approved for posting on http://alignment-forum.com.</p>
+            <p>You've been approved for posting on https://alignment-forum.com.</p>
             <p>You can now:</p>
             <ul>
               <li> Create alignment posts</li>
-              <li> Suggest other posts for the alignment forum</li>
-              <li> Move comments to the alignment forum</li>
+              <li> Suggest other posts for the Alignment Forum</li>
+              <li> Move comments to the AI Alignment Forum</li>
             </ul>
         </div>`
 

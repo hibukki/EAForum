@@ -2,7 +2,7 @@ import { Comments } from "./collection";
 import Users from "meteor/vulcan:users";
 import { makeEditable } from '../../editor/make_editable.js'
 import { Posts } from '../posts';
-import { foreignKeyField, addFieldsDict } from '../../modules/utils/schemaUtils'
+import { foreignKeyField, addFieldsDict, denormalizedCountOfReferences } from '../../modules/utils/schemaUtils'
 import { schemaDefaultValue } from '../../collectionUtils';
 
 export const moderationOptionsGroup = {
@@ -67,20 +67,6 @@ addFieldsDict(Comments, {
     canRead: ['guests'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
     canCreate: ['members'],
-  },
-
-  // legacyData: A complete dump of all the legacy data we have on this post in a
-  // single blackbox object. Never queried on the client, but useful for a lot
-  // of backend functionality, and simplifies the data import from the legacy
-  // LessWrong database
-  legacyData: {
-    type: Object,
-    optional: true,
-    canRead: ['admins'],
-    canCreate: ['admins'],
-    canUpdate: ['admins'],
-    hidden: true,
-    blackbox: true,
   },
 
   // retracted: Indicates whether a comment has been retracted by its author.
@@ -229,7 +215,7 @@ export const makeEditableOptions = {
   getLocalStorageId: (comment, name) => {
     if (comment._id) { return {id: comment._id, verify: true} }
     if (comment.parentCommentId) { return {id: ('parent:' + comment.parentCommentId), verify: false}}
-    if (comment.postId) { return {id: ('post:' + comment.postId), verify: false}}
+    return {id: ('post:' + comment.postId), verify: false}
   },
   order: 25
 }
@@ -242,9 +228,14 @@ makeEditable({
 addFieldsDict(Users, {
   // Count of the user's comments
   commentCount: {
-    type: Number,
-    optional: true,
-    defaultValue: 0,
+    ...denormalizedCountOfReferences({
+      fieldName: "commentCount",
+      collectionName: "Users",
+      foreignCollectionName: "Comments",
+      foreignTypeName: "comment",
+      foreignFieldName: "userId",
+      filterFn: comment => !comment.deleted
+    }),
     canRead: ['guests'],
   }
 });
@@ -255,6 +246,15 @@ addFieldsDict(Posts, {
     type: Number,
     optional: true,
     defaultValue: 0,
+    
+    ...denormalizedCountOfReferences({
+      fieldName: "commentCount",
+      collectionName: "Posts",
+      foreignCollectionName: "Comments",
+      foreignTypeName: "comment",
+      foreignFieldName: "postId",
+      filterFn: comment => !comment.deleted
+    }),
     canRead: ['guests'],
   },
 });

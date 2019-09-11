@@ -3,13 +3,31 @@ import { Collections, getCollection } from 'meteor/vulcan:core';
 import { getFieldsWithAttribute } from './utils';
 import { migrateDocuments } from '../migrations/migrationUtils'
 
-Vulcan.recomputeAllDenormalizedValues = async () => {
+
+export const recomputeAllDenormalizedValues = async () => {
   for(let collection of Collections) {
-    await Vulcan.recomputeDenormalizedValues(collection.options.collectionName)
+    await Vulcan.recomputeDenormalizedValues({
+      collectionName: collection.options.collectionName
+    })
   }
 }
+Vulcan.recomputeAllDenormalizedValues = recomputeAllDenormalizedValues;
 
-export const recomputeDenormalizedValues = async (collectionName, fieldName) => {
+export const validateAllDenormalizedValues = async () => {
+  for(let collection of Collections) {
+    await Vulcan.recomputeDenormalizedValues({
+      collectionName: collection.options.collectionName,
+      validateOnly: true
+    })
+  }
+}
+Vulcan.validateAllDenormalizedValues = validateAllDenormalizedValues;
+
+// Recompute the value of denormalized fields (that are tagged with canAutoDenormalize).
+// If validateOnly is true, compare them with the existing values in the database and
+// report how many differ; otherwise update them to the correct values. If fieldName
+// is given, recompute a single field; otherwise recompute all fields on the collection.
+export const recomputeDenormalizedValues = async ({collectionName, fieldName=null, validateOnly=false}) => {
   // eslint-disable-next-line no-console
   console.log(`Recomputing denormalize values for ${collectionName} ${fieldName ? `and ${fieldName}` : ""}`)
 
@@ -26,9 +44,18 @@ export const recomputeDenormalizedValues = async (collectionName, fieldName) => 
       // eslint-disable-next-line no-console
       throw new Error(`${collectionName} does not have field ${fieldName}, not computing denormalized values`)
     }
+    if (!schema[fieldName].denormalized) {
+      throw new Error(`${collectionName}.${fieldName} is not marked as a denormalized field`)
+    }
+    if (!schema[fieldName].canAutoDenormalize) {
+      throw new Error(`${collectionName}.${fieldName} is not marked as canAutoDenormalize`)
+    }
     const getValue = schema[fieldName].getValue
-    // eslint-disable-next-line no-console
-    await runDenormalizedFieldMigration({ collection, fieldName, getValue })
+    if (!getValue) {
+      throw new Error(`${collectionName}.${fieldName} is missing its getValue function`)
+    }
+
+    await runDenormalizedFieldMigration({ collection, fieldName, getValue, validateOnly })
   } else {
     const denormalizedFields = getFieldsWithAttribute(schema, 'canAutoDenormalize')
     if (denormalizedFields.length == 0) {
@@ -36,14 +63,14 @@ export const recomputeDenormalizedValues = async (collectionName, fieldName) => 
       console.log(`${collectionName} does not have any fields with "canAutoDenormalize", not computing denormalized values`)
       return;
     }
-    
+
     // eslint-disable-next-line no-console
     console.log(`Recomputing denormalized values for ${collection.collectionName} in fields: ${denormalizedFields}`);
-    
+
     for (let j=0; j<denormalizedFields.length; j++) {
       const fieldName = denormalizedFields[j];
       const getValue = schema[fieldName].getValue
-      await runDenormalizedFieldMigration({ collection, fieldName, getValue })
+      await runDenormalizedFieldMigration({ collection, fieldName, getValue, validateOnly })
     }
   }
 
@@ -52,11 +79,13 @@ export const recomputeDenormalizedValues = async (collectionName, fieldName) => 
 }
 Vulcan.recomputeDenormalizedValues = recomputeDenormalizedValues;
 
-async function runDenormalizedFieldMigration({ collection, fieldName, getValue }) {
+async function runDenormalizedFieldMigration({ collection, fieldName, getValue, validateOnly }) {
+  let numDifferent = 0;
+
   await migrateDocuments({
-    description: `Recomputing denormalized values for ${collection.collectionName} and field ${fieldName}`,
+    description: `Recomputing denormalized values for ${collection.collectionName} field ${fieldName}`,
     collection,
-    batchSize: 1000,
+    batchSize: 100,
     migrate: async (documents) => {
       // eslint-disable-next-line no-console
       const updates = await Promise.all(documents.map(async doc => {
@@ -76,14 +105,32 @@ async function runDenormalizedFieldMigration({ collection, fieldName, getValue }
       }))
 
       const nonEmptyUpdates = _.without(updates, null)
+      numDifferent += nonEmptyUpdates.length;
+
       // eslint-disable-next-line no-console
-      console.log(`Updating ${nonEmptyUpdates.length} documents`)
-      await collection.rawCollection().bulkWrite(
-        nonEmptyUpdates,
-        { ordered: false }
-      );
+      console.log(`${nonEmptyUpdates.length} documents in batch with changing denormalized value`)
+      if (!validateOnly) {
+        // eslint-disable-next-line no-console
+        if (nonEmptyUpdates.length > 0)  {
+          await collection.rawCollection().bulkWrite(
+            nonEmptyUpdates,
+            { ordered: false }
+          );
+        }
+      } else {
+        // TODO: This is a hack, but better than leaving it. We're basically
+        // breaking the expected API from migrateDocuments by supporting a
+        // validateOnly option, so it does not offer us good hooks to do this.
+        throw new Error([
+          'Abort! validateOnly means the document will not change and the migration will never',
+          'complete. This error is expected behavior to cause the migration to end.'
+        ].join(' '))
+      }
     },
   });
+
+  // eslint-disable-next-line no-console
+  console.log(`${numDifferent} total documents had wrong denormalized value`)
 }
 
 function isNullOrDefined(value) {

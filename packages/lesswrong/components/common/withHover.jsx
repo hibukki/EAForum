@@ -13,11 +13,11 @@ const withHover = (WrappedComponent) => {
     }
 
     render () {
-      const props = { hover: this.state.hover, anchorEl: this.state.anchorEl, ...this.props }
+      const props = { hover: this.state.hover, anchorEl: this.state.anchorEl, ...this.props, stopHover: this.handleMouseLeave }
       return (
-        <div onMouseOver={this.handleMouseOver} onMouseLeave={this.handleMouseLeave}>
+        <span onMouseOver={this.handleMouseOver} onMouseLeave={this.handleMouseLeave}>
           <WrappedComponent { ...props } />
-        </div>
+        </span>
       )
     }
   }
