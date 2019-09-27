@@ -10,7 +10,6 @@ class RecommendationsList extends Component {
     if (recommendationsLoading || !recommendations)
       return <PostsLoading/>
 
-    // TODO;(EA Forum) Change tooltip
     const improvedRecommendationsTooltip = <div>
       {getSetting('forumType', 'LessWrong') !== 'LessWrong' && 'The '}{getSetting('title')} keeps track of what recommended posts logged-in users have read. Login to get recommended posts you haven't read before.
     </div>

@@ -56,9 +56,10 @@ export const styles = theme => ({
     display: "inline-block",
     verticalAlign: "middle",
 
-    "& span": {
-      fontFamily: "monospace",
-    }
+    // EAForum: This was causing the - to be too low
+    // "& span": {
+    //   fontFamily: "monospace",
+    // }
   },
   firstParentComment: {
     // Sorry Oli
