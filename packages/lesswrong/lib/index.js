@@ -70,11 +70,7 @@ import './collections/users/karmaChangesGraphQL.js';
 import './collections/users/views.js';
 
 // Posts
-// TODO; Why not import posts/index.js?
-import './collections/posts/custom_fields.js';
-import './collections/posts/views.js';
-import './collections/posts/permissions.js';
-import './collections/posts/helpers.js';
+import './collections/posts/index.js';
 
 // Chapters
 import Sequences from './collections/sequences/collection.js';
