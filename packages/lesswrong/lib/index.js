@@ -60,6 +60,22 @@ import './collections/debouncerEvents/collection.js';
 import './collections/readStatus/collection.js';
 // Bans
 import { Bans } from './collections/bans/index.js'
+
+// Users
+import './collections/users/permissions.js';
+import './collections/users/helpers.js';
+import './collections/users/custom_fields.js';
+import './collections/users/recommendationSettings.js';
+import './collections/users/karmaChangesGraphQL.js';
+import './collections/users/views.js';
+
+// Posts
+// TODO; Why not import posts/index.js?
+import './collections/posts/custom_fields.js';
+import './collections/posts/views.js';
+import './collections/posts/permissions.js';
+import './collections/posts/helpers.js';
+
 // Chapters
 import Sequences from './collections/sequences/collection.js';
 import './collections/sequences/views.js';
@@ -92,27 +108,11 @@ import './collections/sequences/permissions.js';
 import './collections/collections/permissions.js';
 import './collections/books/permissions.js';
 
-
 // Subscriptions
 import './collections/subscriptions';
 
-
-// Posts
-import './collections/posts/custom_fields.js';
-import './collections/posts/views.js';
-import './collections/posts/permissions.js';
-import './collections/posts/helpers.js';
-
 // Revisions
 import Revisions from './collections/revisions/collection.js'
-//
-// Users
-import './collections/users/permissions.js';
-import './collections/users/helpers.js';
-import './collections/users/custom_fields.js';
-import './collections/users/recommendationSettings.js';
-import './collections/users/karmaChangesGraphQL.js';
-import './collections/users/views.js';
 
 // Comments
 import { Comments } from './collections/comments'
