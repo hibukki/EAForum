@@ -55,6 +55,16 @@ import './collections/databaseMetadata/collection.js';
 // DebouncerEvents
 import './collections/debouncerEvents/collection.js';
 
+// Users
+import './collections/users/permissions.js';
+import './collections/users/helpers.js';
+import './collections/users/custom_fields.js';
+import './collections/users/recommendationSettings.js';
+import './collections/users/karmaChangesGraphQL.js';
+import './collections/users/views.js';
+
+// Posts
+import './collections/posts/index.js';
 
 // ReadStatuses
 import './collections/readStatus/collection.js';
@@ -96,23 +106,8 @@ import './collections/books/permissions.js';
 // Subscriptions
 import './collections/subscriptions';
 
-
-// Posts
-import './collections/posts/custom_fields.js';
-import './collections/posts/views.js';
-import './collections/posts/permissions.js';
-import './collections/posts/helpers.js';
-
 // Revisions
 import Revisions from './collections/revisions/collection.js'
-//
-// Users
-import './collections/users/permissions.js';
-import './collections/users/helpers.js';
-import './collections/users/custom_fields.js';
-import './collections/users/recommendationSettings.js';
-import './collections/users/karmaChangesGraphQL.js';
-import './collections/users/views.js';
 
 // Comments
 import { Comments } from './collections/comments'

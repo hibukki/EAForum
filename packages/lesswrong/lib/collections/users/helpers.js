@@ -1,9 +1,6 @@
 import Users from "meteor/vulcan:users";
 import bowser from 'bowser'
 import { getSetting, Utils } from 'meteor/vulcan:core';
-import { Votes } from '../votes';
-import { Comments } from '../comments'
-import { Posts } from '../posts'
 
 // Overwrite user display name getter from Vulcan
 Users.getDisplayName = (user) => {
@@ -298,22 +295,6 @@ Users.getLocation = (currentUser) => {
 
     return {lat: placeholderLat, lng:placeholderLng, loading: false, known: false};
   }
-}
-
-// utility function for checking how much karma a user is supposed to have
-Users.getAggregateKarma = async (user) => {
-  const posts = Posts.find({userId:user._id}).fetch().map(post=>post._id)
-  const comments = Comments.find({userId:user._id}).fetch().map(comment=>comment._id)
-  const documentIds = [...posts, ...comments]
-
-  return await Votes.rawCollection().aggregate([
-    {$match: {
-      documentId: {$in:documentIds},
-      userId: {$ne: user._id},
-      cancelled: false
-    }},
-    {$group: { _id: null, totalPower: { $sum: '$power' }}},
-  ]).toArray()[0].totalPower;
 }
 
 Users.getPostCount = (user) => {
