@@ -21,10 +21,15 @@ const SelectVersion = ({classes, documentId, revisionVersion, updateVersionNumbe
     fetchPolicy: 'cache-then-network',
     extraVariables: { version: 'String' },
     extraVariablesValues: { version: revisionVersion },
+    // TODO: ^ Throw error for missing version number instead of returning null
     documentId
   })
+  console.log('SelectVersion()')
 
   useEffect(() => {
+    console.log('useEffect()')
+    console.log(' loading', loading)
+    console.log(' document', document)
     updateVersion(document)
   }, [documentId, document, updateVersion])
 

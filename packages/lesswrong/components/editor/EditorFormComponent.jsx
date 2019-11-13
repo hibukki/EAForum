@@ -469,9 +469,9 @@ class EditorFormComponent extends Component {
     console.log('handleUpdateVersion()')
     if (!document) return
     const editorType = document.contents?.originalContents?.type
-    console.log('document', documents)
-    console.log('document.contents', documents.contents)
-    console.log('document.contents.orc', documents.contents.originalContents)
+    console.log('document', document)
+    console.log('document.contents', document.contents)
+    console.log('document.contents.orc', document.contents?.originalContents)
     console.log('editorType', editorType)
     console.log('handleUpdateVersion calling getEditorStatesFromType')
     this.setState({
@@ -524,6 +524,7 @@ class EditorFormComponent extends Component {
   }
 
   renderEditorComponent = (currentEditorType) => {
+    // TODO; somewhere around here we should check that there's content in state
     switch (currentEditorType) {
       case "ckEditorMarkup":
         return this.renderCkEditor()

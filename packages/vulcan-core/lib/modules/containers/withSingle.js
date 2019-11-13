@@ -19,13 +19,17 @@ export function getGraphQLQueryFromOptions({ extraVariables, extraQueries, colle
     ${fragment}
   `;
   
+  console.log('query', query)
+  
   return query
 }
 
 export function getResolverNameFromOptions({ collectionName, collection }) {
   ({ collection } = extractCollectionInfo({ collectionName, collection }))
   const typeName = collection.options.typeName;
-  return Utils.camelCaseify(typeName);
+  const result = Utils.camelCaseify(typeName);
+  console.log('getResolverNameFromOptions result', result)
+  return result
 }
 
 export default function withSingle({ collectionName, collection, fragment, fragmentName, extraVariables, fetchPolicy, propertyName = 'document', extraQueries }) {
@@ -87,12 +91,13 @@ export function useSingle({ collectionName,
   fragmentName, 
   extraVariables, 
   fetchPolicy, 
-  propertyName, 
+  propertyName,  // TODO; intentionally unused? (prolly not worth the todo)
   extraQueries, 
   documentId, 
   extraVariablesValues
 }) {
   const query = getGraphQLQueryFromOptions({ extraVariables, extraQueries, collectionName, collection, fragment, fragmentName })
+  
   const resolverName = getResolverNameFromOptions({ collectionName, collection })
   const { data, ...rest } = useQuery(query, { 
     variables: { input: { selector: { documentId } }, ...extraVariablesValues }, 
@@ -100,5 +105,6 @@ export function useSingle({ collectionName,
     ssr: true,
   })
   const document = data && data[resolverName] && data[resolverName].result
+  console.log('useSingle() document', document)
   return { document, data, ...rest }
 }
