@@ -176,4 +176,5 @@ Meteor.startup(() => {
   populateRoutesApp();
   // render the page
   onPageLoad(makePageRenderer);
+  // ^
 });

@@ -103,6 +103,7 @@ class EditorFormComponent extends Component {
   constructor(props) {
     super(props)
     const editorType = this.getCurrentEditorType()
+    console.log('Constructor calling getEditorStatesFromType')
     this.state = {
       editorOverride: null,
       ckEditorLoaded: null,
@@ -128,6 +129,8 @@ class EditorFormComponent extends Component {
   }
 
   getEditorStatesFromType = (editorType, contents) => {
+    console.log('getEditorStatesFromType()')
+    console.log(' editorType', editorType)
     const { document, fieldName, value } = this.props
     const { editorOverride } = this.state || {} // Provide default value, since we can call this before state is initialized
 
@@ -149,12 +152,14 @@ class EditorFormComponent extends Component {
     
     // Otherwise, just set it to the value of the document
     const { draftJS, html, markdown, ckEditorMarkup } = document[fieldName] || {}
-    return {
+    const result = {
       draftJSValue: editorType === "draftJS" ? this.initializeDraftJS(draftJS, editorType) : null,
       markdownValue: editorType === "markdown" ? this.initializeText(markdown, editorType) : null,
       htmlValue: editorType === "html" ? this.initializeText(html, editorType) : null,
       ckEditorValue: editorType === "ckEditorMarkup" ? this.initializeText(ckEditorMarkup, editorType) : null
     }
+    console.log('result', result)
+    return result
   }
 
   getStorageHandlers = () => {
@@ -280,8 +285,11 @@ class EditorFormComponent extends Component {
   }
 
   handleEditorOverride = (editorType) => {
+    console.log('handleEditorOverride()')
+    console.log(' editorEtype', editorType)
     const { currentUser } = this.props
     const targetEditorType = editorType || this.getUserDefaultEditor(currentUser)
+    console.log('handleEditorOverride calling getEditorStatesFromType')
     this.setState({
       editorOverride: targetEditorType,
       ...this.getEditorStatesFromType(targetEditorType)
@@ -392,20 +400,33 @@ class EditorFormComponent extends Component {
       </div>
   }
 
-  getCurrentEditorType = () => {
+  getCurrentEditorType = (debug) => {
     const { editorOverride } = this.state || {} // Provide default since we can call this function before we initialize state
     const { document, currentUser, enableMarkDownEditor, fieldName, value } = this.props
+    if (fieldName === 'moderationGuidelines') debug = false
+    if (debug) console.log(' fieldName', fieldName)
+    if (debug) console.log('getCurrentEditorType()')
+    if (debug) console.log(' editorOverride', editorOverride)
     const originalType = document?.[fieldName]?.originalContents?.type
+    if (debug) console.log(' originalType', originalType)
     // If there is an override, return that
-    if (editorOverride) { return editorOverride }
+    if (editorOverride) {
+      if (debug) console.log(' return early eo');
+      return editorOverride
+    }
     // Then check whether we are directly passed a value in the form context, with a type (as a default value for example)
     if (value && value.originalContents && value.originalContents.type) {
+      if (debug) console.log(' exit early oc')
       return value.originalContents.type
     }
     // Otherwise, default to rich-text, but maybe show others
-    if (originalType) { return originalType }
+    if (originalType) {
+      if (debug) console.log(' return early ot')
+      return originalType
+    }
 
     const defaultEditor = this.getUserDefaultEditor(currentUser)
+    if (debug) console.log(' defaultEditor', defaultEditor)
     if (defaultEditor === "markdown" && !enableMarkDownEditor) return "draftJS"
     
     return defaultEditor
@@ -445,8 +466,14 @@ class EditorFormComponent extends Component {
   }
 
   handleUpdateVersion = async (document) => {
+    console.log('handleUpdateVersion()')
     if (!document) return
     const editorType = document.contents?.originalContents?.type
+    console.log('document', documents)
+    console.log('document.contents', documents.contents)
+    console.log('document.contents.orc', documents.contents.originalContents)
+    console.log('editorType', editorType)
+    console.log('handleUpdateVersion calling getEditorStatesFromType')
     this.setState({
       ...this.getEditorStatesFromType(editorType, document.contents)
     })
@@ -585,6 +612,8 @@ class EditorFormComponent extends Component {
     const { draftJSValue } = this.state
     const { document, form, classes } = this.props
     const showPlaceholder = !(draftJSValue?.getCurrentContent && draftJSValue.getCurrentContent().hasText())
+    
+    console.log('draftJSValue', draftJSValue)
 
     return <div>
         { this.renderPlaceholder(showPlaceholder) }
@@ -610,9 +639,16 @@ class EditorFormComponent extends Component {
   render() {
     const { editorOverride } = this.state
     const { document, currentUser, formType, classes, fieldName } = this.props
-    const currentEditorType = this.getCurrentEditorType()
 
     if (!document) return null;
+    
+    const debug = false // fieldName !== 'moderationGuidelines'
+    
+    if (debug) console.log('render()')
+    if (debug) console.log(' document', document)
+
+    const currentEditorType = this.getCurrentEditorType(debug)
+    if (debug) console.log('currentEditorType', currentEditorType)
     
     const editorWarning =
       !editorOverride
