@@ -18,8 +18,8 @@ const localDebug = true
 export const Connectors = {
   get: async (collection, selector = {}, options = {}, skipConversion) => {
     const convertedSelector = skipConversion ? selector : convertUniqueSelector(selector)
-    console.log('mongo get', collection._name)
-    if (localDebug && ['posts'].includes(collection._name)) {
+    // console.log('mongo get', collection._name)
+    if (localDebug && ['asdfasdf'].includes(collection._name)) {
       console.log('DB QUERY GET {')
       console.log('  COLLECTION', collection._name)
       console.log('  SELECTOR', convertedSelector)
@@ -29,8 +29,8 @@ export const Connectors = {
     return await collection.findOne(convertedSelector, options);
   },
   find: async (collection, selector = {}, options = {}) => {
-    console.log('mongo find', collection._name)
-    if (localDebug && ['posts'].includes(collection._name)) {
+    // console.log('mongo get', collection._name)
+    if (localDebug && ['asdfasdf'].includes(collection._name)) {
       console.log('DB QUERY FIND {')
       console.log('  COLLECTION', collection._name)
       console.log('  SELECTOR', selector)
@@ -38,7 +38,7 @@ export const Connectors = {
       console.log('END FIND PT 1} ====')
     }
     const documents = await collection.find(convertSelector(selector), options).fetch();
-    if (localDebug && ['posts'].includes(collection._name)) {
+    if (localDebug && ['asdfasdf'].includes(collection._name)) {
       console.log('DB QUERY FIND RESULTS {')
       // console.log('  COLLECTION', collection._name)
       // console.log('  SELECTOR', selector)

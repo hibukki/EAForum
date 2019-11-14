@@ -17,10 +17,23 @@ addUniversalFields({collection: Revisions})
 // and the revision itself differ (e.g. because an admin has made the edit, or a coauthor), then
 // we will hide those revisions unless they are marked as post-1.0.0 releases. This is not ideal, but
 // seems acceptable
-Revisions.checkAccess = function (user, revision) {
-  if ((user && user._id) === revision.userId) return true
+Revisions.checkAccess = function (user, revision, debug) {
+  if (!revision) {
+    // TODO; what happens to errors when they hit gql
+    throw new Error('checkAccess cannot check access on a missing revision')
+  }
+  if (debug) console.log(' user._id', user?._id)
+  if (debug) console.log(' version', revision.version)
+  if (debug) console.log(' version', revision.userId)
+  if (user && (user._id === revision.userId)) return true
   const { major } = extractVersionsFromSemver(revision.version)
-  return major > 0
+  const result = major > 0
+  if (!result) {
+    // eslint-disable-next-line no-console
+    // TODO; maybe ^^
+    console.warn('Surprising failure of revisions checkAccess function')
+  }
+  return result
 }
 
 export default Revisions;
