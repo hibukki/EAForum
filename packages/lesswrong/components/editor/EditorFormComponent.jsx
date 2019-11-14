@@ -103,7 +103,7 @@ class EditorFormComponent extends Component {
   constructor(props) {
     super(props)
     const editorType = this.getCurrentEditorType()
-    console.log('Constructor calling getEditorStatesFromType')
+    // console.log('Constructor calling getEditorStatesFromType')
     this.state = {
       editorOverride: null,
       ckEditorLoaded: null,
@@ -129,8 +129,8 @@ class EditorFormComponent extends Component {
   }
 
   getEditorStatesFromType = (editorType, contents) => {
-    console.log('getEditorStatesFromType()')
-    console.log(' editorType', editorType)
+    // console.log('getEditorStatesFromType()')
+    // console.log(' editorType', editorType)
     const { document, fieldName, value } = this.props
     const { editorOverride } = this.state || {} // Provide default value, since we can call this before state is initialized
 
@@ -158,7 +158,7 @@ class EditorFormComponent extends Component {
       htmlValue: editorType === "html" ? this.initializeText(html, editorType) : null,
       ckEditorValue: editorType === "ckEditorMarkup" ? this.initializeText(ckEditorMarkup, editorType) : null
     }
-    console.log('result', result)
+    // console.log('result', result)
     return result
   }
 
@@ -285,11 +285,11 @@ class EditorFormComponent extends Component {
   }
 
   handleEditorOverride = (editorType) => {
-    console.log('handleEditorOverride()')
-    console.log(' editorEtype', editorType)
+    // console.log('handleEditorOverride()')
+    // console.log(' editorEtype', editorType)
     const { currentUser } = this.props
     const targetEditorType = editorType || this.getUserDefaultEditor(currentUser)
-    console.log('handleEditorOverride calling getEditorStatesFromType')
+    // console.log('handleEditorOverride calling getEditorStatesFromType')
     this.setState({
       editorOverride: targetEditorType,
       ...this.getEditorStatesFromType(targetEditorType)
@@ -614,7 +614,7 @@ class EditorFormComponent extends Component {
     const { document, form, classes } = this.props
     const showPlaceholder = !(draftJSValue?.getCurrentContent && draftJSValue.getCurrentContent().hasText())
     
-    console.log('draftJSValue', draftJSValue)
+    // console.log('draftJSValue', draftJSValue)
 
     return <div>
         { this.renderPlaceholder(showPlaceholder) }

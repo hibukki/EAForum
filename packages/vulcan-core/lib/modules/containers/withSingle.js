@@ -19,7 +19,7 @@ export function getGraphQLQueryFromOptions({ extraVariables, extraQueries, colle
     ${fragment}
   `;
   
-  console.log('query', query)
+  // console.log('query', query)
   
   return query
 }
@@ -28,7 +28,7 @@ export function getResolverNameFromOptions({ collectionName, collection }) {
   ({ collection } = extractCollectionInfo({ collectionName, collection }))
   const typeName = collection.options.typeName;
   const result = Utils.camelCaseify(typeName);
-  console.log('getResolverNameFromOptions result', result)
+  // console.log('getResolverNameFromOptions result', result)
   return result
 }
 
@@ -105,6 +105,6 @@ export function useSingle({ collectionName,
     ssr: true,
   })
   const document = data && data[resolverName] && data[resolverName].result
-  console.log('useSingle() document', document)
+  // console.log('useSingle() document', document)
   return { document, data, ...rest }
 }

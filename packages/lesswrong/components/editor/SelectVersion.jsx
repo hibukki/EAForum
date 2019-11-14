@@ -24,12 +24,12 @@ const SelectVersion = ({classes, documentId, revisionVersion, updateVersionNumbe
     // TODO: ^ Throw error for missing version number instead of returning null
     documentId
   })
-  console.log('SelectVersion()')
+  // console.log('SelectVersion()')
 
   useEffect(() => {
-    console.log('useEffect()')
-    console.log(' loading', loading)
-    console.log(' document', document)
+    // console.log('useEffect()')
+    // console.log(' loading', loading)
+    // console.log(' document', document)
     updateVersion(document)
   }, [documentId, document, updateVersion])
 

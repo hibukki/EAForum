@@ -88,9 +88,9 @@ export const makeEditable = ({collection, options = {}}) => {
           type: 'Revision',
           arguments: 'version: String',
           resolver: async (doc, { version }, { currentUser, Revisions }) => {
-            console.log('makeEditable contents resolver()')
-            console.log(' version', version)
-            console.log(' currentUser', currentUser?.id)
+            // console.log('makeEditable contents resolver()')
+            // console.log(' version', version)
+            // console.log(' currentUser', currentUser?.id)
             const field = fieldName || "contents"
             const { checkAccess } = Revisions
             if (version) {
@@ -98,9 +98,9 @@ export const makeEditable = ({collection, options = {}}) => {
               if (!revision) {
                 throw new Error(`No revision found for documentId: ${doc_id}, version: ${version}`)
               }
-              console.log(' revision', revision?._id)
+              // console.log(' revision', revision?._id)
               const hasAccess = checkAccess(currentUser, revision, true)
-              console.log(' hasAccess', hasAccess)
+              // console.log(' hasAccess', hasAccess)
               return hasAccess ? revision : null
             }
             return {
