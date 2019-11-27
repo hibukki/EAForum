@@ -22,7 +22,19 @@ const styles = theme => ({
   },
   title: {
     cursor: "pointer",
-  }
+  },
+  sectionTitleTitle: {
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 339.95px)': {
+      width: 75,
+    },
+  },
+  sectionTitleChildren: {
+    '@media (max-width: 599.95px)': {
+      width: 98,
+    }
+  },
 });
 
 export const timeframes = {
@@ -143,7 +155,10 @@ class AllPostsPage extends Component {
         <SingleColumnSection>
           <Tooltip title={`${showSettings ? "Hide": "Show"} options for sorting and filtering`} placement="top-end">
             <div className={classes.title} onClick={this.toggleSettings}>
-              <SectionTitle title="All Posts">
+              <SectionTitle
+                title="All Posts"
+                customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
+              >
                 <SettingsIcon label={`Sorted by ${ sortings[currentSorting] }`}/>
               </SectionTitle>
             </div>

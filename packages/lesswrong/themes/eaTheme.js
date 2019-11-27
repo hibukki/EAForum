@@ -187,20 +187,6 @@ const theme = createLWTheme({
         fontSize: '50%',
       },
     },
-    SectionTitle: {
-      title: {
-        // Super custom width
-        '@media (max-width: 374.95px)': {
-          width: 90
-        },
-      },
-      children: {
-        '@media (max-width: 599.95px)': {
-          width: 137,
-          marginRight: -30,
-        }
-      },
-    },
     Section: {
       sectionTitle: {
         fontWeight:600,
@@ -230,8 +216,10 @@ const theme = createLWTheme({
         [defaultTheme.breakpoints.down("xs")]: {
           fontSize: "1rem",
         },
-      }
+      },
     },
+    ConfigurableRecommendationsList: {},
+    RecentDiscussionThreadsList: {},
     NavigationStandalone: {
       sidebar: {
         top: 26,

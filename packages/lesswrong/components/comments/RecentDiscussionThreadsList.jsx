@@ -5,6 +5,25 @@ import { Comments } from '../../lib/collections/comments'
 import withUser from '../common/withUser';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import withGlobalKeydown from '../common/withGlobalKeydown';
+import { withStyles } from '@material-ui/core/styles';
+
+const styles = theme => ({
+  sectionTitleTitle: {
+    // TODO; make this work on lwTheme
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 449.95px)': {
+      width: 142
+    },
+  },
+  sectionTitleChildren: {
+    '@media (max-width: 599.95px)': {
+      width: 104,
+      marginRight: -5
+    }
+  },
+})
+
 class RecentDiscussionThreadsList extends PureComponent {
 
   state = { expandAllThreads: false , showShortformFeed: false }
@@ -26,9 +45,13 @@ class RecentDiscussionThreadsList extends PureComponent {
   }
 
   render () {
-    const { results, loading, loadMore, networkStatus, updateComment, currentUser, data: { refetch } } = this.props
+    const {
+      results, loading, loadMore, networkStatus, updateComment, currentUser, data: { refetch },
+      classes
+    } = this.props
     const { showShortformFeed, expandAllThreads } = this.state
     const { SingleColumnSection, SectionTitle, SectionButton, ShortformSubmitForm, Loading } = Components
+    console.log('classes', classes)
     
     const loadingMore = networkStatus === 2;
 
@@ -42,7 +65,10 @@ class RecentDiscussionThreadsList extends PureComponent {
 
     return (
       <SingleColumnSection>
-        <SectionTitle title="Recent Discussion">
+        <SectionTitle
+          title="Recent Discussion"
+          customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
+        >
           {currentUser && currentUser.isReviewed && <div onClick={this.toggleShortformFeed}>
             <SectionButton>
               <AddBoxIcon />
@@ -93,5 +119,6 @@ registerComponent('RecentDiscussionThreadsList', RecentDiscussionThreadsList,
     collection: Comments,
     fragmentName: 'CommentsList',
   }],
-  withUser
+  withUser,
+  withStyles(styles, {name: "ConfigurableRecommendationsList"})
 );

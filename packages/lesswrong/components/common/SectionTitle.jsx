@@ -13,7 +13,7 @@ const styles = (theme) => ({
     marginBottom: theme.spacing.unit,
   },
   title: {
-    margin:0,
+    margin: 0,
     fontFamily: theme.typography.postStyle.fontFamily,
     fontStyle: "italic"
   },
@@ -45,17 +45,37 @@ const styles = (theme) => ({
     width: theme.spacing.unit*4,
   },
 })
+
+// Section divider with title, frequently featured throughout the site
+//
+// title: the title of the section, can be a react component if you want to
+//   link or provide a tooltip or both
+// children: This component can be handed children (the same way you normally
+//   do with react). They are the custom part of the SectionTitle, usually a
+//   checkbox or setting gear. They are the small part to the right of the title,
+//   right aligned.
+// customClasses: Custom classnames to apply to the title and children containers.
+//   This component can get pretty cramped in the horizontal direction, and
+//   sometimes you want to customize the behavior specifically to your use-case.
+//   (This is especially common on the EA Forum, which has larger fonts.)
+//   Options: {title: class to apply to the title div, children: class to apply
+//     to the children div}
+// dividers: Should the title have a divider line running horizontally. As of
+//   2019-11-26, we never set this to false
 class SectionTitle extends PureComponent {
   render() {
-    const {children, classes, className, title, dividers=true} = this.props
+    const {children, classes, customClasses, title, dividers=true} = this.props
+    console.log('customClasses', customClasses)
     return (
       <div className={classes.root}>
         { dividers && title && <div className={classes.leftDivider}/>}
-        <Typography variant='display1' className={classNames(classes.title, className)}>
+        <Typography variant='display1' className={classNames(classes.title, customClasses?.title)}>
           {title}
         </Typography>
         { dividers && <div className={classNames(classes.rightDivider, {[classes.noTitle]: !title, [classes.rightMargin]: !!children})}/>}
-        <div className={classes.children}>{ children }</div>
+        <div className={classNames(classes.children, customClasses?.children)}>
+          { children }
+        </div>
         { children && dividers && <div className={classes.tailDivider}/>}
       </div>
     )
