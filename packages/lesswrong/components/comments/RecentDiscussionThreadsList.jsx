@@ -5,10 +5,28 @@ import { Comments } from '../../lib/collections/comments'
 import { useCurrentUser } from '../common/withUser';
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import { useGlobalKeydown } from '../common/withGlobalKeydown';
+import { withStyles } from '@material-ui/core/styles';
+
+const styles = theme => ({
+  sectionTitleTitle: {
+    // TODO; make this work on lwTheme
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 449.95px)': {
+      width: 142
+    },
+  },
+  sectionTitleChildren: {
+    '@media (max-width: 599.95px)': {
+      width: 104,
+      marginRight: -5
+    }
+  },
+})
 
 const RecentDiscussionThreadsList = ({
   results, loading, loadMore, networkStatus, updateComment, data: { refetch },
-  title="Recent Discussion", shortformButton=true
+  title="Recent Discussion", shortformButton=true, classes
 }) => {
   const [expandAllThreads, setExpandAllThreads] = useState(false);
   const [showShortformFeed, setShowShortformFeed] = useState(false);
@@ -43,7 +61,10 @@ const RecentDiscussionThreadsList = ({
   // TODO: Probably factor out "RecentDiscussionThreadsList" vs "RecentDiscussionSection", rather than making RecentDiscussionThreadsList cover both and be weirdly customizable
   return (
     <SingleColumnSection>
-      <SectionTitle title={title}>
+      <SectionTitle
+        title={title}
+        customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
+      >
         {currentUser?.isReviewed && shortformButton && <div onClick={toggleShortformFeed}>
           <SectionButton>
             <AddBoxIcon />
@@ -92,4 +113,5 @@ registerComponent('RecentDiscussionThreadsList', RecentDiscussionThreadsList,
     collection: Comments,
     fragmentName: 'CommentsList',
   }],
+  withStyles(styles, {name: "ConfigurableRecommendationsList"})
 );

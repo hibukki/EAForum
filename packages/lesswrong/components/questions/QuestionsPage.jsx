@@ -6,10 +6,29 @@ import withDialog from '../common/withDialog'
 import withUser from '../common/withUser'
 import Tooltip from '@material-ui/core/Tooltip'
 import AddBoxIcon from '@material-ui/icons/AddBox'
+import { withStyles } from '@material-ui/core/styles';
+
+const styles = theme => ({
+  sectionTitleTitle: {
+    // TODO; make this work on lwTheme
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 449.95px)': {
+      width: 105
+    },
+  },
+  sectionTitleChildren: {
+    '@media (max-width: 599.95px)': {
+      width: 98,
+      marginRight: -7
+    }
+  },
+})
+
 class QuestionsPage extends PureComponent {
 
   render () {
-    const { currentUser, openDialog } = this.props
+    const { currentUser, openDialog, classes } = this.props
     const { query } = this.props.location;
     const { SingleColumnSection, SectionTitle,  PostsList2, SectionButton } = Components
 
@@ -35,7 +54,10 @@ class QuestionsPage extends PureComponent {
           </PostsList2>
         </SingleColumnSection>
         <SingleColumnSection>
-          <SectionTitle title="Recent Activity">
+          <SectionTitle
+            title="Recent Activity"
+            customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
+          >
             {currentUser && <span onClick={()=>openDialog({componentName:"NewQuestionDialog"})}>
               <SectionButton>
                 <AddBoxIcon />
@@ -55,4 +77,7 @@ class QuestionsPage extends PureComponent {
   }
 }
 
-registerComponent('QuestionsPage', QuestionsPage, withDialog, withUser, withLocation);
+registerComponent(
+  'QuestionsPage', QuestionsPage, withDialog, withUser, withLocation,
+  withStyles(styles, {name: "QuestionsPage"})
+);

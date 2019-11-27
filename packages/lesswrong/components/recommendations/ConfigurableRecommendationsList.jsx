@@ -4,8 +4,19 @@ import Tooltip from '@material-ui/core/Tooltip';
 import withUser from '../common/withUser';
 import { Link } from '../../lib/reactRouterWrapper'
 import { getRecommendationSettings } from './RecommendationsAlgorithmPicker'
+import { withStyles } from '@material-ui/core/styles';
 
 const recommendedName = getSetting('forumType') === 'EAForum' ? 'Community Favorites' : 'Recommended'
+
+const styles = theme => ({
+  sectionTitleTitle: {
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 449.95px)': {
+      width: 155
+    },
+  },
+});
 
 class ConfigurableRecommendationsList extends PureComponent {
   state = {
@@ -26,10 +37,11 @@ class ConfigurableRecommendationsList extends PureComponent {
   }
 
   render() {
-    const { currentUser, configName } = this.props;
+    const { currentUser, configName, classes } = this.props;
     const { SingleColumnSection, SectionTitle, RecommendationsAlgorithmPicker,
       RecommendationsList, SettingsIcon } = Components;
     const settings = getRecommendationSettings({settings: this.state.settings, currentUser, configName})
+    console.log('classes', classes)
 
     return <SingleColumnSection>
       <SectionTitle
@@ -40,6 +52,7 @@ class ConfigurableRecommendationsList extends PureComponent {
             {recommendedName}
           </Link>
         </Tooltip>}
+        customClasses={{title: classes.sectionTitleTitle}}
       >
         <SettingsIcon onClick={this.toggleSettings}/>
       </SectionTitle>
@@ -56,4 +69,7 @@ class ConfigurableRecommendationsList extends PureComponent {
   }
 }
 
-registerComponent("ConfigurableRecommendationsList", ConfigurableRecommendationsList, withUser);
+registerComponent(
+  "ConfigurableRecommendationsList", ConfigurableRecommendationsList,
+  withUser, withStyles(styles, {name: "ConfigurableRecommendationsList"})
+);

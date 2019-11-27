@@ -64,7 +64,8 @@ const styles = theme => ({
   settingsText: {
     marginLeft: theme.spacing.unit,
     fontStyle: "italic",
-    display: "inline-block",
+    display: "table-cell",
+    verticalAlign: 'middle',
     ...theme.typography.commentStyle,
     fontSize: "1rem",
     color: theme.palette.grey[700]
@@ -74,7 +75,37 @@ const styles = theme => ({
   specificalz: {},
   userMetaInfo: {
     display: "inline-flex"
-  }
+  },
+  draftSectionTitleTitle: {
+    // TODO; make this work on lwTheme
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 339.95px)': {
+      width: 86
+    },
+  },
+  draftSectionTitleChildren: {
+    '@media (max-width: 449.95px)': {
+      width: 102,
+      marginRight: -5
+    }
+  },
+  postsSectionTitleTitle: {
+    // TODO; make this work on lwTheme
+    // TODO; move to EA Theme
+    // Super custom width matched to wording
+    '@media (max-width: 339.95px)': {
+      width: 77
+    },
+  },
+  postsSectionTitleChildren: {
+    // TODO; keep this part
+    display: 'table',
+    '@media (max-width: 419.95px)': {
+      width: 95,
+      marginRight: -5
+    }
+  },
 })
 
 const sortings = {
@@ -281,7 +312,13 @@ class UsersProfile extends Component {
 
         {/* Drafts Section */}
         { ownPage && <SingleColumnSection>
-          <SectionTitle title="My Drafts">
+          <SectionTitle
+            title="My Drafts"
+            customClasses={{
+              title: classes.draftSectionTitleTitle,
+              children: classes.draftSectionTitleChildren
+            }}
+          >
             <Link to={"/newPost"}>
               <SectionButton>
                 <DescriptionIcon /> New Blog Post
@@ -295,7 +332,13 @@ class UsersProfile extends Component {
         {/* Posts Section */}
         <SingleColumnSection>
           <div className={classes.title} onClick={() => this.setState({showSettings: !showSettings})}>
-            <SectionTitle title={`${Users.getDisplayName(user)}'s Posts`}>
+            <SectionTitle
+              title={`${Users.getDisplayName(user)}'s Posts`}
+              customClasses={{
+                title: classes.postsSectionTitleTitle,
+                children: classes.postsSectionTitleChildren
+              }}
+            >
               <SettingsIcon/>
               <div className={classes.settingsText}>Sorted by { sortings[currentSorting] }</div>
             </SectionTitle>

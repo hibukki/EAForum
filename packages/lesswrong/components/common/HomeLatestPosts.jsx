@@ -1,4 +1,4 @@
-import { Components, registerComponent, withUpdate } from 'meteor/vulcan:core';
+import { Components, registerComponent, withUpdate, getSetting } from 'meteor/vulcan:core';
 import React, { PureComponent } from 'react';
 import withUser from '../common/withUser';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -18,7 +18,22 @@ const styles = theme => ({
       width: 105,
     },
   },
+  sectionTitleTitle: {
+    // TODO; move to EA Theme
+    // Super custom width
+    '@media (max-width: 374.95px)': {
+      width: 90
+    },
+  },
+  sectionTitleChildren: {
+    '@media (max-width: 599.95px)': {
+      width: 137,
+      marginRight: -30,
+    }
+  },
 });
+
+const includePersonalName = getSetting('forumType') === 'EAForum' ? 'Include Community' : 'Include Personal Blogposts'
 
 class HomeLatestPosts extends PureComponent {
 
@@ -99,13 +114,18 @@ class HomeLatestPosts extends PureComponent {
 
     return (
       <SingleColumnSection>
-        <SectionTitle title={<Tooltip title={latestTitle} placement="left-start"><span>Latest Posts</span></Tooltip>}>
+        <SectionTitle
+          title={<Tooltip title={latestTitle} placement="left-start">
+            <span>Latest Posts</span>
+          </Tooltip>}
+          customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
+        >
           <Tooltip title={personalBlogpostTooltip}>
             <div>
               <SectionFooterCheckbox
                 onClick={this.toggleFilter}
                 value={currentFilter !== "frontpage"}
-                label={<div className={classes.personalBlogpostsCheckboxLabel}>Include Personal Blogposts</div>}
+                label={<div className={classes.personalBlogpostsCheckboxLabel}>{includePersonalName}</div>}
                 />
             </div>
           </Tooltip>
