@@ -84,21 +84,21 @@ const styles = theme => ({
       marginRight: -5
     }
   },
-  postsSectionTitleTitle: {
-    // TODO; make this work on lwTheme
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 339.95px)': {
-      width: 77
-    },
-  },
+  // postsSectionTitleTitle: {
+  //   // TODO; make this work on lwTheme
+  //   // TODO; move to EA Theme
+  //   // Super custom width matched to wording
+  //   '@media (max-width: 339.95px)': {
+  //     width: 77
+  //   },
+  // },
   postsSectionTitleChildren: {
     // TODO; keep this part
     display: 'table',
-    '@media (max-width: 419.95px)': {
-      width: 95,
-      marginRight: -5
-    }
+    // '@media (max-width: 419.95px)': {
+    //   width: 95,
+    //   marginRight: -5
+    // }
   },
 })
 
@@ -329,7 +329,7 @@ class UsersProfile extends Component {
             <SectionTitle
               title={`${Users.getDisplayName(user)}'s Posts`}
               customClasses={{
-                title: classes.postsSectionTitleTitle,
+                // title: classes.postsSectionTitleTitle,
                 children: classes.postsSectionTitleChildren
               }}
             >
