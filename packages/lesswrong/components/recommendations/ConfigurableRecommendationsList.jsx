@@ -41,7 +41,7 @@ class ConfigurableRecommendationsList extends PureComponent {
     const { SingleColumnSection, SectionTitle, RecommendationsAlgorithmPicker,
       RecommendationsList, SettingsIcon } = Components;
     const settings = getRecommendationSettings({settings: this.state.settings, currentUser, configName})
-    console.log('classes', classes)
+    // console.log('classes', classes)
 
     return <SingleColumnSection>
       <SectionTitle

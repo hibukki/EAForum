@@ -68,7 +68,7 @@ const styles = (theme) => ({
 class SectionTitle extends PureComponent {
   render() {
     const {children, classes, customClasses, title, dividers=true} = this.props
-    console.log('customClasses', customClasses)
+    // console.log('customClasses', customClasses)
     return (
       <div className={classes.root}>
         { dividers && title && <div className={classes.leftDivider}/>}
