@@ -9,20 +9,9 @@ import AddBoxIcon from '@material-ui/icons/AddBox'
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
-  sectionTitleTitle: {
-    // TODO; make this work on lwTheme
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 449.95px)': {
-      width: 105
-    },
-  },
-  sectionTitleChildren: {
-    '@media (max-width: 599.95px)': {
-      width: 98,
-      marginRight: -7
-    }
-  },
+  // TODO; make this work on lwTheme
+  sectionTitleTitle: {},
+  sectionTitleChildren: {},
 })
 
 class QuestionsPage extends PureComponent {

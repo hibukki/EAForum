@@ -8,20 +8,9 @@ import withGlobalKeydown from '../common/withGlobalKeydown';
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
-  sectionTitleTitle: {
-    // TODO; make this work on lwTheme
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 449.95px)': {
-      width: 142
-    },
-  },
-  sectionTitleChildren: {
-    '@media (max-width: 599.95px)': {
-      width: 104,
-      marginRight: -5
-    }
-  },
+  // TODO; make this work on lwTheme
+  sectionTitleTitle: {},
+  sectionTitleChildren: {},
 })
 
 class RecentDiscussionThreadsList extends PureComponent {
@@ -51,7 +40,7 @@ class RecentDiscussionThreadsList extends PureComponent {
     } = this.props
     const { showShortformFeed, expandAllThreads } = this.state
     const { SingleColumnSection, SectionTitle, SectionButton, ShortformSubmitForm, Loading } = Components
-    console.log('classes', classes)
+    // console.log('classes', classes)
     
     const loadingMore = networkStatus === 2;
 

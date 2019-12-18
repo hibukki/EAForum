@@ -70,35 +70,11 @@ const styles = theme => ({
   userMetaInfo: {
     display: "inline-flex"
   },
-  draftSectionTitleTitle: {
-    // TODO; make this work on lwTheme
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 339.95px)': {
-      width: 86
-    },
-  },
-  draftSectionTitleChildren: {
-    '@media (max-width: 449.95px)': {
-      width: 102,
-      marginRight: -5
-    }
-  },
-  // postsSectionTitleTitle: {
-  //   // TODO; make this work on lwTheme
-  //   // TODO; move to EA Theme
-  //   // Super custom width matched to wording
-  //   '@media (max-width: 339.95px)': {
-  //     width: 77
-  //   },
-  // },
+  // TODO; make this work on lwTheme
+  draftSectionTitleTitle: {},
+  draftSectionTitleChildren: {},
   postsSectionTitleChildren: {
-    // TODO; keep this part
     display: 'table',
-    // '@media (max-width: 419.95px)': {
-    //   width: 95,
-    //   marginRight: -5
-    // }
   },
 })
 
