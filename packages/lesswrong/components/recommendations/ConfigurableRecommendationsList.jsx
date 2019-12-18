@@ -9,13 +9,7 @@ import { withStyles } from '@material-ui/core/styles';
 const recommendedName = getSetting('forumType') === 'EAForum' ? 'Community Favorites' : 'Recommended'
 
 const styles = theme => ({
-  sectionTitleTitle: {
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 449.95px)': {
-      width: 155
-    },
-  },
+  sectionTitleTitle: {},
 });
 
 class ConfigurableRecommendationsList extends PureComponent {

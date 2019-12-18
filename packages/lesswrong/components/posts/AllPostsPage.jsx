@@ -19,18 +19,8 @@ const styles = theme => ({
   title: {
     cursor: "pointer",
   },
-  sectionTitleTitle: {
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 339.95px)': {
-      width: 75,
-    },
-  },
-  sectionTitleChildren: {
-    '@media (max-width: 599.95px)': {
-      width: 98,
-    }
-  },
+  sectionTitleTitle: {},
+  sectionTitleChildren: {},
 });
 
 export const timeframes = {

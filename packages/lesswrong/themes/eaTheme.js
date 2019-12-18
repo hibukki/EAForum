@@ -216,9 +216,41 @@ const theme = createLWTheme({
           fontSize: "1rem",
         },
       },
+      sectionTitleTitle: {
+        // Super custom width
+        '@media (max-width: 374.95px)': {
+          width: 90
+        },
+      },
+      sectionTitleChildren: {
+        '@media (max-width: 599.95px)': {
+          width: 137,
+          marginRight: -30,
+        }
+      },
     },
-    ConfigurableRecommendationsList: {},
-    RecentDiscussionThreadsList: {},
+    ConfigurableRecommendationsList: {
+      sectionTitleTitle: {
+        // Super custom width matched to wording
+        '@media (max-width: 449.95px)': {
+          width: 155
+        },
+      },
+    },
+    RecentDiscussionThreadsList: {
+      sectionTitleTitle: {
+        // Super custom width matched to wording
+        '@media (max-width: 449.95px)': {
+          width: 142
+        },
+      },
+      sectionTitleChildren: {
+        '@media (max-width: 599.95px)': {
+          width: 104,
+          marginRight: -5
+        }
+      },
+    },
     NavigationStandalone: {
       sidebar: {
         top: 26,
@@ -260,6 +292,19 @@ const theme = createLWTheme({
         color: grey[800]
       }
     },
+    AllPostsPage: {
+      sectionTitleTitle: {
+        // Super custom width matched to wording
+        '@media (max-width: 339.95px)': {
+          width: 75,
+        },
+      },
+      sectionTitleChildren: {
+        '@media (max-width: 599.95px)': {
+          width: 98,
+        }
+      },
+    },
     PostsPageTitle: {
       root: {
         lineHeight: 1.25
@@ -269,6 +314,43 @@ const theme = createLWTheme({
       divider: {
         display: 'none'
       }
+    },
+    QuestionsPage: {
+      sectionTitleTitle: {
+        // Super custom width matched to wording
+        '@media (max-width: 449.95px)': {
+          width: 105
+        },
+      },
+      sectionTitleChildren: {
+        '@media (max-width: 599.95px)': {
+          width: 98,
+          marginRight: -7
+        }
+      },
+    },
+    ShortformPage: {
+      sectionTitleTitle: {
+        // Super custom width matched to wording
+        '@media (max-width: 429.95px)': {
+          width: 195,
+        },
+      },
+    },
+    UsersProfile: {
+      draftSectionTitleTitle: {
+        // TODO; make this work on lwTheme
+        // Super custom width matched to wording
+        '@media (max-width: 339.95px)': {
+          width: 86
+        },
+      },
+      draftSectionTitleChildren: {
+        '@media (max-width: 449.95px)': {
+          width: 102,
+          marginRight: -5
+        }
+      },
     },
     ContentType: {
       root: {

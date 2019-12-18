@@ -7,14 +7,8 @@ const styles = theme => ({
     maxWidth:680,
     margin:"auto"
   },
-  sectionTitleTitle: {
-    // TODO; LW might want as well
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 429.95px)': {
-      width: 195,
-    },
-  },
+  // TODO; LW might want as well
+  sectionTitleTitle: {},
 })
 
 const ShortformPage = ({classes}) => {

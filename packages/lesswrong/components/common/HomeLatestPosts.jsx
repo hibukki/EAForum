@@ -18,19 +18,8 @@ const styles = theme => ({
       width: 105,
     },
   },
-  sectionTitleTitle: {
-    // TODO; move to EA Theme
-    // Super custom width
-    '@media (max-width: 374.95px)': {
-      width: 90
-    },
-  },
-  sectionTitleChildren: {
-    '@media (max-width: 599.95px)': {
-      width: 137,
-      marginRight: -30,
-    }
-  },
+  sectionTitleTitle: {},
+  sectionTitleChildren: {},
 });
 
 const includePersonalName = getSetting('forumType') === 'EAForum' ? 'Include Community' : 'Include Personal Blogposts'

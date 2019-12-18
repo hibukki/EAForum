@@ -8,20 +8,9 @@ import { useGlobalKeydown } from '../common/withGlobalKeydown';
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
-  sectionTitleTitle: {
-    // TODO; make this work on lwTheme
-    // TODO; move to EA Theme
-    // Super custom width matched to wording
-    '@media (max-width: 449.95px)': {
-      width: 142
-    },
-  },
-  sectionTitleChildren: {
-    '@media (max-width: 599.95px)': {
-      width: 104,
-      marginRight: -5
-    }
-  },
+  // TODO; make this work on lwTheme
+  sectionTitleTitle: {},
+  sectionTitleChildren: {},
 })
 
 const RecentDiscussionThreadsList = ({
