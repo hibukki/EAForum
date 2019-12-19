@@ -76,11 +76,11 @@ const styles = theme => ({
   userMetaInfo: {
     display: "inline-flex"
   },
-  // TODO; make this work on lwTheme
   draftSectionTitleTitle: {},
   draftSectionTitleChildren: {},
   postsSectionTitleChildren: {
-    display: 'table',
+    display: 'flex',
+    alignItems: 'center',
   },
 })
 

@@ -9,7 +9,6 @@ import AddBoxIcon from '@material-ui/icons/AddBox'
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
-  // TODO; make this work on lwTheme
   sectionTitleTitle: {},
   sectionTitleChildren: {},
 })

@@ -8,7 +8,6 @@ import { useGlobalKeydown } from '../common/withGlobalKeydown';
 import { withStyles } from '@material-ui/core/styles';
 
 const styles = theme => ({
-  // TODO; make this work on lwTheme
   sectionTitleTitle: {},
   sectionTitleChildren: {},
 })
@@ -102,5 +101,5 @@ registerComponent('RecentDiscussionThreadsList', RecentDiscussionThreadsList,
     collection: Comments,
     fragmentName: 'CommentsList',
   }],
-  withStyles(styles, {name: "ConfigurableRecommendationsList"})
+  withStyles(styles, {name: "RecentDiscussionThreadsList"})
 );

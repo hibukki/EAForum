@@ -217,7 +217,7 @@ const theme = createLWTheme({
         },
       },
       sectionTitleTitle: {
-        // Super custom width
+        // Super custom width matched to wording
         '@media (max-width: 374.95px)': {
           width: 90
         },
@@ -229,9 +229,8 @@ const theme = createLWTheme({
         }
       },
     },
-    ConfigurableRecommendationsList: {
+    RecentDiscussionThreadsList: {
       sectionTitleTitle: {
-        // Super custom width matched to wording
         '@media (max-width: 449.95px)': {
           width: 155
         },
@@ -239,7 +238,6 @@ const theme = createLWTheme({
     },
     RecentDiscussionThreadsList: {
       sectionTitleTitle: {
-        // Super custom width matched to wording
         '@media (max-width: 449.95px)': {
           width: 142
         },
@@ -294,7 +292,6 @@ const theme = createLWTheme({
     },
     AllPostsPage: {
       sectionTitleTitle: {
-        // Super custom width matched to wording
         '@media (max-width: 339.95px)': {
           width: 75,
         },
@@ -317,7 +314,6 @@ const theme = createLWTheme({
     },
     QuestionsPage: {
       sectionTitleTitle: {
-        // Super custom width matched to wording
         '@media (max-width: 449.95px)': {
           width: 105
         },
@@ -331,7 +327,6 @@ const theme = createLWTheme({
     },
     ShortformPage: {
       sectionTitleTitle: {
-        // Super custom width matched to wording
         '@media (max-width: 429.95px)': {
           width: 195,
         },
@@ -339,8 +334,6 @@ const theme = createLWTheme({
     },
     UsersProfile: {
       draftSectionTitleTitle: {
-        // TODO; make this work on lwTheme
-        // Super custom width matched to wording
         '@media (max-width: 339.95px)': {
           width: 86
         },

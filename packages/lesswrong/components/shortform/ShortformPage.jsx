@@ -7,7 +7,6 @@ const styles = theme => ({
     maxWidth:680,
     margin:"auto"
   },
-  // TODO; LW might want as well
   sectionTitleTitle: {},
 })
 

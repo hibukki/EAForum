@@ -128,7 +128,41 @@ const theme = createLWTheme({
         border: `solid 1px rgba(0,0,0,.2)`,
         boxShadow: "0 0 10px rgba(0,0,0,.2)",
       }
-    }
+    },
+    HomeLatestPosts: {
+      sectionTitleTitle: {
+        // Super custom width matched to wording
+        '@media (max-width: 369.95px)': {
+          width: 73
+        },
+      },
+    },
+    RecentDiscussionThreadsList: {
+      sectionTitleTitle: {
+        '@media (max-width: 414.9px)': {
+          width: 115
+        },
+      },
+      sectionTitleChildren: {
+        '@media (max-width: 494.95px)': {
+          width: 104,
+          marginRight: -5
+        }
+      },
+    },
+    QuestionsPage: {
+      sectionTitleTitle: {
+        '@media (max-width: 369.95px)': {
+          width: 90
+        },
+      },
+      sectionTitleChildren: {
+        '@media (max-width: 494.95px)': {
+          width: 98,
+          marginRight: -7
+        }
+      },
+    },
   }
 });
 
