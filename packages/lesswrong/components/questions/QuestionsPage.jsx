@@ -44,7 +44,7 @@ class QuestionsPage extends PureComponent {
         <SingleColumnSection>
           <SectionTitle
             title="Recent Activity"
-            customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
+            spacingName="QuestionsPage"
           >
             {currentUser && <span onClick={()=>openDialog({componentName:"NewQuestionDialog"})}>
               <SectionButton>

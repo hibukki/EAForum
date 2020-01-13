@@ -49,10 +49,7 @@ const RecentDiscussionThreadsList = ({
   // TODO: Probably factor out "RecentDiscussionThreadsList" vs "RecentDiscussionSection", rather than making RecentDiscussionThreadsList cover both and be weirdly customizable
   return (
     <SingleColumnSection>
-      <SectionTitle
-        title={title}
-        customClasses={{title: classes.sectionTitleTitle, children: classes.sectionTitleChildren}}
-      >
+      <SectionTitle title={title} spacingName='RecentDiscussionThreadsList'>
         {currentUser?.isReviewed && shortformButton && <div onClick={toggleShortformFeed}>
           <SectionButton>
             <AddBoxIcon />

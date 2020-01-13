@@ -135,6 +135,30 @@ const theme = createLWTheme({
       lineHeight: '1.25em'
     }
   },
+  sectionTitleSpacing: {
+    RecentDiscussionThreadsList: {
+      title: {
+        screensize: 449.95,
+        width: 142
+      },
+      children: {
+        screensize: 599.95,
+        width: 104,
+        marginRight: -5
+      }
+    },
+    QuestionsPage: {
+      title: {
+        screensize: 449.95,
+        width: 105,
+      },
+      children: {
+        screensize: 599.95,
+        width: 98,
+        marginRight: -7
+      }
+    }
+  },
   overrides: {
     MuiAppBar: {
       colorDefault: {
@@ -229,26 +253,6 @@ const theme = createLWTheme({
         }
       },
     },
-    RecentDiscussionThreadsList: {
-      sectionTitleTitle: {
-        '@media (max-width: 449.95px)': {
-          width: 155
-        },
-      },
-    },
-    RecentDiscussionThreadsList: {
-      sectionTitleTitle: {
-        '@media (max-width: 449.95px)': {
-          width: 142
-        },
-      },
-      sectionTitleChildren: {
-        '@media (max-width: 599.95px)': {
-          width: 104,
-          marginRight: -5
-        }
-      },
-    },
     NavigationStandalone: {
       sidebar: {
         top: 26,
@@ -313,17 +317,6 @@ const theme = createLWTheme({
       }
     },
     QuestionsPage: {
-      sectionTitleTitle: {
-        '@media (max-width: 449.95px)': {
-          width: 105
-        },
-      },
-      sectionTitleChildren: {
-        '@media (max-width: 599.95px)': {
-          width: 98,
-          marginRight: -7
-        }
-      },
     },
     ShortformPage: {
       sectionTitleTitle: {

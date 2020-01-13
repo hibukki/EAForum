@@ -2,6 +2,7 @@ import { createMuiTheme } from '@material-ui/core/styles';
 import grey from '@material-ui/core/colors/grey';
 import deepmerge from 'deepmerge';
 import isPlainObject from 'is-plain-object';
+import { generateSectionTitleSpacingCss } from './stylePiping';
 
 const monoStack = [
   '"Liberation Mono"',
@@ -185,12 +186,12 @@ const createLWTheme = (theme) => {
         }
       }
     },
-    zIndexes: {
-      ...zIndexes
-    },
+    // TODO; test
+    zIndexes,
     voting: {
       strongVoteDelay: 1000,
     },
+    sectionTitleSpacingCss: generateSectionTitleSpacingCss(theme.sectionTitleSpacing),
     overrides: {
       MuiSelect: {
         selectMenu: {

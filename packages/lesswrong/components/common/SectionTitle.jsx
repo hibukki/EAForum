@@ -40,13 +40,13 @@ const styles = (theme) => ({
   },
   children: {
     ...theme.typography.commentStyle
-    // Exists for eaTheme override
   },
   tailDivider: {
     marginLeft: theme.spacing.unit*1.5,
     borderTop: borderStyle,
     width: theme.spacing.unit*4,
   },
+  ...theme.sectionTitleSpacingCss,
 })
 
 // Section divider with title, frequently featured throughout the site
@@ -57,6 +57,7 @@ const styles = (theme) => ({
 //   do with react). They are the custom part of the SectionTitle, usually a
 //   checkbox or setting gear. They are the small part to the right of the title,
 //   right aligned.
+// TODO; vvv
 // customClasses: Custom classnames to apply to the title and children containers.
 //   This component can get pretty cramped in the horizontal direction, and
 //   sometimes you want to customize the behavior specifically to your use-case.
@@ -67,16 +68,21 @@ const styles = (theme) => ({
 //   2019-11-26, we never set this to false
 class SectionTitle extends PureComponent {
   render() {
-    const {children, classes, customClasses, title, dividers=true} = this.props
-    // console.log('customClasses', customClasses)
+    const {children, classes, title, spacingName, dividers=true} = this.props
+    console.log('SectionTitle render()')
+    const titleSpacing = classes[`${spacingName}Title`]
+    const childrenSpacing = classes[`${spacingName}Children`]
+    console.log(' classes', classes)
+    console.log(' titleSpacing', titleSpacing)
+    console.log(' childrenSpacing', childrenSpacing)
     return (
       <div className={classes.root}>
         { dividers && title && <div className={classes.leftDivider}/>}
-        <Typography variant='display1' className={classNames(classes.title, customClasses?.title)}>
+        <Typography variant='display1' className={classNames(classes.title, titleSpacing)}>
           {title}
         </Typography>
         { dividers && <div className={classNames(classes.rightDivider, {[classes.noTitle]: !title, [classes.rightMargin]: !!children})}/>}
-        <div className={classNames(classes.children, customClasses?.children)}>
+        <div className={classNames(classes.children, childrenSpacing)}>
           { children }
         </div>
         { children && dividers && <div className={classes.tailDivider}/>}
