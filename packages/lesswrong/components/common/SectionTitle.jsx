@@ -1,12 +1,13 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { registerComponent } from 'meteor/vulcan:core';
-import { withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames'
+import { spacingNumbersToCss } from '../../themes/stylePiping'
 
 const borderStyle = "solid 3px rgba(0,0,0,.5)"
 
-const styles = (theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: "flex",
     justifyContent: "space-between",
@@ -14,11 +15,12 @@ const styles = (theme) => ({
     marginTop: theme.spacing.unit*3,
     marginBottom: theme.spacing.unit,
   },
-  title: {
+  title: ({spacing}) => ({
     margin: 0,
     fontFamily: theme.typography.postStyle.fontFamily,
-    fontStyle: "italic"
-  },
+    fontStyle: "italic",
+    ...spacingNumbersToCss(spacing.title),
+  }),
   leftDivider: {
     borderTop: borderStyle,
     width: theme.spacing.unit*4,
@@ -38,16 +40,20 @@ const styles = (theme) => ({
   noTitle: {
     marginLeft: 0,
   },
-  children: {
-    ...theme.typography.commentStyle
-  },
+  children: ({spacing}) => ({
+    ...theme.typography.commentStyle,
+    ...spacingNumbersToCss(spacing.children),
+  }),
   tailDivider: {
     marginLeft: theme.spacing.unit*1.5,
     borderTop: borderStyle,
     width: theme.spacing.unit*4,
   },
-  ...theme.sectionTitleSpacingCss,
-})
+  [mediaQuery]: {
+    width: spacingNumbers.width,
+    marginRight: spacingNumbers.marginRight,
+  }
+}))
 
 // Section divider with title, frequently featured throughout the site
 //
@@ -66,28 +72,42 @@ const styles = (theme) => ({
 //     to the children div}
 // dividers: Should the title have a divider line running horizontally. As of
 //   2019-11-26, we never set this to false
-class SectionTitle extends PureComponent {
-  render() {
-    const {children, classes, title, spacingName, dividers=true} = this.props
-    console.log('SectionTitle render()')
-    const titleSpacing = classes[`${spacingName}Title`]
-    const childrenSpacing = classes[`${spacingName}Children`]
-    console.log(' classes', classes)
-    console.log(' titleSpacing', titleSpacing)
-    console.log(' childrenSpacing', childrenSpacing)
-    return (
-      <div className={classes.root}>
-        { dividers && title && <div className={classes.leftDivider}/>}
-        <Typography variant='display1' className={classNames(classes.title, titleSpacing)}>
-          {title}
-        </Typography>
-        { dividers && <div className={classNames(classes.rightDivider, {[classes.noTitle]: !title, [classes.rightMargin]: !!children})}/>}
-        <div className={classNames(classes.children, childrenSpacing)}>
-          { children }
-        </div>
-        { children && dividers && <div className={classes.tailDivider}/>}
+const SectionTitle = props => {
+  // TODO; spacingNumbers -> variant?
+  const {children, title, spacingNumbers, dividers=true} = props
+  const classes = useStyles({spacingNumbers})
+  console.log('SectionTitle render()')
+  
+  // const smallDevice = useMediaQuery(theme => theme.breakpoints.down('sm'));
+  // const titleSpacing = classes[`${spacingNumbers}Title`]
+  // const childrenSpacing = classes[`${spacingNumbers}Children`]
+  // console.log(' classes', classes)
+  // console.log(' titleSpacing', titleSpacing)
+  // console.log(' childrenSpacing', childrenSpacing)
+  return (
+    <div className={classes.root}>
+      { dividers && title && <div className={classes.leftDivider}/>}
+      <Typography variant='display1' className={classes.title}>
+        {title}
+      </Typography>
+      { dividers && <div className={classNames(classes.rightDivider, {[classes.noTitle]: !title, [classes.rightMargin]: !!children})}/>}
+      <div className={classes.children}>
+        { children }
       </div>
-    )
-  }
+      { children && dividers && <div className={classes.tailDivider}/>}
+    </div>
+  )
 }
-registerComponent( 'SectionTitle', SectionTitle, withStyles(styles, {name: 'SectionTitle'}))
+
+// const SectionTitle = props => {
+//   return <React.Fragment>
+//     <Media small>
+//       <SectionTitleBase small/>
+//     </Media>
+//     <Media big>
+//       <SectionTitleBase big/>
+//     </Media>
+//   </React.Fragment>
+// }
+
+registerComponent( 'SectionTitle', SectionTitle)

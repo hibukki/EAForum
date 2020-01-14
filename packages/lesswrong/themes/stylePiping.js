@@ -427,7 +427,7 @@ export const editorStyles = (theme, styleFunction) => ({
 })
 
 // TODO; doc
-const spacingNumbersToCSS = spacingNumbers => {
+export const spacingNumbersToCSS = spacingNumbers => {
   if (!spacingNumbers.screensize) throw new Error('must specify screensize in SectionTitle spacing')
   const mediaQuery = `@media  (max-width: ${spacingNumbers.screensize}px)`
   return {
@@ -438,23 +438,23 @@ const spacingNumbersToCSS = spacingNumbers => {
   }
 }
 
-export const generateSectionTitleSpacingCss = sectionTitleSpacing => {
-  // console.log('sectionasdf', sectionTitleSpacing)
-  // const spacingUses = Object.keys(sectionTitleSpacing)
-  // console.log('spacingUses', spacingUses)
-  // _.map(sectionTitleSpacing, (x, y) => console.log(' x, y', x, y))
-  // console.log('lodash.map', _.map(sectionTitleSpacing, (x, y) => ({[y]: x})))
+// export const generateSectionTitleSpacingCss = sectionTitleSpacing => {
+//   // console.log('sectionasdf', sectionTitleSpacing)
+//   // const spacingUses = Object.keys(sectionTitleSpacing)
+//   // console.log('spacingUses', spacingUses)
+//   // _.map(sectionTitleSpacing, (x, y) => console.log(' x, y', x, y))
+//   // console.log('lodash.map', _.map(sectionTitleSpacing, (x, y) => ({[y]: x})))
   
-  // This is terribly ugly. Where's my _.mapValues?
-  const result = {}
-  for (const key of Object.keys(sectionTitleSpacing)) {
-    result[`${key}Title`] = spacingNumbersToCSS(sectionTitleSpacing[key].title)
-    result[`${key}Children`] = spacingNumbersToCSS(sectionTitleSpacing[key].children)
-  }
-  console.log('result', result)
-  return result
-  // console.log('obj.map', sectionTitleSpacing.map((x, y) => console.log(' x, y', x, y)))
-  // const result = _.map(, spacing => 'foo')
-  // console.log('result', result)
-  // return result
-}
+//   // This is terribly ugly. Where's my _.mapValues?
+//   const result = {}
+//   for (const key of Object.keys(sectionTitleSpacing)) {
+//     result[`${key}Title`] = spacingNumbersToCSS(sectionTitleSpacing[key].title)
+//     result[`${key}Children`] = spacingNumbersToCSS(sectionTitleSpacing[key].children)
+//   }
+//   console.log('result', result)
+//   return result
+//   // console.log('obj.map', sectionTitleSpacing.map((x, y) => console.log(' x, y', x, y)))
+//   // const result = _.map(, spacing => 'foo')
+//   // console.log('result', result)
+//   // return result
+// }
