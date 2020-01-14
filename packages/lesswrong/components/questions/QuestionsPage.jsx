@@ -42,10 +42,7 @@ class QuestionsPage extends PureComponent {
           </PostsList2>
         </SingleColumnSection>
         <SingleColumnSection>
-          <SectionTitle
-            title="Recent Activity"
-            spacingName="QuestionsPage"
-          >
+          <SectionTitle title="Recent Activity" spacingName="QuestionsPage">
             {currentUser && <span onClick={()=>openDialog({componentName:"NewQuestionDialog"})}>
               <SectionButton>
                 <AddBoxIcon />
