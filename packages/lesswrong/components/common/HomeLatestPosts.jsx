@@ -1,4 +1,4 @@
-import { Components, registerComponent, useUpdate } from 'meteor/vulcan:core';
+import { Components, registerComponent, useUpdate, getSetting } from 'meteor/vulcan:core';
 import React from 'react';
 import { useCurrentUser } from '../common/withUser';
 import Users from 'meteor/vulcan:users';
@@ -26,6 +26,8 @@ const styles = theme => ({
     },
   },
 });
+
+const latestPostsName = getSetting('forumType') === 'EAForum' ? 'Frontpage Posts' : 'Latest Posts'
 
 const HomeLatestPosts = ({ classes }) =>
 {
@@ -85,13 +87,13 @@ const HomeLatestPosts = ({ classes }) =>
       By default, the home page only displays Frontpage Posts, which are selected by moderators as especially interesting or useful to people with interest in doing good effectively.
     </div>
     <div>
-      Include community posts to get posts with topical content or which relate to the EA community itself.
+      Include community posts to get posts about the EA community (iuncluding jobs, events and annoucements).
     </div>
   </div>
 
   return (
     <SingleColumnSection>
-      <SectionTitle title={<LWTooltip title={latestTitle} placement="top"><span>Latest Posts</span></LWTooltip>}>
+      <SectionTitle title={<LWTooltip title={latestTitle} placement="top"><span>{latestPostsName}</span></LWTooltip>}>
         <LWTooltip title={personalBlogpostTooltip}>
           <div className={classes.personalBlogpostsCheckbox}>
             <SectionFooterCheckbox
