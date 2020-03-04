@@ -13,3 +13,4 @@ importComponent("ContentType", () => require('./ContentType'));
 importComponent("PostsRevisionSelector", () => require('./PostsRevisionSelector'));
 importComponent("PostsRevisionsList", () => require('./PostsRevisionsList'));
 importComponent("PostsRevisionMessage", () => require('./PostsRevisionMessage'));
+importComponent("PostsFeaturedImageInline", () => require('./PostsFeaturedImageInline'));

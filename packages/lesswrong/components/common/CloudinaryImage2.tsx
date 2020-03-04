@@ -11,10 +11,11 @@ function cloudinaryPropsToStr(props) {
 // Cloudinary image without using cloudinary-react. Allows SSR. See:
 // https://github.com/LessWrong2/Lesswrong2/pull/937 "Drop cloudinary react"
 // https://github.com/LessWrong2/Lesswrong2/pull/964 "Temporarily revert removal of cloudinary-react"
-const CloudinaryImage2 = ({width, height, objectFit, publicId}: {
+const CloudinaryImage2 = ({width, height, objectFit, fillWidth, publicId}: {
   width?: number,
   height?: number,
   objectFit?: string,
+  fillWidth?: string,
   publicId: string,
 }) => {
   const cloudinaryCloudName = getSetting('cloudinary.cloudName', 'lesswrong-2-0')
@@ -37,6 +38,9 @@ const CloudinaryImage2 = ({width, height, objectFit, publicId}: {
   }
   if (objectFit) {
     imageStyle.objectFit = objectFit
+  }
+  if (fillWidth) {
+    imageStyle.width = fillWidth
   }
 
   const imageUrl = `http://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${cloudinaryPropsToStr(cloudinaryProps)}/${publicId}`;

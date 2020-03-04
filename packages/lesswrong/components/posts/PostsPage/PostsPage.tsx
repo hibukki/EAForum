@@ -295,7 +295,8 @@ class PostsPage extends Component<PostsPageProps> {
       LinkPostMessage, PostsCommentsThread, PostsGroupDetails, BottomNavigation,
       PostsTopSequencesNav, PostsPageActions, PostsPageEventData, ContentItemBody, PostsPageQuestionContent,
       TableOfContents, PostsRevisionMessage, AlignmentCrosspostMessage, PostsPageDate, CommentPermalink,
-      PingbacksList, FooterTagList, AnalyticsInViewTracker, LWTooltip } = Components
+      PingbacksList, FooterTagList, AnalyticsInViewTracker, LWTooltip,
+      PostsFeaturedImageInline} = Components
 
     if (this.shouldHideAsSpam()) {
       throw new Error("Logged-out users can't see unreviewed (possibly spam) posts");
@@ -378,6 +379,7 @@ class PostsPage extends Component<PostsPageProps> {
               <div className={classes.content}>
                 <div className={classes.post}>
                   {/* Body */}
+                  <PostsFeaturedImageInline post={post} />
                   <div className={classes.postBody}>
                     { post.isEvent && <Components.SmallMapPreview post={post} /> }
                     <div className={classes.postContent}>
