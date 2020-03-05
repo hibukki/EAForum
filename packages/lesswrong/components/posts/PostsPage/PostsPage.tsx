@@ -50,6 +50,19 @@ const styles = theme => ({
       display: 'block'
     }
   },
+  headerInsert: {
+    [theme.breakpoints.up('md')]: {
+      marginTop: -100,
+      paddingTop: theme.spacing.unit * 2,
+      backgroundColor: 'white',
+    },
+    [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
+      marginLeft: -16,
+      paddingLeft: 16,
+      marginRight: -16,
+      paddingRight: 16,
+    },
+  },
   title: {
     gridArea: 'title',
     marginBottom: 32,
@@ -312,6 +325,7 @@ class PostsPage extends Component<PostsPageProps> {
       const { major } = extractVersionsFromSemver(post.version)
       const hasMajorRevision = major > 1
       const contentType = getContentType(post)
+      const hasFeaturedBanner = true  // TODO;
 
       const commentId = query.commentId || params.commentId
 
@@ -325,7 +339,8 @@ class PostsPage extends Component<PostsPageProps> {
               <div className={sectionData ? classes.tocActivated : null} >
               <HeadTags url={Posts.getPageUrl(post, true)} canonicalUrl={post.canonicalSource} title={post.title} description={description}/>
               {/* Header/Title */}
-              <AnalyticsContext pageSectionContext="postHeader"><div className={classes.title}>
+              <AnalyticsContext pageSectionContext="postHeader">
+                <div className={classNames(classes.title, {[classes.headerInsert]: hasFeaturedBanner}}>
                 <div className={classes.post}>
                   {commentId && <CommentPermalink documentId={commentId} post={post}/>}
                   {post.groupId && <PostsGroupDetails post={post} documentId={post.groupId} />}
@@ -374,7 +389,8 @@ class PostsPage extends Component<PostsPageProps> {
                   <hr className={classes.divider}/>
                   {post.isEvent && <PostsPageEventData post={post}/>}
                 </div>
-              </div></AnalyticsContext>
+              </div>
+              </AnalyticsContext>
               <div className={classes.toc}>
                 <TableOfContents sectionData={sectionData} document={post} />
               </div>

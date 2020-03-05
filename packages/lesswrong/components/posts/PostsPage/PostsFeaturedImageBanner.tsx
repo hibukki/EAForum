@@ -10,7 +10,8 @@ const styles = createStyles(theme => ({
   root: {
     marginTop: -30,
     height: 250,
-    [`@media (max-width: 684px)`]: {
+    marginBottom: 10,
+    [theme.breakpoints.up('md')]: {
       marginLeft: -4,
       width: '100vw',
     },
