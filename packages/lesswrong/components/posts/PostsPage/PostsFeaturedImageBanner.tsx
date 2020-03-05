@@ -3,33 +3,26 @@ import React from 'react';
 // TODO; import { MAX_COLUMN_WIDTH } from './PostsPage'
 import { createStyles } from "@material-ui/core";
 
-// const imgHeight = 250
-const imgWidth = 684
+const imgHeight = 1000
+const imgWidth = 1800 // big default for now
 
 const styles = createStyles(theme => ({
   root: {
-    // maxWidth: 650 + (theme.spacing.unit*4),
-    // marginLeft: 'auto',
-    // marginRight: 'auto',
-    // overflow: 'hidden',
-    // position: 'relative',
+    marginTop: -30,
+    height: 250,
     [`@media (max-width: 684px)`]: {
-      // can just use margin
-      position: 'relative',
-      left: -4,
+      marginLeft: -4,
       width: '100vw',
     },
-    marginBottom: theme.spacing.unit * 3,
+    // marginBottom: theme.spacing.unit * 3,
   },
-  // imgWrapper: {
-  // }
 }))
 
-const PostsFeaturedImageInline = ({post, classes}) => {
+const PostsFeaturedImageBanner = ({post, classes}) => {
   const { CloudinaryImage2 } = Components
+  // TODO; Use userAgent to determine resolution
+  // TODO; maybe we upgrade dimensions?
   // TODO; get image url from post (will need to update fragment)
-  // TODO; specify height if apsect ratio is greater than some preset
-  // https://cloudinary.com/documentation/conditional_transformations
   // TODO; I'm not honestly sure whether we shouldn't use a regular cloudinary
   // react component here, it would mean the image wouldn't load on SSR, but
   // that might be fine. it's not the most important part anyway.
@@ -37,9 +30,10 @@ const PostsFeaturedImageInline = ({post, classes}) => {
     {/* <div className={classes.imgWrapper}> */}
       <CloudinaryImage2
         publicId='development/infosec'
-        // height={imgHeight}
+        height={imgHeight}
         width={imgWidth}
         fillWidth='100%'
+        fillHeight='100%'
         objectFit='cover'
       />
       {/* TODO; Image description? */}
@@ -47,12 +41,12 @@ const PostsFeaturedImageInline = ({post, classes}) => {
   </div>
 }
 
-const PostsFeaturedImageInlineComponent = registerComponent(
-  'PostsFeaturedImageInline', PostsFeaturedImageInline, {styles},
+const PostsFeaturedImageBannerComponent = registerComponent(
+  'PostsFeaturedImageBanner', PostsFeaturedImageBanner, {styles},
 )
 
 declare global {
   interface ComponentTypes {
-    PostsFeaturedImageInline: typeof PostsFeaturedImageInlineComponent
+    PostsFeaturedImageBanner: typeof PostsFeaturedImageBannerComponent
   }
 }

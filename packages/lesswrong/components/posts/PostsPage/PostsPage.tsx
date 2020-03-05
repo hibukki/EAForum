@@ -296,7 +296,7 @@ class PostsPage extends Component<PostsPageProps> {
       PostsTopSequencesNav, PostsPageActions, PostsPageEventData, ContentItemBody, PostsPageQuestionContent,
       TableOfContents, PostsRevisionMessage, AlignmentCrosspostMessage, PostsPageDate, CommentPermalink,
       PingbacksList, FooterTagList, AnalyticsInViewTracker, LWTooltip,
-      PostsFeaturedImageInline} = Components
+      PostsFeaturedImageBanner, PostsFeaturedImageInline} = Components
 
     if (this.shouldHideAsSpam()) {
       throw new Error("Logged-out users can't see unreviewed (possibly spam) posts");
@@ -319,7 +319,10 @@ class PostsPage extends Component<PostsPageProps> {
 
       return (
           <AnalyticsContext pageContext="postsPage" postId={post._id}>
-            <div className={classNames(classes.root, {[classes.tocActivated]: !!sectionData})}>
+            <div className={classes.root}>
+              <PostsFeaturedImageBanner post={post} />
+              {/* TODO; at the last second before merging indent everything */}
+              <div className={sectionData ? classes.tocActivated : null} >
               <HeadTags url={Posts.getPageUrl(post, true)} canonicalUrl={post.canonicalSource} title={post.title} description={description}/>
               {/* Header/Title */}
               <AnalyticsContext pageSectionContext="postHeader"><div className={classes.title}>
@@ -379,7 +382,7 @@ class PostsPage extends Component<PostsPageProps> {
               <div className={classes.content}>
                 <div className={classes.post}>
                   {/* Body */}
-                  <PostsFeaturedImageInline post={post} />
+                  {/* <PostsFeaturedImageInline post={post} /> */}
                   <div className={classes.postBody}>
                     { post.isEvent && <Components.SmallMapPreview post={post} /> }
                     <div className={classes.postContent}>
@@ -443,6 +446,7 @@ class PostsPage extends Component<PostsPageProps> {
                 </AnalyticsInViewTracker>
               </div>
               <div className={classes.gap2}/>
+            </div>
             </div>
           </AnalyticsContext>
       );
