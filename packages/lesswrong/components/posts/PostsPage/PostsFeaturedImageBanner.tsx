@@ -38,7 +38,7 @@ const PostsFeaturedImageBanner = ({post, classes}) => {
   return <div className={classes.root}>
     {/* <div className={classes.imgWrapper}> */}
       <CloudinaryImage2
-        publicId='development/infosec'
+        publicId='development/pasted'
         height={imgHeight}
         width={imgWidth}
         fillWidth='100%'

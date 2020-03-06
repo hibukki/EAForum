@@ -55,13 +55,14 @@ const styles = theme => ({
       marginTop: -100,
       // paddingTop: 14,
       backgroundColor: 'white',
-      // boxShadow: '0 -1px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, .3)',
     },
     [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
       marginLeft: -16,
-      paddingLeft: 16,
       marginRight: -16,
-      paddingRight: 16,
+      '&>div': {
+        paddingLeft: 16,
+        paddingRight: 16,
+      },
     },
   },
   overImgBox: {
@@ -69,9 +70,16 @@ const styles = theme => ({
       // marginTop: -100,
       height: 100,
       width: '100%',
+      // Turn down the shadow
       boxShadow: '0 -1px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, .3)',
       position: 'relative',
       zIndex: -1,
+      // [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
+      //   marginLeft: -16,
+      //   paddingLeft: 16,
+      //   marginRight: -16,
+      //   paddingRight: 16,
+      // },
     },
       // [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
       //   marginLeft: -16,
@@ -123,8 +131,12 @@ const styles = theme => ({
     display:"flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: -100 + theme.spacing.unit*2,
     marginBottom: theme.spacing.unit*2
+  },
+  headerOverInsert: {
+    [theme.breakpoints.up('md')]: {
+      marginTop: -86,  // -100 (size of overOverImgBox) + 14 (even with left and right padding)
+    },
   },
   headerLeft: {
     width:"100%"
@@ -366,7 +378,10 @@ class PostsPage extends Component<PostsPageProps> {
                   <AnalyticsContext pageSectionContext="topSequenceNavigation">
                     <PostsTopSequencesNav post={post} />
                   </AnalyticsContext>
-                  <div className={classNames(classes.header, {[classes.eventHeader]:post.isEvent})}>
+                  <div className={classNames(classes.header, {
+                    [classes.eventHeader] :post.isEvent,
+                    [classes.headerOverInsert]: hasFeaturedBanner,
+                  })}>
                     <div className={classes.headerLeft}>
                       <PostsPageTitle post={post} />
                       <div className={classes.secondaryInfo}>
