@@ -53,7 +53,6 @@ const styles = theme => ({
   headerInsert: {
     [theme.breakpoints.up('md')]: {
       marginTop: -100,
-      // paddingTop: 14,
       backgroundColor: 'white',
     },
     [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
@@ -67,26 +66,13 @@ const styles = theme => ({
   },
   overImgBox: {
     [theme.breakpoints.up('md')]: {
-      // marginTop: -100,
       height: 100,
       width: '100%',
       // Turn down the shadow
       boxShadow: '0 -1px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, .3)',
       position: 'relative',
       zIndex: -1,
-      // [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
-      //   marginLeft: -16,
-      //   paddingLeft: 16,
-      //   marginRight: -16,
-      //   paddingRight: 16,
-      // },
     },
-      // [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
-      //   marginLeft: -16,
-      //   paddingLeft: 16,
-      //   marginRight: -16,
-      //   paddingRight: 16,
-      // },
   },
   title: {
     gridArea: 'title',
@@ -370,7 +356,7 @@ class PostsPage extends Component<PostsPageProps> {
               <HeadTags url={Posts.getPageUrl(post, true)} canonicalUrl={post.canonicalSource} title={post.title} description={description}/>
               {/* Header/Title */}
               <AnalyticsContext pageSectionContext="postHeader">
-                <div className={classNames(classes.title, {[classes.headerInsert]: hasFeaturedBanner}}>
+                <div className={classNames(classes.title, {[classes.headerInsert]: hasFeaturedBanner})}>
                 <div className={classes.overImgBox} />
                 <div className={classes.post}>
                   {commentId && <CommentPermalink documentId={commentId} post={post}/>}
@@ -379,7 +365,7 @@ class PostsPage extends Component<PostsPageProps> {
                     <PostsTopSequencesNav post={post} />
                   </AnalyticsContext>
                   <div className={classNames(classes.header, {
-                    [classes.eventHeader] :post.isEvent,
+                    [classes.eventHeader]: post.isEvent,
                     [classes.headerOverInsert]: hasFeaturedBanner,
                   })}>
                     <div className={classes.headerLeft}>

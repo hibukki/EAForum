@@ -11,8 +11,8 @@ function cloudinaryPropsToStr(props) {
 // Cloudinary image without using cloudinary-react. Allows SSR. See:
 // https://github.com/LessWrong2/Lesswrong2/pull/937 "Drop cloudinary react"
 // https://github.com/LessWrong2/Lesswrong2/pull/964 "Temporarily revert removal of cloudinary-react"
-// TODO; fill__ docs
-// TODO; override img props?
+// fillWidth and fillHeight are used to allow images to fill their parent div
+// and override the width and height on the img.style
 const CloudinaryImage2 = ({width, height, objectFit, fillWidth, fillHeight, publicId}: {
   width?: number,
   height?: number,

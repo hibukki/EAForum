@@ -1,6 +1,5 @@
 import { registerComponent, Components } from "../../../lib/vulcan-lib"
 import React from 'react';
-// TODO; import { MAX_COLUMN_WIDTH } from './PostsPage'
 import { createStyles } from "@material-ui/core";
 
 const imgHeight = 1000
@@ -22,31 +21,27 @@ const styles = createStyles(theme => ({
       zIndex: -2,
     },
     boxShadow: 'inset 0 1px 8px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, .3)'
-    // marginBottom: theme.spacing.unit * 3,
   },
 }))
 
 const PostsFeaturedImageBanner = ({post, classes}) => {
   const { CloudinaryImage2 } = Components
-  // TODO; ideally there'd be a shadow on the header, but c'est la vie
-  // TODO; Use userAgent to determine resolution
-  // TODO; maybe we upgrade dimensions?
-  // TODO; get image url from post (will need to update fragment)
+  // TODO; Ideally there'd be a shadow on the header, but c'est la vie
+  // TODO; Maybe use userAgent to determine resolution
+  // TODO; Maybe upgrade image resolution based on screensize
+  // TODO; Get image url from post (will need to update fragment)
   // TODO; I'm not honestly sure whether we shouldn't use a regular cloudinary
   // react component here, it would mean the image wouldn't load on SSR, but
-  // that might be fine. it's not the most important part anyway.
+  // that might be fine. It's not the most important part anyway.
   return <div className={classes.root}>
-    {/* <div className={classes.imgWrapper}> */}
-      <CloudinaryImage2
-        publicId='development/pasted'
-        height={imgHeight}
-        width={imgWidth}
-        fillWidth='100%'
-        fillHeight='100%'
-        objectFit='cover'
-      />
-      {/* TODO; Image description? */}
-    {/* </div> */}
+    <CloudinaryImage2
+      publicId='development/pasted'
+      height={imgHeight}
+      width={imgWidth}
+      fillWidth='100%'
+      fillHeight='100%'
+      objectFit='cover'
+    />
   </div>
 }
 
