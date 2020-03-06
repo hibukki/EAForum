@@ -12,6 +12,7 @@ function cloudinaryPropsToStr(props) {
 // https://github.com/LessWrong2/Lesswrong2/pull/937 "Drop cloudinary react"
 // https://github.com/LessWrong2/Lesswrong2/pull/964 "Temporarily revert removal of cloudinary-react"
 // TODO; fill__ docs
+// TODO; override img props?
 const CloudinaryImage2 = ({width, height, objectFit, fillWidth, fillHeight, publicId}: {
   width?: number,
   height?: number,

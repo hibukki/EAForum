@@ -14,13 +14,21 @@ const styles = createStyles(theme => ({
     [theme.breakpoints.up('md')]: {
       marginLeft: -4,
       width: '100vw',
+      marginBottom: 0,
     },
+    '& img': {
+      // Position image below inner shadow
+      position: 'relative',
+      zIndex: -2,
+    },
+    boxShadow: 'inset 0 1px 8px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, .3)'
     // marginBottom: theme.spacing.unit * 3,
   },
 }))
 
 const PostsFeaturedImageBanner = ({post, classes}) => {
   const { CloudinaryImage2 } = Components
+  // TODO; ideally there'd be a shadow on the header, but c'est la vie
   // TODO; Use userAgent to determine resolution
   // TODO; maybe we upgrade dimensions?
   // TODO; get image url from post (will need to update fragment)

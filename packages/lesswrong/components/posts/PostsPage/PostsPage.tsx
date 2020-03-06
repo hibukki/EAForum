@@ -53,8 +53,9 @@ const styles = theme => ({
   headerInsert: {
     [theme.breakpoints.up('md')]: {
       marginTop: -100,
-      paddingTop: theme.spacing.unit * 2,
+      // paddingTop: 14,
       backgroundColor: 'white',
+      // boxShadow: '0 -1px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, .3)',
     },
     [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
       marginLeft: -16,
@@ -62,6 +63,22 @@ const styles = theme => ({
       marginRight: -16,
       paddingRight: 16,
     },
+  },
+  overImgBox: {
+    [theme.breakpoints.up('md')]: {
+      // marginTop: -100,
+      height: 100,
+      width: '100%',
+      boxShadow: '0 -1px 8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, .3)',
+      position: 'relative',
+      zIndex: -1,
+    },
+      // [`@media (min-width: 959.95px) and (max-width: 1215px)`]: {
+      //   marginLeft: -16,
+      //   paddingLeft: 16,
+      //   marginRight: -16,
+      //   paddingRight: 16,
+      // },
   },
   title: {
     gridArea: 'title',
@@ -106,6 +123,7 @@ const styles = theme => ({
     display:"flex",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: -100 + theme.spacing.unit*2,
     marginBottom: theme.spacing.unit*2
   },
   headerLeft: {
@@ -341,6 +359,7 @@ class PostsPage extends Component<PostsPageProps> {
               {/* Header/Title */}
               <AnalyticsContext pageSectionContext="postHeader">
                 <div className={classNames(classes.title, {[classes.headerInsert]: hasFeaturedBanner}}>
+                <div className={classes.overImgBox} />
                 <div className={classes.post}>
                   {commentId && <CommentPermalink documentId={commentId} post={post}/>}
                   {post.groupId && <PostsGroupDetails post={post} documentId={post.groupId} />}
