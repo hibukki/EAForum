@@ -1,4 +1,4 @@
-import { registerComponent } from '../../lib/vulcan-lib';
+import { Components, registerComponent } from '../../lib/vulcan-lib';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import Radio from '@material-ui/core/Radio';
@@ -18,12 +18,8 @@ const styles = theme => ({
     paddingLeft: 8,
     paddingRight: 8,
   },
-  radioGroup: {
-    marginTop: 4,
-    paddingLeft: 24,
-  },
-  radioButton: {
-    padding: 4,
+  radioButtonGroup: {
+    marginLeft: 16,
   },
   inline: {
     display: "inline",
@@ -36,28 +32,34 @@ const styles = theme => ({
   },
 });
 
-export const karmaNotificationTimingChoices = {
-  disabled: {
+export const karmaNotificationTimingChoices = [
+  {
+    key: 'disabled',
     label: "Disabled",
     infoText: "Karma changes are disabled",
     emptyText: "Karma changes are disabled"
   },
-  daily: {
+  {
+    key: 'daily',
     label: "Batched daily (default)",
     infoText: "Karma Changes (batched daily):",
     emptyText: "No karma changes yesterday"
   },
-  weekly: {
+  {
+    key: 'weekly',
     label: "Batched weekly",
     infoText: "Karma Changes (batched weekly):",
     emptyText: "No karma changes last week"
   },
-  realtime: {
+  {
+    key: 'realtime',
     label: "Realtime",
     infoText: "Recent Karma Changes",
     emptyText: "No karma changes since you last checked"
   },
-};
+];
+
+
 
 interface KarmaChangeNotifierSettingsProps extends WithStylesProps {
   path: any,
@@ -73,7 +75,7 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
       [this.props.path]: settings
     });
   }
-  
+
   setBatchingTimeOfDay = (timeOfDay, tz) => {
     const oldTimeLocalTZ = this.getBatchingTimeLocalTZ();
     const newTimeLocalTZ = {
@@ -81,13 +83,13 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
       dayOfWeek: oldTimeLocalTZ.dayOfWeek
     };
     const newTimeGMT = convertTimeOfWeekTimezone(newTimeLocalTZ.timeOfDay, newTimeLocalTZ.dayOfWeek, tz, "GMT");
-    
+
     this.modifyValue({
       timeOfDayGMT: newTimeGMT.timeOfDay,
       dayOfWeekGMT: newTimeGMT.dayOfWeek,
     });
   }
-  
+
   setBatchingDayOfWeek = (dayOfWeek, tz) => {
     const oldTimeLocalTZ = this.getBatchingTimeLocalTZ();
     const newTimeLocalTZ = {
@@ -95,26 +97,27 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
       dayOfWeek: dayOfWeek
     };
     const newTimeGMT = convertTimeOfWeekTimezone(newTimeLocalTZ.timeOfDay, newTimeLocalTZ.dayOfWeek, tz, "GMT");
-    
+
     this.modifyValue({
       timeOfDayGMT: newTimeGMT.timeOfDay,
       dayOfWeekGMT: newTimeGMT.dayOfWeek,
     });
   }
-  
+
   getBatchingTimeLocalTZ = () => {
     const settings = this.props.value || {}
     const { timeOfDayGMT, dayOfWeekGMT } = settings;
     const { timeOfDay, dayOfWeek } = convertTimeOfWeekTimezone(timeOfDayGMT, dayOfWeekGMT, "GMT", this.props.timezone);
     return { timeOfDay, dayOfWeek };
   }
-  
+
   render() {
+    const { RadioButtonGroup } = Components
     const { timezone, classes } = this.props;
     const settings = this.props.value || {}
-    
+
     const {timeOfDay, dayOfWeek} = this.getBatchingTimeLocalTZ();
-    
+
     const batchTimingChoices = <span>
       { (settings.updateFrequency==="daily" || settings.updateFrequency==="weekly") &&
         <React.Fragment>
@@ -127,9 +130,9 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
               )
             }
           </Select>
-          
+
           {moment().tz(timezone).format("z")}
-          
+
           { settings.updateFrequency==="weekly" && <React.Fragment>
               {" on "}<Select value={dayOfWeek}
                 onChange={(event) => this.setBatchingDayOfWeek(event.target.value, timezone)}
@@ -147,7 +150,7 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
         </React.Fragment>
       }
     </span>
-    
+
     return <div className={classes.root}>
       <Typography variant="body1">
         Vote Notifications
@@ -159,28 +162,21 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
         set to real time (removing the batching), disabled (to remove it
         from the header entirely), or to some other update interval.
       </Typography>
-      <RadioGroup className={classes.radioGroup}
+
+      <RadioButtonGroup
+        className={classes.radioButtonGroup}
         value={settings.updateFrequency}
-        onChange={(event, newValue) => this.modifyValue({updateFrequency: newValue})}
-      >
-        {_.map(karmaNotificationTimingChoices, (timingChoice, key) =>
-          <FormControlLabel
-            key={key}
-            value={key}
-            control={<Radio className={classes.radioButton} />}
-            label={
-              <Typography className={classes.inline} variant="body2" component="span">
-                {timingChoice.label}
-                {(settings.updateFrequency === key) ? batchTimingChoices : null}
-              </Typography>
-            }
-            classes={{
-              label: null as any,
-            }}
-          />
-        )}
-      </RadioGroup>
-      
+        onChange={(event, newValue) => this.modifyValue({ updateFrequency: newValue })}
+        options={karmaNotificationTimingChoices.map(({key, label}) => ({
+          value: key,
+          label: <Typography className={classes.inline} variant="body2" component="span">
+            {label}
+            {(settings.updateFrequency === key) ? batchTimingChoices : null}
+          </Typography>
+        }))}
+        radioGroupClassName={classes.radioGroup}
+      />
+
       { (settings.updateFrequency==="realtime") && <span>
         Warning: Immediate karma updates may lead to over-updating on tiny amounts
         of feedback, and to checking the site frequently when you'd rather be

@@ -108,19 +108,21 @@ const ColoredNumber = ({n, classes}) => {
 const KarmaChangesDisplay = ({karmaChanges, classes, handleClose }) => {
   const { posts, comments, updateFrequency } = karmaChanges
   const noKarmaChanges = !((posts && (posts.length > 0)) || (comments && (comments.length > 0)))
-  
+
   // MenuItem takes a component and passes unrecognized props to that component,
   // but its material-ui-provided type signature does not include this feature.
   // Case to any to work around it, to be able to pass a "to" parameter.
   const MenuItemUntyped = MenuItem as any;
-  
+
+  const karmaNotificationTimingChoice = karmaNotificationTimingChoices.filter(({ key }) => key === updateFrequency)[0]
+
   return (
     <Typography variant="body2">
       {noKarmaChanges ?
-        <span className={classes.title}>{ karmaNotificationTimingChoices[updateFrequency].emptyText }</span>
+        <span className={classes.title}>{ karmaNotificationTimingChoice.emptyText }</span>
         :
         <div>
-          <span className={classes.title}>{ karmaNotificationTimingChoices[updateFrequency].infoText }</span>
+          <span className={classes.title}>{ karmaNotificationTimingChoice.infoText }</span>
           <div className={classes.votedItems}>
             {karmaChanges.posts && karmaChanges.posts.map(postChange => (
               <MenuItemUntyped
