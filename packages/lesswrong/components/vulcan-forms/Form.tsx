@@ -374,6 +374,12 @@ class SmartForm extends Component<any,any> {
 
   initField = (fieldName, fieldSchema) => {
     // intialize properties
+    if (fieldName === 'karmaChangeNotifierSettings') {
+      console.log('initField')
+      console.log('fieldSchema', fieldSchema)
+      console.log('fieldSchema.schema', fieldSchema.schema)
+      console.log('fieldSchema.control', fieldSchema.control)
+    }
     let field = {
       ..._.pick(fieldSchema, formProperties),
       document: this.state.initialDocument,

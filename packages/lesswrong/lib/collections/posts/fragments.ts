@@ -22,6 +22,9 @@ registerFragment(`
     viewCount
     clickCount
     
+    # featured image
+    featuredImageId
+    
     commentCount
     voteCount
     baseScore

@@ -17,7 +17,13 @@ const formGroups = {
     name: "visibleOptions",
     order: 30,
     defaultStyle: true,
-  }
+  },
+  featuredImageOptions: {
+    name: 'featuredImageOptions',
+    order: 22,
+    label: 'Featured Image',
+    startCollapsed: true,
+  },
 };
 
 const schema = {
@@ -262,6 +268,30 @@ const schema = {
     type: Date,
     optional: true,
     viewableBy: ['admins'],
+  },
+  
+  // Featured Image
+  // TODO; Admin-gate
+
+  featuredImageId: {
+    type: String,
+    optional: true,
+    viewableBy: ['guests'],
+    insertableBy: ['members'],
+    editableBy: [Users.owns, 'sunshineRegiment', 'admins'],
+    label: 'Featured Image',
+    control: 'ImageUpload',
+    group: formGroups.featuredImageOptions,
+  },
+  
+  featuredImageType: {
+    type: String,
+    optional: true,
+    viewableBy: ['guests'],
+    insertableBy: ['members'],
+    editableBy: [Users.owns, 'sunshineRegiment', 'admins'],
+    control: 'Radiogroup',
+    group: formGroups.featuredImageOptions,
   },
 
   // GraphQL-only fields
