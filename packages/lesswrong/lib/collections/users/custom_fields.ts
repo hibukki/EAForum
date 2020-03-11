@@ -1378,4 +1378,3 @@ const createDisplayName = user => {
   if (user.email) return user.email.slice(0, user.email.indexOf('@'));
   return undefined;
 }
-

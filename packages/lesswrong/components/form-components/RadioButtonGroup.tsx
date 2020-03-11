@@ -25,7 +25,7 @@ interface RadioButtonGroupOption {
 const RadioButtonGroup = ({ value, label, onChange, options, classes, className }: {
   value: string,
   label?: any,
-  onChange: () => void,
+  onChange: (event: any, newValue: any) => void,
   options: Array<RadioButtonGroupOption>,
   classes: ClassesType,
   className?: string
@@ -42,7 +42,6 @@ const RadioButtonGroup = ({ value, label, onChange, options, classes, className 
     </RadioGroup>
   </FormControl>
 }
-
 
 const RadioButtonGroupComponent = registerComponent("RadioButtonGroup", RadioButtonGroup, { styles });
 
