@@ -1,9 +1,6 @@
 import { Components, registerComponent } from '../../lib/vulcan-lib';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -58,8 +55,6 @@ export const karmaNotificationTimingChoices = [
     emptyText: "No karma changes since you last checked"
   },
 ];
-
-
 
 interface KarmaChangeNotifierSettingsProps extends WithStylesProps {
   path: any,
@@ -174,7 +169,6 @@ class KarmaChangeNotifierSettings extends PureComponent<KarmaChangeNotifierSetti
             {(settings.updateFrequency === key) ? batchTimingChoices : null}
           </Typography>
         }))}
-        radioGroupClassName={classes.radioGroup}
       />
 
       { (settings.updateFrequency==="realtime") && <span>
