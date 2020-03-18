@@ -290,8 +290,12 @@ const schema = {
     viewableBy: ['guests'],
     insertableBy: ['members'],
     editableBy: [Users.owns, 'sunshineRegiment', 'admins'],
-    control: 'Radiogroup',
+    control: 'select',
     group: formGroups.featuredImageOptions,
+    options: [
+      {value: 'banner', label: 'Banner'},
+      {value: 'inline', label: 'Inline'},
+    ],
   },
 
   // GraphQL-only fields
