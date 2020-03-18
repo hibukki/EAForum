@@ -10,6 +10,8 @@ export * from './getCollection';
 import * as _ from 'underscore';
 import { Meteor } from 'meteor/meteor';
 
+console.log('SimpleSchema', SimpleSchema)
+
 const wrapAsync = Meteor.wrapAsync ? Meteor.wrapAsync : Meteor._wrapAsync;
 // import { debug } from './debug';
 
@@ -161,7 +163,9 @@ export const createCollection = (options: any): any => {
 
   if (schema) {
     // attach schema to collection
+    if (typeName === 'Post') console.log('schema', schema)
     collection.attachSchema(new SimpleSchema(schema));
+    if (typeName === 'Post') console.log('otherside--')
   }
 
   // add collection to resolver context

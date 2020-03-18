@@ -61,6 +61,20 @@ const schema = {
       }
     }),
   },
+  howCoolIsThis: {
+    type: String,
+    optional: true,
+    max: 50,
+    viewableBy: ['guests'],
+    insertableBy: ['members'],
+    editableBy: [Users.owns, 'sunshineRegiment', 'admins'],
+    control: 'radiogroup',
+    order: 12,
+    options: [
+      {value: 'banner', label: 'Banner'},
+      {value: 'inline', label: 'Inline'},
+    ],
+  },
   // URL
   url: {
     type: String,
