@@ -220,7 +220,7 @@ addRoute([
     name: 'search',
     path: '/search',
     componentName: 'SearchPage',
-    title: 'LW Search'
+    title: 'Search'
   }
 ]);
 
