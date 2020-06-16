@@ -133,8 +133,7 @@ Vulcan.exportPostDetailsByMonth = ({month, outputDir, outputFile}) => {
 function getComments (selector) {
   const defaultSelector = {
     authorIsUnreviewed: false,
-    spam: {$ne: true},
-    delted: {$ne: true},
+    deleted: {$ne: true},
   }
 
   const fields = {
@@ -151,7 +150,6 @@ function getComments (selector) {
   }
 
   const finalSelector = Object.assign({}, defaultSelector, selector || {})
-  console.log('finalSelector', finalSelector)
 
   return Comments
     .find(finalSelector, {fields, sort: { createdAt: 1 }})
@@ -164,7 +162,6 @@ Vulcan.exportCommentDetails = wrapVulcanAsyncScript(
     const documents = getComments(selector)
     let c = 0
     const count = documents.count()
-    console.log('count', count)
     const rows: Array<any> = []
     for (let comment of documents.fetch()) {
       // SD: this makes things horribly slow, but no idea how to do a more efficient join query in Mongo
@@ -173,15 +170,15 @@ Vulcan.exportCommentDetails = wrapVulcanAsyncScript(
       if (!user) throw Error(`Can't find user for comment: ${comment._id}`)
       const baseUrl = siteUrlSetting.get()
       const row = {
-        display_name: user.displayName,
+        // display_name: user.displayName,
         email: user.email,
-        post_title: post?.title,
-        id: comment._id,
-        user_id: comment.userId,
+        // post_title: post?.title,
+        // id: comment._id,
+        // user_id: comment.userId,
         karma: comment.baseScore,
         posted_at: comment.postedAt,
-        created_at: comment.createdAt,
-        url: `${baseUrl}/posts/${comment.postId}/${post?.slug}?commentId=${comment?._id}`
+        // created_at: comment.createdAt,
+        // url: `${baseUrl}/posts/${comment.postId}/${post?.slug}?commentId=${comment?._id}`
       }
       rows.push(row)
       c++
@@ -212,3 +209,66 @@ Vulcan.exportCommentDetailsByMonth = ({month, outputDir, outputFile}) => {
     outputDir
   })
 }
+
+// function getUsers (selector) {
+//   const defaultSelector = {
+//     delted: {$ne: true},
+//     reviewedByUserId: {$exists: true}
+//   }
+
+//   const fields = {
+//     id: 1,
+//     deleted: 1,
+//     email: 1,
+//     createdAt: 1,
+//     reviewedByUserId: 1,
+//   }
+
+//   const finalSelector = Object.assign({}, defaultSelector, selector || {})
+
+//   return Users
+//     .find(finalSelector, {fields, sort: { createdAt: 1 }})
+// }
+
+// Vulcan.exportUserDetails = wrapVulcanAsyncScript(
+//   'exportUserDetails',
+//   async ({selector, outputDir, outputFile = 'user_details.csv'}) => {
+//     if (!outputDir) throw new Error('you must specify an output directory (hint: {outputDir})')
+//     const documents = getUsers(selector)
+//     let c = 0
+//     const count = documents.count()
+//     const rows: Array<any> = []
+//     for (let user of documents.fetch()) {
+//       const row = {
+//         email: user.email,
+//         created_at: user.createdAt,
+//       }
+//       rows.push(row)
+//       c++
+//       //eslint-disable-next-line no-console
+//       if (c % 20 === 0) console.log(`User Details: Processed ${c}/${count} users (${Math.round(c / count * 100)}%)`)
+//     }
+//     const csvFile = Papa.unparse(rows)
+//     const filePath = path.join(outputDir,`${path.basename(outputFile)}.csv`)
+//     await fs.writeFile(filePath, csvFile)
+//     //eslint-disable-next-line no-console
+//     console.log(`Wrote details for ${rows.length} users to ${filePath}`)
+//   }
+// )
+
+// Vulcan.exportUserDetailsByMonth = ({month, outputDir, outputFile}) => {
+//   const lastMonth = moment.utc(month, 'YYYY-MM').startOf('month')
+//   outputFile = outputFile || `user_details_${lastMonth.format('YYYY-MM')}`
+//   //eslint-disable-next-line no-console
+//   console.log(`Exporting all users from ${lastMonth.format('MMM YYYY')}`)
+//   return Vulcan.exportUserDetails({
+//     selector: {
+//       createdAt: {
+//         $gte: lastMonth.toDate(), // first of prev month
+//         $lte: moment.utc(lastMonth).endOf('month').toDate()
+//       }
+//     },
+//     outputFile,
+//     outputDir
+//   })
+// }
