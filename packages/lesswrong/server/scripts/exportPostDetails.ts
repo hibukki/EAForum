@@ -210,51 +210,64 @@ Vulcan.exportCommentDetailsByMonth = ({month, outputDir, outputFile}) => {
   })
 }
 
-// function getUsers (selector) {
-//   const defaultSelector = {
-//     delted: {$ne: true},
-//     reviewedByUserId: {$exists: true}
-//   }
+function anonymizeNumber (n: number): number {
+  if (!n) return 0
+  if (n <= 0) return 0
+  if (n <= 10) return 10
+  return parseFloat(n.toPrecision(1))
+}
 
-//   const fields = {
-//     id: 1,
-//     deleted: 1,
-//     email: 1,
-//     createdAt: 1,
-//     reviewedByUserId: 1,
-//   }
+function getUsers (selector) {
+  const defaultSelector = {
+    email: {$exists: true},
+    deleted: {$ne: true},
+    reviewedByUserId: {$exists: true},
+    createdAt: {$exists: true},
+  }
 
-//   const finalSelector = Object.assign({}, defaultSelector, selector || {})
+  const fields = {
+    id: 1,
+    email: 1,
+    createdAt: 1,
+    karma: 1,
+    commentCount: 1,
+    postCount: 1,
+  }
 
-//   return Users
-//     .find(finalSelector, {fields, sort: { createdAt: 1 }})
-// }
+  const finalSelector = Object.assign({}, defaultSelector, selector || {})
 
-// Vulcan.exportUserDetails = wrapVulcanAsyncScript(
-//   'exportUserDetails',
-//   async ({selector, outputDir, outputFile = 'user_details.csv'}) => {
-//     if (!outputDir) throw new Error('you must specify an output directory (hint: {outputDir})')
-//     const documents = getUsers(selector)
-//     let c = 0
-//     const count = documents.count()
-//     const rows: Array<any> = []
-//     for (let user of documents.fetch()) {
-//       const row = {
-//         email: user.email,
-//         created_at: user.createdAt,
-//       }
-//       rows.push(row)
-//       c++
-//       //eslint-disable-next-line no-console
-//       if (c % 20 === 0) console.log(`User Details: Processed ${c}/${count} users (${Math.round(c / count * 100)}%)`)
-//     }
-//     const csvFile = Papa.unparse(rows)
-//     const filePath = path.join(outputDir,`${path.basename(outputFile)}.csv`)
-//     await fs.writeFile(filePath, csvFile)
-//     //eslint-disable-next-line no-console
-//     console.log(`Wrote details for ${rows.length} users to ${filePath}`)
-//   }
-// )
+  return Users
+    .find(finalSelector, {fields, sort: { createdAt: 1 }})
+}
+
+Vulcan.exportUserDetails = wrapVulcanAsyncScript(
+  'exportUserDetails',
+  async ({selector, outputDir, outputFile = 'user_details'}) => {
+    if (!outputDir) throw new Error('you must specify an output directory (hint: {outputDir})')
+    const documents = getUsers(selector)
+    let c = 0
+    const count = documents.count()
+    const rows: Array<any> = []
+    for (let user of documents.fetch()) {
+      if (!user.email || user.email.length === 0) continue
+      const row = {
+        email: user.email,
+        join_month: moment(user.createdAt).startOf('month').format('YYYY-MM'),
+        karma: anonymizeNumber(user.karma),
+        writing_count: anonymizeNumber(user.commentCount || 0 + user.postCount || 0),
+      }
+      rows.push(row)
+      c++
+      //eslint-disable-next-line no-console
+      if (c % 20 === 0) console.log(`User Details: Processed ${c}/${count} users (${Math.round(c / count * 100)}%)`)
+    }
+    const csvFile = Papa.unparse(rows)
+    const filePath = path.join(outputDir,`${path.basename(outputFile)}.csv`)
+    await fs.writeFile(filePath, csvFile)
+    //eslint-disable-next-line no-console
+    console.log(`Wrote details for ${rows.length} users to ${filePath}`)
+  }
+)
 
 // Vulcan.exportUserDetailsByMonth = ({month, outputDir, outputFile}) => {
 //   const lastMonth = moment.utc(month, 'YYYY-MM').startOf('month')
