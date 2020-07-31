@@ -10,7 +10,6 @@ import LinkIcon from '@material-ui/icons/Link';
 import { curatedUrl } from '../recommendations/RecommendationsAndCurated';
 import { Link } from '../../lib/reactRouterWrapper';
 import { forumTypeSetting } from '../../lib/instanceSettings';
-// ea-forum-look-here (JP I think you really just gotta move away from your re-use of meta now)
 const MetaIcon = forumTypeSetting.get() === 'EAForum' ? GroupIcon : DetailsIcon
 
 const styles = theme => ({
@@ -87,8 +86,8 @@ const PostsItemIcons = ({post, classes}: {
     </span>}
 
     {post.meta && <span className={classes.postIcon}>
-      <LWTooltip title={<div>Meta <div><em>(Click to view all meta content)</em></div></div>} placement="right">
-        <Link to={"/tag/site-meta"}><MetaIcon className={classes.icon}/></Link>
+      <LWTooltip title={<div>Community <div><em>(Click to view all Community posts)</em></div></div>} placement="right">
+        <Link to={"/meta"}><MetaIcon className={classes.icon}/></Link>
       </LWTooltip>
     </span>}
 
@@ -109,4 +108,3 @@ declare global {
     PostsItemIcons: typeof PostsItemIconsComponent
   }
 }
-

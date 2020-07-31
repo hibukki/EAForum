@@ -49,7 +49,7 @@ interface ExtendedCommentsCollection extends CommentsCollection {
   unSuggestForAlignment: any
   
   // Functions in server/search/utils.ts
-  toAlgolia: (comment: DbComment) => Array<Record<string,any>>|null
+  toAlgolia: (comment: DbComment) => Promise<Array<Record<string,any>>|null>
 }
 
 export const Comments: ExtendedCommentsCollection = createCollection({
@@ -60,7 +60,7 @@ export const Comments: ExtendedCommentsCollection = createCollection({
   mutations: getDefaultMutations('Comments', commentMutationOptions),
 });
 
-Comments.checkAccess = (currentUser, comment) => {
+Comments.checkAccess = async (currentUser: DbUser|null, comment: DbComment, context: ResolverContext|null): Promise<boolean> => {
   if (Users.isAdmin(currentUser) || Users.owns(currentUser, comment)) { // admins can always see everything, users can always see their own posts
     return true;
   } else if (comment.isDeleted) {

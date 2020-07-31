@@ -59,7 +59,7 @@ const emailGlobalCss = `
   
   /* Global styles that apply eg inside of posts */
   a {
-    color: #5f9b65
+    color: #0C869B
   }
   blockquote {
     border-left: solid 3px #e0e0e0;
@@ -230,7 +230,7 @@ export function logSentEmail(renderedEmail, user) {
     user: user._id,
   };
   // Log in LWEvents table
-  newMutation({
+  void newMutation({
     collection: LWEvents,
     currentUser: user,
     document: {

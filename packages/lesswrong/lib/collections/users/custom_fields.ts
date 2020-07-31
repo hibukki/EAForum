@@ -3,12 +3,11 @@ import * as _ from 'underscore';
 import { addUniversalFields, schemaDefaultValue } from '../../collectionUtils';
 import { makeEditable } from '../../editor/make_editable';
 import { defaultFilterSettings } from '../../filterSettings';
-import { forumTypeSetting } from "../../instanceSettings";
-import { hasEventsSetting } from '../../publicSettings';
+import { forumTypeSetting, hasEventsSetting } from "../../instanceSettings";
 import { accessFilterMultiple, addFieldsDict, arrayOfForeignKeysField, denormalizedCountOfReferences, denormalizedField, foreignKeyField, googleLocationToMongoLocation, resolverOnlyField } from '../../utils/schemaUtils';
 import { Utils } from '../../vulcan-lib';
 import { Posts } from '../posts/collection';
-import Users from "../users/collection";
+import Users from "./collection";
 
 export const hashPetrovCode = (code) => {
   // @ts-ignore
@@ -420,7 +419,7 @@ addFieldsDict(Users, {
     type: Boolean,
     optional: true,
     group: formGroups.moderationGroup,
-    label: "I'm happy for LW site moderators to help enforce my policy",
+    label: "I'm happy for site moderators to help enforce my policy",
     canRead: ['guests'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
     canCreate: ['members', 'sunshineRegiment', 'admins'],
@@ -594,9 +593,16 @@ addFieldsDict(Users, {
     graphQLtype: '[String]',
     group: formGroups.banUser,
     canRead: ['sunshineRegiment', 'admins'],
-    resolver: (user, args, context) => {
-      const events: Array<DbLWEvent> = context.LWEvents.find({userId: user._id, name: 'login'}, {fields: context.Users.getViewableFields(context.currentUser, context.LWEvents), limit: 10, sort: {createdAt: -1}}).fetch()
-      const filteredEvents: Array<Partial<DbLWEvent>> = _.filter(events, e => context.LWEvents.checkAccess(context.currentUser, e))
+    resolver: async (user, args, context: ResolverContext) => {
+      const { currentUser, LWEvents } = context;
+      const events: Array<DbLWEvent> = LWEvents.find(
+        {userId: user._id, name: 'login'},
+        {
+          limit: 10,
+          sort: {createdAt: -1}
+        }
+      ).fetch()
+      const filteredEvents = await accessFilterMultiple(currentUser, LWEvents, events, context);
       const IPs = filteredEvents.map(event => event.properties?.ip);
       const uniqueIPs = _.uniq(IPs);
       return uniqueIPs
@@ -848,7 +854,7 @@ addFieldsDict(Users, {
   },
 
   mapLocationSet: {
-    type: Boolean, 
+    type: Boolean,
     canRead: ['guests'],
     ...denormalizedField({
       needsUpdate: data => ('mapLocation' in data),
@@ -873,7 +879,7 @@ addFieldsDict(Users, {
   htmlMapMarkerText: {
     type: String,
     canRead: ['guests'],
-    optional: true, 
+    optional: true,
     denormalized: true
   },
 
@@ -932,7 +938,7 @@ addFieldsDict(Users, {
   },
 
   hideFrontpageMap: {
-    type: Boolean, 
+    type: Boolean,
     canRead: [Users.owns, 'sunshineRegiment', 'admins'],
     canCreate: ['members'],
     canUpdate: [Users.owns, 'sunshineRegiment', 'admins'],
@@ -980,7 +986,7 @@ addFieldsDict(Users, {
   isReviewed: resolverOnlyField({
     type: Boolean,
     canRead: [Users.owns, 'sunshineRegiment', 'admins'],
-    resolver: (user, args, context) => !!user.reviewedByUserId,
+    resolver: (user, args, context: ResolverContext) => !!user.reviewedByUserId,
   }),
 
   reviewedAt: {
@@ -1003,7 +1009,7 @@ addFieldsDict(Users, {
     type: Number,
     graphQLtype: "Float",
     canRead: ['guests'],
-    resolver: (user, args, context) => {
+    resolver: (user, args, context: ResolverContext) => {
       const isReviewed = !!user.reviewedByUserId;
       const { karma, signUpReCaptchaRating } = user;
 
@@ -1026,13 +1032,14 @@ addFieldsDict(Users, {
     type: Array,
     graphQLtype: '[Vote]',
     canRead: ['admins', 'sunshineRegiment'],
-    resolver: async (document, args, { Users, Votes, currentUser }) => {
+    resolver: async (document, args, context: ResolverContext) => {
+      const { Votes, currentUser } = context;
       const votes = await Votes.find({
         userId: document._id,
         cancelled: false,
       }).fetch();
       if (!votes.length) return [];
-      return accessFilterMultiple(currentUser, Votes, votes);
+      return await accessFilterMultiple(currentUser, Votes, votes, context);
     },
   }),
 
@@ -1324,9 +1331,10 @@ addFieldsDict(Users, {
     resolveAs: {
       arguments: 'limit: Int = 5',
       type: '[Post]',
-      resolver: (user, { limit }, { currentUser, Users, Posts }) => {
+      resolver: async (user, { limit }, context: ResolverContext) => {
+        const { currentUser, Posts } = context;
         const posts = Posts.find({ userId: user._id }, { limit }).fetch();
-        return accessFilterMultiple(currentUser, Posts, posts);
+        return await accessFilterMultiple(currentUser, Posts, posts, context);
       }
     }
   },

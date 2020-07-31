@@ -1,6 +1,5 @@
 import { Components, registerComponent } from '../../lib/vulcan-lib';
 import React from 'react';
-import { Comments } from "../../lib/collections/comments";
 import Users from '../../lib/collections/users/collection';
 import moment from '../../lib/moment-timezone';
 import { useHover } from '../common/withHover';
@@ -8,11 +7,13 @@ import { useCurrentUser } from '../common/withUser';
 import { useVote } from './withVote';
 import Tooltip from '@material-ui/core/Tooltip';
 import { forumTypeSetting } from '../../lib/instanceSettings';
+import { Comments } from '../../lib/collections/comments';
 
 const styles = theme => ({
   vote: {
     fontSize: 25,
     lineHeight: 0.6,
+    display: "inline-block"
   },
   voteScore: {
     fontSize: '1.1rem',
@@ -36,30 +37,38 @@ const styles = theme => ({
   }
 })
 
-const CommentsVote = ({ comment, hideKarma=false, classes }: {
-  comment: CommentsList,
+const SmallSideVote = ({ document, hideKarma=false, classes, collection }: {
+  document: CommentsList|PostsWithVotes,
   hideKarma?: boolean,
   classes: ClassesType,
+  collection: any
 }) => {
   const currentUser = useCurrentUser();
-  const vote = useVote();
+  const voteProps = useVote(document, collection.options.collectionName);
   const {eventHandlers, hover} = useHover();
   
-  if (!comment) return null;
+  if (!document) return null;
 
   const { VoteButton } = Components
-  const voteCount = comment.voteCount;
-  const karma = Comments.getKarma(comment)
 
-  const moveToAfInfo = Users.isAdmin(currentUser) && !!comment.moveToAlignmentUserId && (
+  const voteCount = voteProps.voteCount;
+  const karma = voteProps.baseScore;
+
+  let moveToAlignnmentUserId = ""
+  if (collection == Comments) {
+    const comment = document as CommentsList
+    moveToAlignnmentUserId = comment.moveToAlignmentUserId
+  }
+
+  const moveToAfInfo = Users.isAdmin(currentUser) && !!moveToAlignnmentUserId && (
     <div className={classes.tooltipHelp}>
-      {hover && <span>Moved to AF by <Components.UsersName documentId={comment.moveToAlignmentUserId }/> on { comment.afDate && moment(new Date(comment.afDate)).format('YYYY-MM-DD') }</span>}
+      {hover && <span>Moved to AF by <Components.UsersName documentId={moveToAlignnmentUserId }/> on { document.afDate && moment(new Date(document.afDate)).format('YYYY-MM-DD') }</span>}
     </div>
   )
 
   return (
     <span className={classes.vote} {...eventHandlers}>
-      {(forumTypeSetting.get() !== 'AlignmentForum' || !!comment.af) &&
+      {(forumTypeSetting.get() !== 'AlignmentForum' || !!document.af) &&
         <span>
           <Tooltip
             title={<div>Downvote<br /><em>For strong downvote, click-and-hold<br />(Click twice on mobile)</em></div>}
@@ -70,10 +79,7 @@ const CommentsVote = ({ comment, hideKarma=false, classes }: {
                 orientation="left"
                 color="error"
                 voteType="Downvote"
-                document={comment}
-                currentUser={currentUser}
-                collection={Comments}
-                vote={vote}
+                {...voteProps}
               />
             </span>
           </Tooltip>
@@ -95,16 +101,13 @@ const CommentsVote = ({ comment, hideKarma=false, classes }: {
                 orientation="right"
                 color="secondary"
                 voteType="Upvote"
-                document={comment}
-                currentUser={currentUser}
-                collection={Comments}
-                vote={vote}
+                {...voteProps}
               />
             </span>
           </Tooltip>
         </span>
       }
-      {!!comment.af && forumTypeSetting.get() !== 'AlignmentForum' &&
+      {!!document.af && forumTypeSetting.get() !== 'AlignmentForum' &&
         <Tooltip placement="bottom" title={
           <div>
             <p>AI Alignment Forum Karma</p>
@@ -113,26 +116,26 @@ const CommentsVote = ({ comment, hideKarma=false, classes }: {
         }>
           <span className={classes.secondaryScore}>
             <span className={classes.secondarySymbol}>Ω</span>
-            <span className={classes.secondaryScoreNumber}>{comment.afBaseScore || 0}</span>
+            <span className={classes.secondaryScoreNumber}>{document.afBaseScore || 0}</span>
           </span>
         </Tooltip>
       }
-      {!comment.af && (forumTypeSetting.get() === 'AlignmentForum') &&
+      {!document.af && (forumTypeSetting.get() === 'AlignmentForum') &&
         <Tooltip title="LessWrong Karma" placement="bottom">
           <span className={classes.secondaryScore}>
             <span className={classes.secondarySymbol}>LW</span>
-            <span className={classes.secondaryScoreNumber}>{comment.baseScore || 0}</span>
+            <span className={classes.secondaryScoreNumber}>{document.baseScore || 0}</span>
           </span>
         </Tooltip>
       }
     </span>)
 }
 
-const CommentsVoteComponent = registerComponent('CommentsVote', CommentsVote, {styles});
+const SmallSideVoteComponent = registerComponent('SmallSideVote', SmallSideVote, {styles});
 
 declare global {
   interface ComponentTypes {
-    CommentsVote: typeof CommentsVoteComponent
+    SmallSideVote: typeof SmallSideVoteComponent
   }
 }
 

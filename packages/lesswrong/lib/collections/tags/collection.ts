@@ -1,4 +1,4 @@
-import { createCollection} from '../../vulcan-lib';
+import { createCollection } from '../../vulcan-lib';
 import { addUniversalFields, getDefaultResolvers, getDefaultMutations } from '../../collectionUtils'
 import { makeEditable } from '../../editor/make_editable'
 import { userCanCreateTags } from '../../betas';
@@ -7,7 +7,7 @@ import { schema } from './schema';
 
 interface ExtendedTagsCollection extends TagsCollection {
   // From search/utils.ts
-  toAlgolia: (tag: DbTag) => Array<Record<string,any>>|null
+  toAlgolia: (tag: DbTag) => Promise<Array<Record<string,any>>|null>
   getUrl: (tag: DbTag | TagPreviewFragment) => string
 }
 
@@ -29,7 +29,7 @@ export const Tags: ExtendedTagsCollection = createCollection({
   }),
 });
 
-Tags.checkAccess = (currentUser, tag) => {
+Tags.checkAccess = async (currentUser: DbUser|null, tag: DbTag, context: ResolverContext|null): Promise<boolean> => {
   if (Users.isAdmin(currentUser))
     return true;
   else if (tag.deleted || tag.adminOnly)
@@ -47,11 +47,17 @@ export const tagDescriptionEditableOptions = {
     if (tag._id) { return {id: `tag:${tag._id}`, verify:true} }
     return {id: `tag:create`, verify:true}
   },
+  revisionsHaveCommitMessages: true,
+  permissions: {
+    viewableBy: ['guests'],
+    editableBy: ['members'],
+    insertableBy: ['members']
+  },
 };
 
 makeEditable({
   collection: Tags,
-  options: tagDescriptionEditableOptions,
+  options: tagDescriptionEditableOptions
 });
 
 export default Tags;

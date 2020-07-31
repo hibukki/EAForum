@@ -22,7 +22,7 @@ export const notificationDebouncers = toDictionary(getNotificationTypes(),
         delayMinutes: 15,
       },
       callback: ({ userId, notificationType }, notificationIds) => {
-        sendNotificationBatch({userId, notificationIds});
+        void sendNotificationBatch({userId, notificationIds});
       }
     });
   }
@@ -99,7 +99,7 @@ export const wrapAndSendEmail = async ({user, subject, body}) => {
 
 addGraphQLResolvers({
   Query: {
-    async EmailPreview(root, {notificationIds, postId}, context) {
+    async EmailPreview(root, {notificationIds, postId}, context: ResolverContext) {
       const { currentUser } = context;
       if (!Users.isAdmin(currentUser)) {
         throw new Error("This debug feature is only available to admin accounts");

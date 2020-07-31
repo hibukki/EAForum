@@ -2,9 +2,10 @@ import React from 'react';
 import { Components, registerComponent } from '../../lib/vulcan-lib';
 import { InstantSearch, SearchBox, Hits, Configure } from 'react-instantsearch-dom';
 import { algoliaIndexNames, isAlgoliaEnabled, getSearchClient } from '../../lib/algoliaUtil';
-import { useCurrentUser } from '../common/withUser';
 import { Link } from '../../lib/reactRouterWrapper';
 import Divider from '@material-ui/core/Divider';
+import { useCurrentUser } from '../common/withUser';
+import { userCanCreateTags } from '../../lib/betas';
 
 const styles = theme => ({
   root: {
@@ -30,7 +31,7 @@ const AddTag = ({onTagSelected, classes}: {
   classes: ClassesType,
 }) => {
   const { TagSearchHit } = Components
-  const currentUser = useCurrentUser();
+  const currentUser = useCurrentUser()
   const [searchOpen, setSearchOpen] = React.useState(false);
   const searchStateChanged = React.useCallback((searchState) => {
     setSearchOpen(searchState.query?.length > 0);
@@ -97,7 +98,7 @@ const AddTag = ({onTagSelected, classes}: {
     <Link to="/tags/all" className={classes.newTag}>
       View All Tags
     </Link>
-    {currentUser?.isAdmin && <Link to="/tag/create" className={classes.newTag}>
+    {userCanCreateTags(currentUser) && <Link to="/tag/create" className={classes.newTag}>
       Create Tag
     </Link>}
   </div>
@@ -110,4 +111,3 @@ declare global {
     AddTag: typeof AddTagComponent
   }
 }
-

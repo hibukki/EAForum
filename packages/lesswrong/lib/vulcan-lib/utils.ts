@@ -25,6 +25,8 @@ interface UtilsType {
   slugify: (s: string) => string
   getDomain: (url: string) => string|null
   addHttp: (url: string) => string|null
+  combineUrls: (baseUrl: string, path: string) => string
+  getBasePath: (path: string) => string
   
   checkNested: any
   getNestedProperty: any
@@ -74,7 +76,7 @@ interface UtilsType {
   getCurrentChapter: any
   
   // In server/vulcan-lib/utils.ts
-  performCheck: any
+  performCheck: <T extends DbObject>(operation: (user: DbUser|null, obj: T, context: any) => Promise<boolean>, user: DbUser|null, checkedObject: T, context: any, documentId: string, operationName: string, collectionName: CollectionNameString) => Promise<void>
   
   // In server/vulcan-lib/errors.ts
   throwError: any
@@ -178,6 +180,19 @@ Utils.addHttp = function (url: string): string|null {
     return null;
   }
 };
+
+// Combine urls without extra /s at the join
+// https://stackoverflow.com/questions/16301503/can-i-use-requirepath-join-to-safely-concatenate-urls
+Utils.combineUrls = (baseUrl: string, path:string) => {
+  return path
+    ? baseUrl.replace(/\/+$/, '') + '/' + path.replace(/^\/+/, '')
+    : baseUrl;
+}
+
+// Remove query and anchor tags from path
+Utils.getBasePath = (path: string) => {
+  return path.split(/[?#]/)[0]
+}
 
 /////////////////////////////
 // String Helper Functions //

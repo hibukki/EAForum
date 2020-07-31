@@ -5,8 +5,7 @@ import '../components/posts/TableOfContents';
 // vulcan:accounts
 import '../components/vulcan-accounts';
 import '../components/vulcan-core/vulcan-core-components';
-import { forumTypeSetting } from './instanceSettings';
-import { hasEventsSetting } from './publicSettings';
+import { forumTypeSetting, hasEventsSetting } from './instanceSettings';
 // vulcan:forms
 import './vulcan-forms/components';
 import { importComponent } from './vulcan-lib';
@@ -86,6 +85,11 @@ importComponent("ErrorMessage", () => require('../components/common/ErrorMessage
 importComponent("CloudinaryImage", () => require('../components/common/CloudinaryImage'));
 importComponent("CloudinaryImage2", () => require('../components/common/CloudinaryImage2'));
 importComponent("ContentItemBody", () => require('../components/common/ContentItemBody'));
+importComponent("CompareRevisions", () => require('../components/revisions/CompareRevisions'));
+importComponent("RevisionSelect", () => require('../components/revisions/RevisionSelect'));
+importComponent("PostsRevisionSelect", () => require('../components/revisions/PostsRevisionSelect'));
+importComponent("RevisionComparisonNotice", () => require('../components/revisions/RevisionComparisonNotice'));
+importComponent("TagPageRevisionSelect", () => require('../components/revisions/TagPageRevisionSelect'));
 importComponent("LWPopper", () => require('../components/common/LWPopper'));
 importComponent("LWTooltip", () => require('../components/common/LWTooltip'));
 importComponent("PopperCard", () => require('../components/common/PopperCard'));
@@ -148,7 +152,7 @@ importComponent("ResendVerificationEmailPage", () => require('../components/user
 importComponent("ReviewVotingPage", () => require('../components/users/ReviewVotingPage.tsx'))
 
 importComponent("OmegaIcon", () => require('../components/icons/OmegaIcon'));
-importComponent("SettingsIcon", () => require('../components/icons/SettingsIcon'));
+importComponent("SettingsButton", () => require('../components/icons/SettingsButton'));
 importComponent("KarmaIcon", () => require('../components/icons/KarmaIcon.tsx'));
 
 // posts
@@ -221,7 +225,7 @@ importComponent("ShortformSubmitForm", () => require('../components/shortform/Sh
 importComponent("ShortformTimeBlock", () => require('../components/shortform/ShortformTimeBlock'));
 
 importComponent("VoteButton", () => require('../components/votes/VoteButton'));
-importComponent("CommentsVote", () => require('../components/votes/CommentsVote'));
+importComponent("SmallSideVote", () => require('../components/votes/SmallSideVote'));
 importComponent("PostsVote", () => require('../components/votes/PostsVote'));
 
 // events
@@ -343,6 +347,8 @@ importComponent("SunshineReportedContentList", () => require('../components/suns
 importComponent("SunshineReportedItem", () => require('../components/sunshineDashboard/SunshineReportedItem'));
 importComponent("SunshineCuratedSuggestionsItem", () => require('../components/sunshineDashboard/SunshineCuratedSuggestionsItem'));
 importComponent("SunshineCuratedSuggestionsList", () => require('../components/sunshineDashboard/SunshineCuratedSuggestionsList'));
+importComponent("SunshineNewTagsList", () => require('../components/sunshineDashboard/SunshineNewTagsList'));
+importComponent("SunshineNewTagsItem", () => require('../components/sunshineDashboard/SunshineNewTagsItem'));
 importComponent("SunshineSidebar", () => require('../components/sunshineDashboard/SunshineSidebar'));
 importComponent("SunshineListTitle", () => require('../components/sunshineDashboard/SunshineListTitle'));
 importComponent("SunshineListItem", () => require('../components/sunshineDashboard/SunshineListItem'));
@@ -365,15 +371,23 @@ importComponent("NewTagPage", () => require('../components/tagging/NewTagPage'))
 importComponent("EditTagPage", () => require('../components/tagging/EditTagPage'));
 importComponent("EditTagsDialog", () => require('../components/tagging/EditTagsDialog'));
 importComponent("AllTagsPage", () => require('../components/tagging/AllTagsPage'));
+importComponent("AllTagsAlphabetical", () => require('../components/tagging/AllTagsAlphabetical'));
+importComponent("TagRelevanceButton", () => require('../components/tagging/TagRelevanceButton'));
+
+
 importComponent("TagsListItem", () => require('../components/tagging/TagsListItem'));
+importComponent("TagsDetailsItem", () => require('../components/tagging/TagsDetailsItem'));
+importComponent("TagCompareRevisions", () => require('../components/tagging/TagCompareRevisions'));
 importComponent("TagFilterSettings", () => require('../components/tagging/TagFilterSettings'));
 importComponent("FilterMode", () => require('../components/tagging/FilterMode'));
 importComponent("TagPreview", () => require('../components/tagging/TagPreview'));
+importComponent("TagPreviewDescription", () => require('../components/tagging/TagPreviewDescription'));
 importComponent("TagHoverPreview", () => require('../components/tagging/TagHoverPreview'));
 importComponent("TagRelCard", () => require('../components/tagging/TagRelCard'));
 importComponent("TagSearchHit", () => require('../components/tagging/TagSearchHit'));
 importComponent("TagVoteActivity", () => require('../components/tagging/TagVoteActivity'));
 importComponent("PostsItemTagRelevance", () => require('../components/tagging/PostsItemTagRelevance'));
+importComponent("TagSmallPostLink", () => require('../components/tagging/TagSmallPostLink'));
 
 // SequenceEditor
 importComponent("EditSequenceTitle", () => require('../components/sequenceEditor/EditSequenceTitle'));
@@ -492,6 +506,3 @@ importComponent("Alert", () => require('../components/vulcan-ui-bootstrap/ui/Ale
 importComponent("Button", () => require('../components/vulcan-ui-bootstrap/ui/Button'));
 importComponent("Modal", () => require('../components/vulcan-ui-bootstrap/ui/Modal'));
 importComponent("ModalTrigger", () => require('../components/vulcan-ui-bootstrap/ui/ModalTrigger'));
-
-
-

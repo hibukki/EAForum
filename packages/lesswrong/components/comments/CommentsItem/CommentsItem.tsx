@@ -8,6 +8,7 @@ import withErrorBoundary from '../../common/withErrorBoundary';
 import withUser from '../../common/withUser';
 import { Link } from '../../../lib/reactRouterWrapper';
 import { Posts } from "../../../lib/collections/posts";
+import { Comments } from "../../../lib/collections/comments";
 import { AnalyticsContext } from "../../../lib/analyticsEvents";
 
 // Shared with ParentCommentItem
@@ -73,11 +74,11 @@ export const styles = theme => ({
       display: "inline-block",
       marginRight: 5,
     },
-    
+
     marginBottom: 8,
     color: "rgba(0,0,0,0.5)",
     paddingTop: ".6em",
-  
+
     "& a:hover, & a:active": {
       textDecoration: "none",
       color: "rgba(0,0,0,0.3) !important",
@@ -170,7 +171,7 @@ export class CommentsItem extends Component<CommentsItemProps,CommentsItemState>
 }
 
   replySuccessCallback = () => {
-    const { refetch } = this.props 
+    const { refetch } = this.props
     if (refetch) {
       refetch()
     }
@@ -186,7 +187,7 @@ export class CommentsItem extends Component<CommentsItemProps,CommentsItemState>
   }
 
   editSuccessCallback = () => {
-    const { refetch } = this.props 
+    const { refetch } = this.props
     if (refetch) {
       refetch()
     }
@@ -204,12 +205,12 @@ export class CommentsItem extends Component<CommentsItemProps,CommentsItemState>
   render() {
     const { comment, postPage, nestingLevel=1, showPostTitle, classes, post, collapsed, isParentComment, parentCommentId, scrollIntoView } = this.props
 
-    const { ShowParentComment, CommentsItemDate, CommentUserName, CommentShortformIcon } = Components
+    const { ShowParentComment, CommentsItemDate, CommentUserName, CommentShortformIcon, SmallSideVote } = Components
 
     if (!comment || !post) {
       return null;
     }
-    
+
     return (
         <AnalyticsContext pageElementContext="commentItem" commentId={comment._id}>
           <div className={
@@ -263,8 +264,9 @@ export class CommentsItem extends Component<CommentsItemProps,CommentsItemState>
                 {comment.moderatorHat && <span className={classes.moderatorHat}>
                   Moderator Comment
                 </span>}
-                <Components.CommentsVote
-                  comment={comment}
+                <SmallSideVote
+                  document={comment}
+                  collection={Comments}
                   hideKarma={post.hideCommentKarma}
                 />
 
@@ -290,7 +292,7 @@ export class CommentsItem extends Component<CommentsItemProps,CommentsItemState>
         </AnalyticsContext>
     )
   }
-  
+
   renderMenu = () => {
     const { classes, comment, post } = this.props;
     const { CommentsMenu } = Components;
@@ -308,11 +310,11 @@ export class CommentsItem extends Component<CommentsItemProps,CommentsItemState>
       </span>
     )
   }
-  
+
   renderBodyOrEditor = () => {
     const { comment, truncated, collapsed, postPage } = this.props;
     const { showEdit } = this.state;
-    
+
     if (showEdit) {
       return <Components.CommentsEditForm
         comment={comment}

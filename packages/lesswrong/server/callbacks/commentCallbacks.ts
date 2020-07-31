@@ -15,11 +15,12 @@ import { newDocumentMaybeTriggerReview } from './postCallbacks';
 const MINIMUM_APPROVAL_KARMA = 5
 
 const getLessWrongAccount = async () => {
-  let account = Users.findOne({username: "LessWrong"});
+  let account = Users.findOne({username: "AdminTeam"});
   if (!account) {
     const userData = {
-      username: "LessWrong",
-      email: "lesswrong@lesswrong.com",
+      // TODO nicer solution
+      username: "AdminTeam",
+      email: "forum@effectivealtruism.org",
     }
     const newAccount = await newMutation({
       collection: Users,
@@ -122,7 +123,7 @@ function CommentsRemoveChildrenComments (comment, currentUser) {
   const childrenComments = Comments.find({parentCommentId: comment._id}).fetch();
 
   childrenComments.forEach(childComment => {
-    removeMutation({
+    void removeMutation({
       collection: Comments,
       documentId: childComment._id,
       currentUser: currentUser,
@@ -185,9 +186,9 @@ addCallback('comments.new.validate', CommentsNewRateLimit);
 // LessWrong callbacks                              //
 //////////////////////////////////////////////////////
 
-function CommentsEditSoftDeleteCallback (comment, oldComment) {
+function CommentsEditSoftDeleteCallback (comment, oldComment, currentUser) {
   if (comment.deleted && !oldComment.deleted) {
-    runCallbacksAsync('comments.moderate.async', comment);
+    runCallbacksAsync('comments.moderate.async', comment, oldComment, {currentUser});
   }
 }
 addCallback("comments.edit.async", CommentsEditSoftDeleteCallback);
@@ -198,7 +199,7 @@ function ModerateCommentsPostUpdate (comment, oldComment) {
   const lastComment:DbComment = _.max(comments, (c) => c.postedAt)
   const lastCommentedAt = (lastComment && lastComment.postedAt) || Posts.findOne({_id:comment.postId})?.postedAt || new Date()
 
-  editMutation({
+  void editMutation({
     collection:Posts,
     documentId: comment.postId,
     set: {
@@ -219,8 +220,8 @@ function NewCommentsEmptyCheck (comment) {
 }
 addCallback("comments.new.validate", NewCommentsEmptyCheck);
 
-export async function CommentsDeleteSendPMAsync (newComment) {
-  if (newComment.deleted && newComment.contents && newComment.contents.html) {
+export async function CommentsDeleteSendPMAsync (newComment, oldComment, {currentUser}) {
+  if (currentUser._id !== newComment.userId && newComment.deleted && newComment.contents && newComment.contents.html) {
     const originalPost = await Posts.findOne(newComment.postId);
     const moderatingUser = await Users.findOne(newComment.deletedByUserId);
     const lwAccount = await getLessWrongAccount();
@@ -259,14 +260,14 @@ export async function CommentsDeleteSendPMAsync (newComment) {
       conversationId: conversation.data._id
     }
 
-    newMutation({
+    await newMutation({
       collection: Messages,
       document: firstMessageData,
       currentUser: lwAccount,
       validate: false
     })
 
-    newMutation({
+    await newMutation({
       collection: Messages,
       document: secondMessageData,
       currentUser: lwAccount,
@@ -294,7 +295,7 @@ addCallback("comments.new.sync", CommentsNewUserApprovedStatus);
  // LESSWRONG – bigUpvote
 async function LWCommentsNewUpvoteOwnComment(comment) {
   var commentAuthor = Users.findOne(comment.userId);
-  const votedComment = await performVoteServer({ document: comment, voteType: 'smallUpvote', collection: Comments, user: commentAuthor })
+  const votedComment = commentAuthor && await performVoteServer({ document: comment, voteType: 'smallUpvote', collection: Comments, user: commentAuthor })
   return {...comment, ...votedComment};
 }
 addCallback('comments.new.after', LWCommentsNewUpvoteOwnComment);

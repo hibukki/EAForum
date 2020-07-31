@@ -111,6 +111,16 @@ registerFragment(`
 `);
 
 registerFragment(`
+  fragment PostsWithVotes on Post {
+    ...PostsBase
+    currentUserVotes{
+      ...VoteFragment
+    }
+  }
+`);
+
+
+registerFragment(`
   fragment PostsAuthors on Post {
     user {
       ...UsersMinimumInfo
@@ -236,8 +246,7 @@ registerFragment(`
       ...RevisionDisplay
     }
     revisions {
-      version
-      editedAt
+      ...RevisionMetadata
     }
   }
 `)
@@ -252,8 +261,7 @@ registerFragment(`
       ...RevisionEdit
     }
     revisions {
-      version
-      editedAt
+      ...RevisionMetadata
     }
   }
 `)
@@ -353,12 +361,10 @@ registerFragment(`
   fragment PostsRevisionsList on Post {
     _id
     revisions {
-      version
-      editedAt
+      ...RevisionMetadata
     }
   }
 `)
-
 
 registerFragment(`
   fragment PostsRecentDiscussion on Post {
@@ -384,6 +390,15 @@ registerFragment(`
 registerFragment(`
   fragment SunshinePostsList on Post {
     ...PostsList
+
+    currentUserVotes{
+      ...VoteFragment
+    }
+
+    contents {
+      html
+      htmlHighlight
+    }
     
     user {
       ...UsersMinimumInfo
