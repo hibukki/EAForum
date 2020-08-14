@@ -70,6 +70,9 @@ registerMigration({
   }
 })
 
+// TODO; make sure there's nothing too funny about number of votes or similar
+// TODO; If I'm giving up on performance, I could use newMutation and
+// performVoteServer as in tagsGraphQL.ts
 registerMigration({
   name: 'metaToCommunityPosts',
   dateWritten: '2020-08-12',
@@ -87,40 +90,79 @@ registerMigration({
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating post batch");
-        const tagRelInserts = posts.map(post => {
-          return {
-            insertOne: {
-              "tagId" : communityTagId,
-              "postId" : post._id,
-              "userId" : post.reviewedByUserId,
-              "baseScore" : 2,
-              "score" : 2,
-              "afBaseScore" : 2,
-              "voteCount" : 1,
-              "deleted" : false,
-              "schemaVersion" : 1,
-              "inactive" : false,
-              "createdAt" : moment().toDate(),
-            }
+        const tagRelInserts = posts.map(post => ({
+          insertOne: {
+            tagId : communityTagId,
+            postId : post._id,
+            userId : post.reviewedByUserId,
+            baseScore : 2,
+            score : 2,
+            afBaseScore : 2,
+            voteCount : 1,
+            deleted : false,
+            schemaVersion : 1,
+            inactive : false,
+            createdAt : moment().toDate(),
           }
-        })
-        console.log('tagRelInserts', tagRelInserts)
+        }))
         if (tagRelInserts.length) {
           const result = await TagRels.rawCollection().bulkWrite(tagRelInserts, { ordered: false });
-          console.log('result', result)
+          // eslint-disable-next-line no-console
+          console.log(`updated ${result.result.nModified} posts`)
         }
         
+        // TagRels exist, but the callbacks did not fire, which means posts have
+        // not updated to store the tag relevance on their object
         for (let post of posts){
-          // TODO; this is a database call for every meta post T_T
+          // This is two database calls for every meta post. I believe that this
+          // is only annoyingly and not excruciatingly slow. It seems like I'll
+          // need to open up this function and write it with an interesting join
+          // if I want to avoid it.
           await updatePostDenormalizedTags(post._id)
         }
       }
     });
     
+    // Because of the bulkWrite nature of our insert, we ended up with ObjectIDs
+    // instead of strings for the IDs. Our code doesn't like those, so replace
+    // them.
     await replaceObjectIdsWithStrings(TagRels)
   }
 });
 
+registerMigration({
+  name: 'clearMeta',
+  dateWritten: '2020-08-14',
+  idempotent: true,
+  action: async () => {
+    await forEachDocumentBatchInCollection({
+      collection: Posts,
+      batchSize: 100,
+      // TODO;
+      filter: {meta: true, slug: {$in: [
+        'saturday-morning-breakfast-cereal-rebel', 'saturday-morning-breakfast-cereal-why'
+      ]}},
+      callback: async (posts: Array<DbPost>) => {
+        // eslint-disable-next-line no-console
+        console.log("Migrating post batch");
+        const changes = posts.map(post => ({
+          updateOne: {
+            filter: {_id : post._id},
+            update: {$set: {meta: false}}
+          }
+        }))
+        if (changes.length) {
+          const result = await Posts.rawCollection().bulkWrite(changes, { ordered: false });
+          // eslint-disable-next-line no-console
+          console.log(`updated ${result.result.nModified} posts`)
+        }
+      }
+    });
+  }
+});
+
+// Copy pasta from a migration that hasn't been used in a year
+// See: `2019-02-04-replaceObjectIdsInEditableFields.ts`
 async function replaceObjectIdsWithStrings<T extends DbObject> (collection: CollectionBase<T>) {
   await migrateDocuments({
     description: `Replace object ids with strings in ${collection.collectionName}`,
