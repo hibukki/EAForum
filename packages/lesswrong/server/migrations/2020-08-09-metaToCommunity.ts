@@ -83,10 +83,7 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Posts,
       batchSize: 100,
-      // TODO;
-      filter: {meta: true, slug: {$in: [
-        'saturday-morning-breakfast-cereal-rebel', 'saturday-morning-breakfast-cereal-why'
-      ]}},
+      filter: {meta: true},
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating post batch");
@@ -138,10 +135,7 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Posts,
       batchSize: 100,
-      // TODO;
-      filter: {meta: true, slug: {$in: [
-        'saturday-morning-breakfast-cereal-rebel', 'saturday-morning-breakfast-cereal-why'
-      ]}},
+      filter: {meta: true},
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating post batch");
