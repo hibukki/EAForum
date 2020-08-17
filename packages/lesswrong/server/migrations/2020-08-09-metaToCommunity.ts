@@ -83,6 +83,7 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Posts,
       batchSize: 100,
+      // TODO; filter for not already having the tag
       filter: {meta: true},
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
@@ -117,6 +118,9 @@ registerMigration({
           // if I want to avoid it.
           await updatePostDenormalizedTags(post._id)
         }
+        
+        // TODO;? Community tag will still claim to have only a few tags.
+        // Maybe just manually update it.
       }
     });
     
@@ -128,7 +132,7 @@ registerMigration({
 });
 
 registerMigration({
-  name: 'clearMeta',
+  name: 'moveMetaToFrontpage',
   dateWritten: '2020-08-14',
   idempotent: true,
   action: async () => {
@@ -142,7 +146,10 @@ registerMigration({
         const changes = posts.map(post => ({
           updateOne: {
             filter: {_id : post._id},
-            update: {$set: {meta: false}}
+            update: {$set: {
+              meta: false,
+              frontpageDate: post.createdAt
+            }}
           }
         }))
         if (changes.length) {
