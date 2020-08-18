@@ -3,7 +3,6 @@ import { registerComponent, Components } from '../../../lib/vulcan-lib';
 import Typography from '@material-ui/core/Typography';
 import PersonIcon from '@material-ui/icons/Person'
 import HomeIcon from '@material-ui/icons/Home';
-import GroupIcon from '@material-ui/icons/Group';
 import SubjectIcon from '@material-ui/icons/Subject';
 import { forumTypeSetting } from '../../../lib/instanceSettings';
 
@@ -107,18 +106,12 @@ export const contentTypes = {
   EAForum: {
     frontpage: {
       tooltipTitle: 'Frontpage Post',
+      // TODO;
       tooltipBody: <div>
         Posts about ideas that are relevant to doing good effectively and don’t
         require background knowledge of the EA community.
       </div>,
       Icon: HomeIcon
-    },
-    meta: {
-      tooltipTitle: 'Community Post',
-      tooltipBody: <div>
-        Posts about EA philosophy, the EA community, or the Forum itself.
-      </div>,
-      Icon: GroupIcon
     },
     personal: {
       tooltipTitle: 'Personal Blog Post',
