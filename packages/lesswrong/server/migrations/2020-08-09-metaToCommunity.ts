@@ -7,6 +7,7 @@ import TagRels from '../../lib/collections/tagRels/collection';
 import * as _ from 'underscore';
 import moment from 'moment';
 import { updatePostDenormalizedTags } from '../tagging/tagCallbacks';
+import { recomputeDenormalizedValues } from '../scripts/recomputeDenormalized';
 
 // TODO; Doc
 // Previously, the personalBlog weight was being hackily used to refer
@@ -19,7 +20,6 @@ registerMigration({
   idempotent: true,
   action: async () => {
     const communityTagId = Tags.find({slug: 'community'}).fetch()[0]._id
-    console.log('communityTagId', communityTagId)
 
     await forEachDocumentBatchInCollection({
       collection: Users,
@@ -38,9 +38,7 @@ registerMigration({
           {
             return []
           }
-          console.log('user.frontpageFilterSettings', user.frontpageFilterSettings)
           const communityWeight = user.frontpageFilterSettings.personalBlog
-          console.log("communityWeight", communityWeight)
 
           return [
             {
@@ -63,7 +61,6 @@ registerMigration({
           ] as MongoModifier<DbUser>
         })
         
-        console.log('changes', JSON.stringify(changes))
         if (changes.length) await Users.rawCollection().bulkWrite(changes, { ordered: false })
       }
     })
@@ -83,11 +80,11 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Posts,
       batchSize: 100,
-      // TODO; filter for not already having the tag
       filter: {meta: true},
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating post batch");
+        // If I were to write this again, I'd call the newMutation method, which would get me a bunch of callbacks firing automatically,
         const tagRelInserts = posts.map(post => ({
           insertOne: {
             tagId : communityTagId,
@@ -119,8 +116,8 @@ registerMigration({
           await updatePostDenormalizedTags(post._id)
         }
         
-        // TODO;? Community tag will still claim to have only a few tags.
-        // Maybe just manually update it.
+        // Again because of TODO;
+        await recomputeDenormalizedValues({collectionName: "Tags", fieldName: "postCount"})
       }
     });
     
