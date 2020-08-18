@@ -106,10 +106,8 @@ export const contentTypes = {
   EAForum: {
     frontpage: {
       tooltipTitle: 'Frontpage Post',
-      // TODO;
       tooltipBody: <div>
-        Posts about ideas that are relevant to doing good effectively and don’t
-        require background knowledge of the EA community.
+        Posts that are relevant to doing good effectively.
       </div>,
       Icon: HomeIcon
     },

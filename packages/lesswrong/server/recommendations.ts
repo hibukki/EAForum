@@ -196,7 +196,6 @@ const samplePosts = async ({count, currentUser, algorithm, sampleWeightFn}) => {
 const getModifierName = post => {
   if (post.curatedDate) return 'curatedModifier'
   if (post.frontpageDate) return 'frontpageModifier'
-  // TODO; tag modifiers?
   return 'personalBlogpostModifier'
 }
 
