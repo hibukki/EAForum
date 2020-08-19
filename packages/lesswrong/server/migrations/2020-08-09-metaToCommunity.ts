@@ -64,12 +64,14 @@ registerMigration({
 })
 
 // TODO; voting on documents
+const DEFAULT_ADMIN_USER_SLUG = 'jpaddison'
 registerMigration({
   name: 'metaToCommunityPosts',
   dateWritten: '2020-08-12',
   idempotent: true,
   action: async () => {
     const communityTagId = Tags.find({slug: 'community'}).fetch()[0]._id
+    const defaultAdminUserId = Users.find({ slug: DEFAULT_ADMIN_USER_SLUG }).fetch()[0]._id
 
     await forEachDocumentBatchInCollection({
       collection: Posts,
@@ -80,7 +82,7 @@ registerMigration({
         console.log("Migrating post batch");
         
         for (let post of posts) {
-          if (post.tagRelevance[communityTagId]) {
+          if (post.tagRelevance?.[communityTagId]) {
             console.log('continuing')
             continue
           }
@@ -92,8 +94,7 @@ registerMigration({
             document: {
               tagId: communityTagId,
               postId: post._id,
-              userId: post.reviewedByUserId,
-              baseScore: 2,
+              userId: post.reviewedByUserId || defaultAdminUserId,
             },
             // Validation requires us to have a context object, which has
             // things like currentUser that aren't applicable.
