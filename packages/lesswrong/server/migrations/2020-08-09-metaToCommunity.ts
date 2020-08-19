@@ -21,7 +21,6 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Users,
       batchSize: 100,
-      filter: {slug: {$in: ['a-a']}}, // TODO;
       callback: async (users: Array<DbUser>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating user batch")
@@ -64,6 +63,7 @@ registerMigration({
   }
 })
 
+// TODO; voting on documents
 registerMigration({
   name: 'metaToCommunityPosts',
   dateWritten: '2020-08-12',
@@ -80,6 +80,10 @@ registerMigration({
         console.log("Migrating post batch");
         
         for (let post of posts) {
+          if (post.tagRelevance[communityTagId]) {
+            console.log('continuing')
+            continue
+          }
           // Oh man, I refactored this migration to use this method, and it
           // changed my life. 10/10 would use again in future migrations.
           // bulkwrite is faster, but callbacks are often important
