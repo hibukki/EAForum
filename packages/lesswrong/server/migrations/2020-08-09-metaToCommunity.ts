@@ -1,4 +1,11 @@
-import { registerMigration, forEachDocumentBatchInCollection, migrateDocuments } from './migrationUtils'
+/*
+ * The EA Forum has been using the meta flag on posts to indicate that they are
+ * community posts. We will now treat the community section as a tag.
+ *
+ * These migrations assume you have a tag with the slug "community", and an
+ * admin with the slug "jpaddison"
+ */
+import { registerMigration, forEachDocumentBatchInCollection } from './migrationUtils'
 import { defaultFilterSettings, FilterTag } from '../../lib/filterSettings'
 import Users from '../../lib/collections/users/collection'
 import Tags from '../../lib/collections/tags/collection'
@@ -6,11 +13,23 @@ import Posts from '../../lib/collections/posts/collection';
 import TagRels from '../../lib/collections/tagRels/collection';
 import { newMutation } from '../vulcan-lib';
 
-// TODO; Doc
-// Previously, the personalBlog weight was being hackily used to refer
-// to the community section on the EA Forum
+// Your frontpage settings are shaped like:
+// ```
+// {
+//   personalBlog: <weight>,
+//   tags: [
+//     {
+//       tagId: <id>,
+//       tagName: <name>,
+//       filterMode: <weight>
+//     }, ...
+//   ]
+// }
+// ```
+// Previously, the personalBlog weight was being hackily used to refer to the
+// community section on the EA Forum. We'll now move that weight into the tags
+// section.
 // Also reset personalBlog filtering back to 'Default'
-// TODO; might be useful reference code for lw
 registerMigration({
   name: 'metaToCommunityUserSettings',
   dateWritten: '2020-08-11',
@@ -63,8 +82,10 @@ registerMigration({
   }
 })
 
-// TODO; voting on documents
+// Someone's gotta put their name on all those tagRels
 const DEFAULT_ADMIN_USER_SLUG = 'jpaddison'
+
+// Tag all posts with the meta flag as community posts
 registerMigration({
   name: 'metaToCommunityPosts',
   dateWritten: '2020-08-12',
@@ -83,7 +104,6 @@ registerMigration({
         
         for (let post of posts) {
           if (post.tagRelevance?.[communityTagId]) {
-            console.log('continuing')
             continue
           }
           // Oh man, I refactored this migration to use this method, and it
@@ -106,6 +126,8 @@ registerMigration({
   }
 })
 
+// Once we've deployed, run this migration to mark all community posts as
+// frontpage, and remove the meta flag
 registerMigration({
   name: 'moveMetaToFrontpage',
   dateWritten: '2020-08-14',
