@@ -9,7 +9,6 @@ import { timeframeToTimeBlock } from './timeframeUtils'
 import { queryIsUpdating } from '../common/queryStatusUtils'
 import withTimezone from '../common/withTimezone';
 import { QueryLink } from '../../lib/reactRouterWrapper';
-import { forumTypeSetting } from '../../lib/instanceSettings';
 
 const styles = theme => ({
   root: {
@@ -42,8 +41,8 @@ const styles = theme => ({
 })
 
 const postTypes = [
-  {name: 'frontpage', postIsType: post => !!post.frontpageDate, label: 'Frontpage Posts'},
-  {name: 'personal', postIsType: post => !post.frontpageDate, label: 'Personal Blogposts'}
+  {name: 'frontpage', postIsType: (post: PostsBase) => !!post.frontpageDate, label: 'Frontpage Posts'},
+  {name: 'personal', postIsType: (post: PostsBase) => !post.frontpageDate, label: 'Personal Blogposts'}
 ]
 
 interface ExternalProps {
@@ -119,7 +118,7 @@ class PostsTimeBlock extends Component<PostsTimeBlockProps,PostsTimeBlockState> 
       timeframe, networkStatus, timezone, displayShortform = true
     } = this.props
     const { noShortform } = this.state
-    const { PostsItem2, LoadMore, ShortformTimeBlock, Loading, ContentType, Divider } = Components
+    const { PostsItem2, LoadMore, ShortformTimeBlock, Loading, ContentType } = Components
     const timeBlock = timeframeToTimeBlock[timeframe]
 
     const noPosts = !loading && (!posts || (posts.length === 0))
@@ -171,13 +170,13 @@ class PostsTimeBlock extends Component<PostsTimeBlockProps,PostsTimeBlockState> 
           </div> }
 
           {postGroups.map(({name, posts, label}) => {
-            if (posts?.length > 0) return <div key={name}>
+            if (posts!.length > 0) return <div key={name}>
               <div
                 className={name === 'frontpage' ? classes.frontpageSubtitle : classes.otherSubtitle}
               >
                 <ContentType type={name} label={label} />
               </div>
-              {posts.map((post, i) =>
+              {posts!.map((post, i) =>
                 <PostsItem2 key={post._id} post={post} index={i} dense />
               )}
             </div>
