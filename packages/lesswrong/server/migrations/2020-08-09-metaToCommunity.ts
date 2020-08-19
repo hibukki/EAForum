@@ -53,7 +53,7 @@ registerMigration({
           {
             return []
           }
-          const communityWeight = user.frontpageFilterSettings.personalBlog
+          const communityWeight = user.frontpageFilterSettings?.personalBlog || defaultFilterSettings.personalBlog
 
           return [
             {
