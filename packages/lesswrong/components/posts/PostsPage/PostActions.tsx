@@ -240,7 +240,7 @@ class PostActions extends Component<PostActionsProps,{}> {
             { !post.meta &&
               <div onClick={this.handleMoveToMeta}>
                 <MenuItem>
-                  Move to meta
+                  Move to Meta
                 </MenuItem>
               </div>
             }
