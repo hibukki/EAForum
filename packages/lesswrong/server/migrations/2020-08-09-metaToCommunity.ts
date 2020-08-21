@@ -49,11 +49,17 @@ registerMigration({
           // already been migrated. Don't migrate them again or you'll overwrite
           // that setting with the personalBlogpost setting that now might
           // actually be about personal blogposts
-          if (user.frontpageFilterSettings?.tags?.some((setting: FilterTag) => setting.tagId === communityTagId))
-          {
+          if (user.frontpageFilterSettings?.tags?.some((setting: FilterTag) => setting.tagId === communityTagId)) {
             return []
           }
-          const communityWeight = user.frontpageFilterSettings?.personalBlog || defaultFilterSettings.personalBlog
+
+          // If the user has set their community filter to something other than
+          // the default, we keep their preference. However, we're changing the
+          // default from "Hidden" to -25.
+          let communityWeight = user.frontpageFilterSettings?.personalBlog
+          if (!communityWeight || communityWeight === "Hidden") {
+            communityWeight = -25
+          }
 
           return [
             {
