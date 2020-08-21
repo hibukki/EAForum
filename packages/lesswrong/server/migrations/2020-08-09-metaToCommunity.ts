@@ -103,7 +103,7 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Posts,
       batchSize: 100,
-      filter: {meta: true},
+      filter: {meta: true, status: 2},
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating post batch");
@@ -142,7 +142,7 @@ registerMigration({
     await forEachDocumentBatchInCollection({
       collection: Posts,
       batchSize: 100,
-      filter: {meta: true},
+      filter: {meta: true, status: 2},
       callback: async (posts: Array<DbPost>) => {
         // eslint-disable-next-line no-console
         console.log("Migrating post batch");
