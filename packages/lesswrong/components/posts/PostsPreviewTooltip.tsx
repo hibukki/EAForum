@@ -6,6 +6,7 @@ import { Posts } from '../../lib/collections/posts';
 import Card from '@material-ui/core/Card';
 import {AnalyticsContext} from "../../lib/analyticsEvents";
 import { Link } from '../../lib/reactRouterWrapper';
+import { sortTags } from '../tagging/FooterTagList';
 
 export const POST_PREVIEW_WIDTH = 400
 
@@ -34,7 +35,7 @@ export const highlightStyles = theme => ({
   }
 })
 
-const styles = theme => ({
+const styles = (theme: ThemeType): JssStyles => ({
   root: {
     width: POST_PREVIEW_WIDTH,
     position: "relative",
@@ -151,6 +152,8 @@ const PostsPreviewTooltip = ({ postsList, post, classes, comment }: {
 
   const renderedComment = comment || post.bestAnswer
 
+  const tags = sortTags(post.tags, t=>t)
+
   return <AnalyticsContext pageElementContext="hoverPreview">
       <Card className={classes.root}>
         <div className={classes.header}>
@@ -161,8 +164,8 @@ const PostsPreviewTooltip = ({ postsList, post, classes, comment }: {
             <div className={classes.tooltipInfo}>
               { postsList && <span> 
                 {getPostCategory(post)}
-                {(post.tags?.length > 0) && " – "}
-                {post.tags?.map((tag, i) => <span key={tag._id}>{tag.name}{(i !== (post.tags?.length - 1)) ? ",  " : ""}</span>)}
+                {(tags?.length > 0) && " – "}
+                {tags?.map((tag, i) => <span key={tag._id}>{tag.name}{(i !== (post.tags?.length - 1)) ? ",  " : ""}</span>)}
                 {renderWordCount && <span>{" "}<span className={classes.wordCount}>({wordCount} words)</span></span>}
               </span>}
               { !postsList && <>

@@ -10,7 +10,7 @@ import { curatedUrl } from '../recommendations/RecommendationsAndCurated';
 import { Link } from '../../lib/reactRouterWrapper';
 import { forumTypeSetting } from '../../lib/instanceSettings';
 
-const styles = theme => ({
+const styles = (theme: ThemeType): JssStyles => ({
   iconSet: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
