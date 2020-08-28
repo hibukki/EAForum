@@ -6,11 +6,10 @@ import { extractVersionsFromSemver } from '../../../lib/editor/utils'
 import { getUrlClass } from '../../../lib/routeUtil';
 import classNames from 'classnames';
 import { Meteor } from 'meteor/meteor';
-import { forumTypeSetting } from '../../../lib/instanceSettings';
 
 const SECONDARY_SPACING = 20
 
-const styles = theme => ({
+const styles = (theme: ThemeType): JssStyles => ({
   header: {
     position: 'relative',
     display:"flex",
@@ -105,15 +104,6 @@ function getHostname(url) {
   var parser = document.createElement('a');
   parser.href = url;
   return parser.hostname;
-}
-
-export const getContentType = (post) => {
-  if (forumTypeSetting.get() === 'EAForum') {
-    return (post.frontpageDate && 'frontpage') ||
-    (post.meta && 'meta') ||
-    'personal'
-  }
-  return post.frontpageDate ? 'frontpage' : 'personal'
 }
 
 /// PostsPagePostHeader: The metadata block at the top of a post page, with

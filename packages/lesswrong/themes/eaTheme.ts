@@ -39,7 +39,8 @@ const palette = {
     main: '#0c869b',
   },
   lwTertiary: {
-    main: "#137283"
+    main: "#137283",
+    dark: "#137283",
   },
   error: {
     main: deepOrange[900]
@@ -273,6 +274,26 @@ const theme = createLWTheme({
       banner: {
         top: 77,
       },
+    },
+    AllTagsPage: {
+      root: {
+        maxWidth: 900,
+      },
+      topSection: {
+        maxWidth: 900,
+      },
+      portal: {
+        background: 'white',
+        marginTop: 'unset',
+        marginBottom: 'unset',
+        padding: '20px',
+        boxShadow: "0 1px 5px rgba(0,0,0,.025)",
+      }
+    },
+    TagsDetailsItem: {
+      description: {
+        maxWidth: 490,
+      }
     },
     ContentType: {
       root: {

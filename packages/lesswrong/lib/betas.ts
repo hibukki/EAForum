@@ -20,6 +20,7 @@ const disabled = (user: UsersCurrent|DbUser|null): boolean => false; // eslint-d
 // Features in progress                                                     //
 //////////////////////////////////////////////////////////////////////////////
 
+export const userCanEditTagPortal = adminOnly;
 export const userHasCkEditor = optInOnly;
 export const userHasCkCollaboration = adminOnly;
 export const userHasBoldPostItems = disabled
@@ -27,8 +28,8 @@ export const userHasEAHomeHandbook = adminOnly
 export const userCanCreateCommitMessages = moderatorOnly;
 
 // Shipped Features
-export const userCanManageTags = optInOnly;
-export const userCanCreateTags = optInOnly;
+export const userCanManageTags = shippedFeature;
+export const userCanCreateTags = shippedFeature;
 export const userCanUseTags = shippedFeature;
 export const userCanViewRevisionHistory = shippedFeature;
 export const userHasPingbacks = shippedFeature;
