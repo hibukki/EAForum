@@ -589,7 +589,7 @@ switch (forumTypeSetting.get()) {
       {
         name: 'Community',
         path: '/meta',
-        redirect: () => `/tags/all`,
+        redirect: () => `/tags/community`,
       },
       {
         name: 'eaSequencesHome',
