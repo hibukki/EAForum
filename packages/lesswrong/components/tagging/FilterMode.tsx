@@ -11,6 +11,7 @@ import { commentBodyStyles } from '../../themes/stylePiping'
 import { Link } from '../../lib/reactRouterWrapper';
 import { isMobile } from '../../lib/utils/isMobile'
 import { AnalyticsContext } from "../../lib/analyticsEvents";
+import { forumTypeSetting } from '../../lib/instanceSettings';
 
 const styles = (theme: ThemeType): JssStyles => ({
   tag: {
@@ -77,6 +78,8 @@ const styles = (theme: ThemeType): JssStyles => ({
     "-moz-appearance": "textfield"
   }
 });
+
+const canRemoveCoreTags = forumTypeSetting.get() === 'EAForum'
 
 const FilterModeRawComponent = ({tagId="", label, mode, canRemove=false, onChangeMode, onRemove, description, classes}: {
   tagId?: string,
@@ -167,7 +170,7 @@ const FilterModeRawComponent = ({tagId="", label, mode, canRemove=false, onChang
 
               onChange={ev => onChangeMode(parseInt(ev.target.value || "0"))}
             />
-            {canRemove && !tag?.core &&
+            {canRemove && (canRemoveCoreTags || !tag?.core) &&
               <div className={classes.removeLabel} onClick={ev => {if (onRemove) onRemove()}}>
                 <LWTooltip title={<div><div>This filter will no longer appear in Latest Posts.</div><div>You can add it back later if you want</div></div>}>
                   <a>Remove</a>
