@@ -76,6 +76,7 @@ export function genericHashLink(props, As) {
     }
   }
   const { scroll, smooth, ...filteredProps } = props;
+
   return (
     <As {...filteredProps} onClick={handleClick}>
       {props.children}
@@ -84,7 +85,14 @@ export function genericHashLink(props, As) {
 }
 
 export function HashLink(props) {
-  return genericHashLink(props, Link);
+  // React router links don't handle external URLs, so use a
+  // normal HTML a tag if the URL is external
+  const externalLink = props.to.slice(0,8) === 'https://'  
+  const Element = externalLink ? 
+    (p) => React.createElement('a', {...p, href: p.to})
+    : Link;
+
+  return genericHashLink(props, Element);
 }
 
 export function NavHashLink(props) {
