@@ -220,22 +220,20 @@ const schema: SchemaType<DbPost> = {
       }
     }
   },
-  // TODO;
+  // Priority of the stickied post. Higher priorities will be sorted before
+  // lower priorities.
   stickyPriority: {
     type: SimpleSchema.Integer,
     ...schemaDefaultValue(2),
     viewableBy: ['guests'],
     insertableBy: ['admins'],
     editableBy: ['admins'],
-    hidden: false, // TODO;
     control: 'select',
     options: () => Object.entries(STICKY_PRIORITIES).map(([level, name]) => {
-      console.log('🚀 ~ file: schema.ts ~ line 233 ~ options: ~ level, name', level, name)
       const res = {
         value: parseInt(level),
         label: name
       }
-      console.log('🚀 ~ file: schema.ts ~ line 237 ~ options: ~ res', res)
       return res
     }),
     group: formGroups.adminOptions,
