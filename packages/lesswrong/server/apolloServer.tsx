@@ -32,6 +32,7 @@ import { addClientIdMiddleware } from './clientIdMiddleware';
 import { addStaticRoute } from './vulcan-lib/staticRoutes';
 import fs from 'fs';
 import crypto from 'crypto';
+import expressSession from 'express-session';
 
 const loadClientBundle = () => {
   const bundlePath = path.join(__dirname, "../../client/js/bundle.js");
@@ -65,6 +66,11 @@ export function startWebserver() {
   const config = { path: '/graphql' };
 
   app.use(universalCookiesMiddleware());
+  app.use(expressSession({
+    secret: '1f179514117abda02a3f4536e6e0fc0a',
+    resave: false,
+    saveUninitialized: false,
+  }))
   app.use(bodyParser.urlencoded({ extended: true })) // We send passwords + username via urlencoded form parameters
   app.use(pickerMiddleware);
 

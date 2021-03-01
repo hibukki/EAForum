@@ -6,6 +6,7 @@ import { Users } from '../lib/collections/users/collection';
 import { getCookieFromReq } from './utils/httpUtil';
 import { Strategy as GoogleOAuthStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookOAuthStrategy } from 'passport-facebook';
+import { Strategy as Auth0Strategy } from 'passport-auth0';
 import { Strategy as GithubOAuthStrategy } from 'passport-github2';
 import { DatabaseServerSetting } from './databaseSettings';
 import { createMutator } from './vulcan-lib/mutators';
@@ -13,6 +14,10 @@ import { getSiteUrl, slugify, Utils } from '../lib/vulcan-lib/utils';
 
 const googleClientIdSetting = new DatabaseServerSetting('oAuth.google.clientId', null)
 const googleOAuthSecretSetting = new DatabaseServerSetting('oAuth.google.secret', null)
+
+const auth0ClientIdSetting = new DatabaseServerSetting('oAuth.auth0.appId', null)
+const auth0OAuthSecretSetting = new DatabaseServerSetting('oAuth.auth0.secret', null)
+const auth0DomainSetting = new DatabaseServerSetting('oAuth.auth0.domain', null)
 
 const facebookClientIdSetting = new DatabaseServerSetting('oAuth.facebook.appId', null)
 const facebookOAuthSecretSetting = new DatabaseServerSetting('oAuth.facebook.secret', null)
@@ -24,6 +29,7 @@ function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile
   return async (accessToken, refreshToken, profile, done) => {
     const user = await Users.findOne({[idPath]: getIdFromProfile(profile)})
     if (!user) {
+      console.log("In createOAuthUserHandler, creating a new user")
       const { data: user } = await createMutator({
         collection: Users,
         document: getUserDataFromProfile(profile),
@@ -31,6 +37,8 @@ function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile
         currentUser: null
       })
       return done(null, user)
+    } else {
+      console.log("In createOAuthUserHandler, a user already exists")
     }
     return done(null, user)
   }
@@ -131,7 +139,31 @@ export const addAuthMiddlewares = (addConnectHandler) => {
       }))
     ))
   }
-  
+
+  const auth0ClientId = auth0ClientIdSetting.get();
+  if (auth0ClientId) {
+    passport.use(
+      new Auth0Strategy(
+        {
+          clientID: auth0ClientIdSetting.get(),
+          clientSecret: auth0OAuthSecretSetting.get(),
+          domain: auth0DomainSetting.get(),
+          callbackURL: `${getSiteUrl()}auth/auth0/callback`,
+          proxy: true
+        },
+        createOAuthUserHandler('services.auth0.id', profile => profile.id, profile => ({
+          email: profile.emails[0].value,
+          services: {
+            auth0: profile
+          },
+          username: Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
+          displayName: profile.displayName,
+          emailSubscribedToCurated: true
+        }))
+      )
+    );
+  }
+
   const githubClientId = githubClientIdSetting.get()
   if (githubClientId) {
     passport.use(new GithubOAuthStrategy({
@@ -167,7 +199,12 @@ export const addAuthMiddlewares = (addConnectHandler) => {
   } )
 
   addConnectHandler('/auth/google', (req, res, next) => {
-    passport.authenticate('google', {scope: ['https://www.googleapis.com/auth/plus.login', 'https://www.googleapis.com/auth/userinfo.email'], accessType: "offline", prompt: "consent"})(req, res, next)
+    passport.authenticate('google', {
+      scope: [
+        'https://www.googleapis.com/auth/plus.login',
+          'https://www.googleapis.com/auth/userinfo.email'
+      ], accessType: "offline", prompt: "consent"
+    } as any)(req, res, next)
   })
 
   addConnectHandler('/auth/facebook/callback', (req, res, next) => {
@@ -186,6 +223,36 @@ export const addAuthMiddlewares = (addConnectHandler) => {
 
   addConnectHandler('/auth/facebook', (req, res, next) => {
     passport.authenticate('facebook')(req, res, next)
+  })
+
+  addConnectHandler('/auth/auth0/callback', (req, res, next) => {
+    passport.authenticate('auth0', {}, (err, user, info) => {
+      console.log("In passport.authenticate for auth0");
+      if (err) {
+        console.log(err);
+        return next(err)
+      }
+      if (!user) {
+        console.log("No user")
+        return next()
+      }
+      req.logIn(user, async (err) => {
+        console.log("In req.logIn result callback")
+        if (err) {
+          console.log("req.logIn failed: ", err)
+          return next(err)
+        }
+        await createAndSetToken(req, res, user)
+        res.statusCode=302;
+        res.setHeader('Location', '/')
+        console.log("req.logIn finished");
+        return res.end();
+      })
+    })(req, res, next)
+  } )
+
+  addConnectHandler('/auth/auth0', (req, res, next) => {
+    passport.authenticate('auth0')(req, res, next)
   })
 
   addConnectHandler('/auth/github/callback', (req, res, next) => {
