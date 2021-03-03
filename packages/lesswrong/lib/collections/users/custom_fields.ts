@@ -992,7 +992,6 @@ addFieldsDict(Users, {
     canCreate: ['members'],
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
     optional: true,
-    hidden: forumTypeSetting.get() === "EAForum",
     label: "Hide the tagging progress bar",
     order: 45,
     group: formGroups.siteCustomizations

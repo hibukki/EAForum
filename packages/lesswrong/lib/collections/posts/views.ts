@@ -1147,6 +1147,8 @@ Posts.addView("tagProgressUntagged", (terms: PostsViewTerms) => {
   }
 })
 
+// TODO; is there a missing index?
+
 Posts.addView("personalTagProgressUntagged", (terms: PostsViewTerms) => {
   return {
     selector: {

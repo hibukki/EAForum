@@ -7,6 +7,7 @@ import { useUpdateCurrentUser } from '../hooks/useUpdateCurrentUser';
 import { useCurrentUser } from '../common/withUser';
 import { useDialog } from '../common/withDialog';
 import { useMessages } from '../common/withMessages';
+import { useMulti } from '../../lib/crud/withMulti';
 
 export const progressBarRoot = (theme) => ({
   background: "white",
@@ -82,6 +83,50 @@ const TagProgressBar = ({ classes }: {
   const updateCurrentUser = useUpdateCurrentUser();
   const { openDialog } = useDialog();
   const { flash } = useMessages();
+  
+  const { totalCount: untaggedTotal } = useMulti({
+    terms: {
+      view: "tagProgressUntagged",
+      limit: 0
+    },
+    collectionName: "Posts",
+    fragmentName: 'PostsMinimumInfo',
+    enableTotal: true,
+    fetchPolicy: 'cache-and-network',
+  });
+  const { totalCount: postsTotal } = useMulti({
+    terms: {
+      view: "tagProgressPosts",
+      limit: 0
+    },
+    collectionName: "Posts",
+    fragmentName: 'PostsMinimumInfo',
+    enableTotal: true,
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const { totalCount: untaggedPersonalTotal } = useMulti({
+    terms: {
+      view: "personalTagProgressUntagged",
+      userId: currentUser?._id,
+      limit: 0
+    },
+    collectionName: "Posts",
+    fragmentName: 'PostsMinimumInfo',
+    enableTotal: true,
+    fetchPolicy: 'cache-and-network',
+  });
+  const { totalCount: personalPostsTotal } = useMulti({
+    terms: {
+      view: "personalTagProgressPosts",
+      userId: currentUser?._id,
+      limit: 0
+    },
+    collectionName: "Posts",
+    fragmentName: 'PostsMinimumInfo',
+    enableTotal: true,
+    fetchPolicy: 'cache-and-network',
+  });
 
   const hideClickHandler = async () => {
     if (currentUser) {
@@ -103,52 +148,74 @@ const TagProgressBar = ({ classes }: {
     }
   }
 
-  const allPostsTooltip = `All tags and wiki pages from the LW Wiki import have been processed!`
+  if (untaggedTotal === undefined || postsTotal === undefined) return null
+
+  const userHasPosts = !!(currentUser && untaggedPersonalTotal)
+
+  const personalBarTooltip = (untaggedPersonalTotal && untaggedPersonalTotal> 0) ? `Tagging Progress (your posts) (${untaggedPersonalTotal} remaining out of ${personalPostsTotal})` : "All your posts have been tagged."
+  const allPostsTooltip = (untaggedTotal > 0) ? `Tagging Progress (all posts) (${untaggedTotal} remaining out of ${postsTotal})` : "All posts with 25+ karma have been tagged!"
 
   return <div className={classes.root}>
-    <div className={classes.inner}>
-      <div className={classes.text}>
-        <Link className={classes.title} to={"/posts/ELN6FpRLoeLJPgx8z/importing-the-old-lw-wiki-help-wanted"}>
-          LW 1.0 Wiki Import Progress
+      <div className={classes.inner}>
+        <div className={classes.text}>
+          <Link className={classes.title} to={"/posts/uqXQAWxLFW8WgShtk/open-call-for-taggers"}>
+            Tagging Progress
           </Link>
-        <PostsItem2MetaInfo>
-          <Link className={classes.allTagsBarColor} to={"/posts/ELN6FpRLoeLJPgx8z/importing-the-old-lw-wiki-help-wanted"}>
-            What's the Import?
-            </Link>
-          <SeparatorBullet />
-          <Link className={classes.allTagsBarColor} to="/tags/dashboard">
-            Help Process Pages
-          </Link>
-        </PostsItem2MetaInfo>
-        <LWTooltip title={<div>
-          <div>View all completely untagged posts, sorted by karma</div>
-          <div><em>(Click through to read posts, and then tag them)</em></div>
-        </div>}>
-        </LWTooltip>
-      </div>
-      {
+          <LWTooltip title={<div>
+            <div>View all completely untagged posts, sorted by karma</div>
+            <div><em>(Click through to read posts, and then tag them)</em></div>
+          </div>}>
+            <PostsItem2MetaInfo>
+              <Link className={classes.allTagsBarColor} to={"/allPosts?filter=untagged&timeframe=allTime&sortedBy=top&karmaThreshold=25"}>
+                Tag Untagged Posts
+              </Link>
+            </PostsItem2MetaInfo>
+          </LWTooltip>
+          {userHasPosts && <SeparatorBullet/>}
+          {currentUser && userHasPosts && <LWTooltip title={<div> 
+            <div>View your own untagged posts.</div>
+            <div><em>(Click through to your user profile to review posts, and then tag them)</em></div>
+          </div>}>
+            <PostsItem2MetaInfo>
+              <Link className={classes.personalLink} to={`/users/${currentUser.slug}?filter=untagged&karmaThreshold=25`}>
+                Tag My Posts
+              </Link>
+            </PostsItem2MetaInfo>
+          </LWTooltip>}
+        </div>
         <LWTooltip className={classes.tooltip} title={allPostsTooltip}>
           <LinearProgress
-            classes={{ root: classes.barRoot }}
-            variant="determinate"
-            value={100}
+            classes={{root: classes.barRoot}} 
+            variant="determinate" 
+            value={((postsTotal - untaggedTotal)/postsTotal)*100} 
           />
         </LWTooltip>
-      }
-      <div className={classes.secondaryInfo}>
-        <div className={classes.helpText}>
-          <span className={classes.allTagsBarColor}> All pages from the LW 1.0 Wiki have been processed!{" "} </span>
-        </div>
-        <LWTooltip title={"Hide this progress bar from the frontpage"}>
-          <a
-            className={classes.hideButton}
-            onClick={hideClickHandler}
-          >
-            Hide
+
+        {!!currentUser && !!personalPostsTotal && !!untaggedPersonalTotal && 
+          <LWTooltip className={classes.tooltip} title={personalBarTooltip}>
+            <LinearProgress 
+              classes={{bar: classes.bar2, colorSecondary: classes.bar2Background}}     
+              variant="determinate" 
+              color="secondary" 
+              value={((personalPostsTotal - untaggedPersonalTotal)/personalPostsTotal)*100} 
+            />
+          </LWTooltip>
+        }
+        <div className={classes.secondaryInfo}>
+          <div className={classes.helpText}>
+            <span className={classes.allTagsBarColor}>{untaggedTotal} posts with 25+ karma still need a tag.{" "} </span>
+            {userHasPosts && <span>({untaggedPersonalTotal} of your own posts)</span>}
+          </div>
+          <LWTooltip title={"Hide this progress bar from the frontpage"}>
+            <a 
+              className={classes.hideButton}
+              onClick={hideClickHandler}
+            > 
+              Hide 
             </a>
-        </LWTooltip>
+          </LWTooltip>
+        </div>
       </div>
-    </div>
   </div>
 }
 
@@ -159,4 +226,3 @@ declare global {
     TagProgressBar: typeof TagProgressBarComponent
   }
 }
-
