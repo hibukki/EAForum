@@ -108,8 +108,8 @@ const UsersMenu = ({color="rgba(0, 0, 0, 0.6)", classes}: {
                 New Shortform
               </MenuItem>
             }
-            {showNewButtons && <Divider/>}
-            {showNewButtons && <Link to={`/newPost?eventForm=true`}>
+            {showNewButtons && forumTypeSetting.get() !== 'EAForum' && <Divider/>}
+            {showNewButtons && forumTypeSetting.get() !== 'EAForum' && <Link to={`/newPost?eventForm=true`}>
                 <MenuItem>New Event</MenuItem>
               </Link>
             }
