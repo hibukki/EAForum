@@ -34,6 +34,7 @@ const facebookOAuthSecretSetting = new DatabaseServerSetting('oAuth.facebook.sec
 const githubClientIdSetting = new DatabaseServerSetting('oAuth.github.clientId', null)
 const githubOAuthSecretSetting = new DatabaseServerSetting('oAuth.github.secret', null)
 
+// TODO replace this function for Auth0 and revert this to however it was originally written
 function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
   return async (accessToken, refreshToken, profile, done) => {
     // You'll need to get the secret from our public key
