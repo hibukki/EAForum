@@ -11,6 +11,15 @@ import { Strategy as GithubOAuthStrategy } from 'passport-github2';
 import { DatabaseServerSetting } from './databaseSettings';
 import { createMutator } from './vulcan-lib/mutators';
 import { getSiteUrl, slugify, Utils } from '../lib/vulcan-lib/utils';
+import jwt from 'jsonwebtoken'
+declare global {
+  // TODO;
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface User extends DbUser {
+    }
+  }
+}
 
 const googleClientIdSetting = new DatabaseServerSetting('oAuth.google.clientId', null)
 const googleOAuthSecretSetting = new DatabaseServerSetting('oAuth.google.secret', null)
@@ -27,7 +36,17 @@ const githubOAuthSecretSetting = new DatabaseServerSetting('oAuth.github.secret'
 
 function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
   return async (accessToken, refreshToken, profile, done) => {
+    // You'll need to get the secret from our public key
+    // https://auth0.com/docs/tokens/json-web-tokens/json-web-key-sets/locate-json-web-key-sets
+    // There's probably a library that'll do this for you
+    const auth0User = jwt.verify(profile, 'our-auth0-secret')
+    // TODO this erroneously returns any (single) user if the profile ID is undefined
     const user = await Users.findOne({[idPath]: getIdFromProfile(profile)})
+    console.log('user', user)
+    console.log('idPath', idPath)
+    console.log('profile', profile)
+    console.log('accessToken', accessToken)
+    console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
     if (!user) {
       console.log("In createOAuthUserHandler, creating a new user")
       const { data: user } = await createMutator({
@@ -64,6 +83,7 @@ passport.deserializeUser(deserializeUserPassport)
 
 export const addAuthMiddlewares = (addConnectHandler) => {
   addConnectHandler(passport.initialize())
+  addConnectHandler(passport.session())
   passport.use(cookieAuthStrategy)
   
   addConnectHandler('/', (req, res, next) => {
@@ -226,11 +246,18 @@ export const addAuthMiddlewares = (addConnectHandler) => {
   })
 
   addConnectHandler('/auth/auth0/callback', (req, res, next) => {
-    passport.authenticate('auth0', {}, (err, user, info) => {
+    console.log('Starting passport auth...')
+    passport.authenticate('auth0', (err, user, info) => {
       console.log("In passport.authenticate for auth0");
       if (err) {
         console.log(err);
         return next(err)
+      }
+      console.log('req.query:', req.query)
+      console.log('user:', user)
+      if (req.query?.error) {
+        const { error, error_description} = req.query
+        return next(new Error(`${error}: ${error_description}`))
       }
       if (!user) {
         console.log("No user")
@@ -252,7 +279,7 @@ export const addAuthMiddlewares = (addConnectHandler) => {
   } )
 
   addConnectHandler('/auth/auth0', (req, res, next) => {
-    passport.authenticate('auth0')(req, res, next)
+    passport.authenticate('auth0', { scope: 'profile email openid offline_access'})(req, res, next)
   })
 
   addConnectHandler('/auth/github/callback', (req, res, next) => {
