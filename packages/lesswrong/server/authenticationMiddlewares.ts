@@ -12,6 +12,7 @@ import { DatabaseServerSetting } from './databaseSettings';
 import { createMutator } from './vulcan-lib/mutators';
 import { getSiteUrl, slugify, Utils } from '../lib/vulcan-lib/utils';
 import jwt from 'jsonwebtoken'
+
 declare global {
   // TODO;
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -36,30 +37,38 @@ const githubOAuthSecretSetting = new DatabaseServerSetting('oAuth.github.secret'
 
 // TODO replace this function for Auth0 and revert this to however it was originally written
 function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
-  return async (accessToken, refreshToken, profile, done) => {
+  return async (accessToken, _refreshToken, _extraParams, profile, done) => {
+    console.log('idPath', idPath)
+    console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 40 ~ return ~ profile', profile)
+    console.log('profile.emails', profile.emails)
+    console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
     // You'll need to get the secret from our public key
     // https://auth0.com/docs/tokens/json-web-tokens/json-web-key-sets/locate-json-web-key-sets
     // There's probably a library that'll do this for you
-    const auth0User = jwt.verify(profile, 'our-auth0-secret')
-    // TODO this erroneously returns any (single) user if the profile ID is undefined
+    //
+    // We rely on the previous strategy code to verify the jwt. For some reason,
+    // they don't pass us the decoded value, so we'll decode it ourselves, but
+    // not verify it.
+    // const auth0User = jwt.decode(profile.id_token)
+    // TODO; this erroneously returns any (single) user if the profile ID is undefined
     const user = await Users.findOne({[idPath]: getIdFromProfile(profile)})
-    console.log('user', user)
-    console.log('idPath', idPath)
-    console.log('profile', profile)
-    console.log('accessToken', accessToken)
-    console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
     if (!user) {
       console.log("In createOAuthUserHandler, creating a new user")
-      const { data: user } = await createMutator({
+      console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 60 ~ return ~ getUserDataFromProfile', getUserDataFromProfile)
+      console.log('user', user)
+      const userToCreate = getUserDataFromProfile(profile)
+      console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate', userToCreate)
+      console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate.json', userToCreate._json)
+      const { data: userCreated } = await createMutator({
         collection: Users,
-        document: getUserDataFromProfile(profile),
+        document: userToCreate,
         validate: false,
         currentUser: null
       })
-      return done(null, user)
-    } else {
-      console.log("In createOAuthUserHandler, a user already exists")
+      console.log('done creating new user')
+      return done(null, userCreated)
     }
+    console.log("In createOAuthUserHandler, a user already exists")
     return done(null, user)
   }
 }
@@ -119,7 +128,6 @@ export const addAuthMiddlewares = (addConnectHandler) => {
     })(req, res, next);
   })
 
-  //EAFORUM LOOK HERE - Figure out what to do with your oAuth strategies
   const googleClientId =  googleClientIdSetting.get()
   if (googleClientId) {
     passport.use(new GoogleOAuthStrategy({
@@ -172,15 +180,18 @@ export const addAuthMiddlewares = (addConnectHandler) => {
           callbackURL: `${getSiteUrl()}auth/auth0/callback`,
           proxy: true
         },
-        createOAuthUserHandler('services.auth0.id', profile => profile.id, profile => ({
-          email: profile.emails[0].value,
-          services: {
-            auth0: profile
-          },
-          username: Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
-          displayName: profile.displayName,
-          emailSubscribedToCurated: true
-        }))
+        createOAuthUserHandler('services.auth0.id', profile => profile.id, profile => {
+          delete profile._json
+          return {
+            email: profile.emails[0].value,
+            services: {
+              auth0: profile
+            },
+            username: /* await */ Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
+            displayName: profile.displayName,
+            emailSubscribedToCurated: true
+          }
+        })
       )
     );
   }

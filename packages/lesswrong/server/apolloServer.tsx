@@ -67,6 +67,7 @@ export function startWebserver() {
 
   app.use(universalCookiesMiddleware());
   app.use(expressSession({
+    // TODO;
     secret: '1f179514117abda02a3f4536e6e0fc0a',
     resave: false,
     saveUninitialized: false,
@@ -183,4 +184,3 @@ export function startWebserver() {
     return console.info(`Server running on http://localhost:${port} [${env}]`)
   })
 }
-
