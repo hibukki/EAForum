@@ -2,6 +2,12 @@ branch-defaults:
   ea-dev:
     environment: EAForum-Staging
     group_suffix: null
+  mergeLWMaster:
+    environment: EAForum-Staging-2
+environment-defaults:
+  EAForum-Staging-2:
+    branch: null
+    repository: null
 global:
   application_name: EAForum
   branch: null
@@ -12,7 +18,7 @@ global:
   instance_profile: null
   platform_name: null
   platform_version: null
-  profile: null
+  profile: eb-cli
   repository: null
   sc: git
   workspace_type: Application

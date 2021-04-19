@@ -1,4 +1,5 @@
 FROM node:15.5.0
+RUN apt-get install -y util-linux
 WORKDIR /usr/src/app
 COPY ./ ./
 RUN yarn
