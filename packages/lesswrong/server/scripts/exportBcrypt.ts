@@ -38,11 +38,11 @@ Vulcan.exportBcrypt = wrapVulcanAsyncScript(
       c++
       if (shouldThrow) throw Error('meh')
       //eslint-disable-next-line no-console
-      if (c % 1000 === 0) console.log(`Post Details: Processed ${c}/${users.length} posts (${Math.round(c / users.length * 100)}%)`)
+      if (c % 1000 === 0) console.log(`Processed ${c}/${users.length} users (${Math.round(c / users.length * 100)}%)`)
     }
     const csvFile = Papa.unparse(rows)
     await fs.writeFile(outputFile, csvFile)
     //eslint-disable-next-line no-console
-    console.log(`Wrote details for ${rows.length} posts to ${outputFile}`)
+    console.log(`Wrote details for ${rows.length} users to ${outputFile}`)
   }
 )
