@@ -93,16 +93,16 @@ const SunshineSidebar = ({classes}: {classes: ClassesType}) => {
 
       { showSidebar && <div>
         { showUnderbelly ? <div className={classes.toggle} onClick={() => setShowUnderbelly(false)}>
-          Hide the Underbelly
+          Hide Low Priority
           <KeyboardArrowDownIcon/>
         </div>
         :
         <div className={classes.toggle} onClick={() => setShowUnderbelly(true)}>
-          Show the Underbelly
+          Show Low Priority
           <KeyboardArrowRightIcon/>
         </div>}
         { showUnderbelly && <div>
-          <SunshineNewUsersList terms={{view:"allUsers", limit: 30}} allowContentPreview={false}/>
+          <SunshineNewUsersList terms={{view:"allUsers", limit: 30}} />
         </div>}
       </div>}
 

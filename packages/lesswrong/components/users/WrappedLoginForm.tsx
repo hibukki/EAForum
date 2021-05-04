@@ -5,8 +5,7 @@ import { commentBodyStyles } from '../../themes/stylePiping';
 import { gql, useMutation, DocumentNode } from '@apollo/client';
 import { forumTypeSetting } from '../../lib/instanceSettings';
 import { useMessages } from '../common/withMessages';
-import { getUserABTestKey, getABTestsMetadata } from '../../lib/abTestImpl';
-import { useClientId } from '../../lib/abTestUtil';
+import { getUserABTestKey, useClientId } from '../../lib/abTestImpl';
 
 
 const styles = theme => ({
@@ -158,9 +157,9 @@ const WrappedLoginForm = ({ startingState = "login", classes }: {
       </div>
       <div className={classes.oAuthComment}>...or continue with</div>
       <div className={classes.oAuthBlock}>
-        <a className={classes.oAuthLink} href="/auth/facebook">FACEBOOK</a>
+        {/* <a className={classes.oAuthLink} href="/auth/facebook">FACEBOOK</a>
         <a className={classes.oAuthLink} href="/auth/google">GOOGLE</a>
-        <a className={classes.oAuthLink} href="/auth/github">GITHUB</a>
+        <a className={classes.oAuthLink} href="/auth/github">GITHUB</a> */}
         <a className={classes.oAuthLink} href="/auth/auth0">AUTH0</a>
       </div>
       {/* <a href="/auth/facebook"><FacebookIcon /></a>

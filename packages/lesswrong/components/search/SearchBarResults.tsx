@@ -150,4 +150,3 @@ declare global {
     SearchBarResults: typeof SearchBarResultsComponent
   }
 }
-

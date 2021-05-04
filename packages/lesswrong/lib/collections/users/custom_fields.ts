@@ -457,7 +457,7 @@ addFieldsDict(Users, {
     type: Boolean,
     optional: true,
     group: formGroups.moderationGroup,
-    label: "I'm happy for LW site moderators to help enforce my policy",
+    label: "I'm happy for site moderators to help enforce my policy",
     canRead: ['guests'],
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
     canCreate: ['members', 'sunshineRegiment', 'admins'],
@@ -1419,7 +1419,8 @@ addFieldsDict(Users, {
     type: GraphQLJSON, //Record<string,number>
     optional: true, hidden: true,
     canRead: [userOwns],
-    canUpdate: ['admins'],
+    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    blackbox: true,
   },
   reenableDraftJs: {
     type: Boolean,

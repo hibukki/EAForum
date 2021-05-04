@@ -188,6 +188,7 @@ interface DbGardenCode extends DbObject {
   endTime: Date
   fbLink: string
   type: string
+  hidden: boolean
   deleted: boolean
   contents: EditableFieldContents
   pingbacks: any /*{"definitions":[{}]}*/
@@ -318,6 +319,7 @@ interface DbPost extends DbObject {
   status: number
   isFuture: boolean
   sticky: boolean
+  stickyPriority: number
   userIP: string
   userAgent: string
   referrer: string
@@ -701,7 +703,7 @@ interface DbUser extends DbObject {
   commentCount: number
   maxCommentCount: number
   abTestKey: string
-  abTestOverrides: any /*{"definitions":[{"type":"JSON"}]}*/
+  abTestOverrides: any /*{"definitions":[{"type":"JSON","blackbox":true}]}*/
   reenableDraftJs: boolean
   walledGardenInvite: boolean
   hideWalledGardenUI: boolean

@@ -59,7 +59,7 @@ class SunshineNewCommentsItem extends Component<SunshineNewCommentsItemProps> {
               <Components.SidebarAction title="Mark as Reviewed" onClick={this.handleReview}>
                 <DoneIcon/>
               </Components.SidebarAction>
-              <Components.SidebarAction title="Spam/Eugin (delete immediately)" onClick={this.handleDelete} warningHighlight>
+              <Components.SidebarAction title="Spam (delete immediately)" onClick={this.handleDelete} warningHighlight>
                 <ClearIcon/>
               </Components.SidebarAction>
             </Components.SidebarActionMenu>}
@@ -83,4 +83,3 @@ declare global {
     SunshineNewCommentsItem: typeof SunshineNewCommentsItemComponent
   }
 }
-

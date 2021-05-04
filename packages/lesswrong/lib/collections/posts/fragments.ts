@@ -23,6 +23,7 @@ registerFragment(`
     createdAt
     sticky
     metaSticky
+    stickyPriority
     status
     frontpageDate
     meta
@@ -395,6 +396,7 @@ registerFragment(`
       html
       htmlHighlight
       wordCount
+      version
     }
     
     user {

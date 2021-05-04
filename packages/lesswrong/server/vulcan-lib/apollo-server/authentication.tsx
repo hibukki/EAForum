@@ -19,6 +19,7 @@ import { userEmailAddressIsVerified } from '../../../lib/collections/users/helpe
 import { clearCookie } from '../../utils/httpUtil';
 import { DatabaseServerSetting } from "../../databaseSettings";
 import request from 'request';
+import { forumTitleSetting } from '../../../lib/instanceSettings';
 
 // Meteor hashed its passwords twice, once on the client
 // and once again on the server. To preserve backwards compatibility
@@ -40,14 +41,25 @@ async function comparePasswords(password, hash) {
 const passwordAuthStrategy = new GraphQLLocalStrategy(async function getUserPassport(username, password, done) {
   const user = await Users.findOne({$or: [{'emails.address': username}, {username: username}]});
   if (!user) return done(null, false, { message: 'Incorrect username.' });
+  
+  // Load legacyData, if applicable. Needed because imported users had their
+  // passwords hashed differently.
+  // @ts-ignore -- legacyData isn't really handled right in our schemas.
+  const legacyData = user.legacyData ? user.legacyData : await LegacyData.findOne({ objectId: user._id })?.legacyData;
+  
+  if (legacyData?.password && legacyData.password===password) {
+    // For legacy accounts, the bcrypt-hashed password stored in user.services.password.bcrypt
+    // is a hash of the LW1-hash of their password. Don't accept an LW1-hash as a password.
+    // (If passwords from the DB were ever leaked, this prevents logging into legacy accounts
+    // that never changed their password.)
+    return done(null, false, { message: 'Incorrect password.' });
+  }
+  
   const match = await comparePasswords(password, user.services.password.bcrypt);
 
   // If no immediate match, we check whether we have a match with their legacy password
   if (!match) {
-    // @ts-ignore -- legacyData isn't really handled right in our schemas.
-    const dbLegacyData = user.legacyData ? user.legacyData : LegacyData.findOne({ objectId: user._id });
-    if (dbLegacyData?.legacyData?.password) {
-      const legacyData = dbLegacyData.legacyData
+    if (legacyData?.password) {
       const salt = legacyData.password.substring(0,3)
       const toHash = (`${salt}${user.username} ${password}`)
       const lw1PW = salt + sha1(toHash).toString();
@@ -125,10 +137,10 @@ export async function sendVerificationEmail(user: DbUser) {
   const verifyEmailLink = await VerifyEmailToken.generateLink(user._id);
   await wrapAndSendEmail({
     user, 
-    subject: "Verify your LessWrong email",
+    subject: `Verify your ${forumTitleSetting.get()} email`,
     body: <div>
       <p>
-        Click here to verify your LessWrong email 
+        Click here to verify your {forumTitleSetting.get()} email
       </p>
       <p>
         <a href={verifyEmailLink}>
@@ -251,7 +263,7 @@ const authenticationResolvers = {
             You requested a password reset. Follow the following link to reset your password: 
           </p>
           <p>
-            <a href={tokenLink}></a>
+            <a href={tokenLink}>{tokenLink}</a>
           </p>
         </div>
       });  

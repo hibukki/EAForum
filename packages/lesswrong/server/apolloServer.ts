@@ -1,7 +1,7 @@
 import { ApolloServer } from 'apollo-server-express';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
-import { isDevelopment, isAnyTest, getInstanceSettings } from '../lib/executionEnvironment';
+import { isDevelopment, getInstanceSettings } from '../lib/executionEnvironment';
 import { renderWithCache } from './vulcan-lib/apollo-ssr/renderPage';
 
 import bodyParser from 'body-parser';
@@ -11,7 +11,7 @@ import getVoyagerConfig from './vulcan-lib/apollo-server/voyager';
 import { graphiqlMiddleware, getGraphiqlConfig } from './vulcan-lib/apollo-server/graphiql';
 import getPlaygroundConfig from './vulcan-lib/apollo-server/playground';
 
-import { initGraphQL, getExecutableSchema } from './vulcan-lib/apollo-server/initGraphQL';
+import { getExecutableSchema } from './vulcan-lib/apollo-server/initGraphQL';
 import { computeContextFromReq } from './vulcan-lib/apollo-server/context';
 
 import universalCookiesMiddleware from 'universal-cookie-express';
@@ -21,7 +21,6 @@ import { formatError } from 'apollo-errors';
 import * as Sentry from '@sentry/node';
 import express from 'express'
 import { app } from './expressServer';
-import React from 'react';
 import path from 'path'
 import { getPublicSettingsLoaded } from '../lib/settingsCache';
 import { embedAsGlobalVar } from './vulcan-lib/apollo-ssr/renderUtil';
@@ -30,9 +29,11 @@ import { addAuthMiddlewares } from './authenticationMiddlewares';
 import { addSentryMiddlewares } from './logging';
 import { addClientIdMiddleware } from './clientIdMiddleware';
 import { addStaticRoute } from './vulcan-lib/staticRoutes';
+import { classesForAbTestGroups } from '../lib/abTestImpl';
 import fs from 'fs';
 import crypto from 'crypto';
 import expressSession from 'express-session';
+import { ckEditorTokenHandler } from './ckEditorToken';
 
 const loadClientBundle = () => {
   const bundlePath = path.join(__dirname, "../../client/js/bundle.js");
@@ -131,6 +132,8 @@ export function startWebserver() {
       res.end(bundleText);
     }
   });
+  // Setup CKEditor Token
+  app.use("/ckeditor-token", ckEditorTokenHandler)
   
   // Static files folder
   // eslint-disable-next-line no-console
@@ -144,11 +147,12 @@ export function startWebserver() {
   app.use("/graphql-voyager", voyagerMiddleware(getVoyagerConfig(config)));
   // Setup GraphiQL
   app.use("/graphiql", graphiqlMiddleware(getGraphiqlConfig(config)));
+  
 
   app.get('*', async (request, response) => {
     const renderResult = await renderWithCache(request, response);
     
-    const {ssrBody, headers, serializedApolloState, jssSheets, status, redirectUrl } = renderResult;
+    const {ssrBody, headers, serializedApolloState, jssSheets, status, redirectUrl, allAbTestGroups} = renderResult;
     const {bundleHash} = getClientBundle();
 
     const clientScript = `<script defer src="/js/bundle.js?hash=${bundleHash}"></script>`
@@ -171,7 +175,9 @@ export function startWebserver() {
           + instanceSettingsHeader
           + jssSheets
         + '</head>\n'
-        + '<body>\n'+ssrBody+'</body>\n'
+        + '<body class="'+classesForAbTestGroups(allAbTestGroups)+'">\n'
+          + ssrBody
+        +'</body>\n'
         + serializedApolloState)
     }
   })
