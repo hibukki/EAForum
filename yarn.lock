@@ -2907,6 +2907,31 @@
   resolved "https://registry.yarnpkg.com/@types/parse5/-/parse5-5.0.3.tgz"
   integrity sha512-kUNnecmtkunAoQ3CnjmMkzNU/gtxG8guhi+Fk2U/kOpIKjIMKnXGp4IJCgQJrXSgMsWYimYG4TGjz/UzbGEBTw==
 
+"@types/passport-auth0@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@types/passport-auth0/-/passport-auth0-1.0.4.tgz#f92c357a3a2a6fa5f10744555a45c5e9a6e36469"
+  integrity sha512-Qq1YRz1kuhFMHn43btY/RZ3pxV84ogOwhDfPWVcgGqgHYRWf5rTtV3tvcwPRFFh3Z72JkJhQ/9bbxnTFoV2ytg==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+
+"@types/passport-facebook@^2.1.10":
+  version "2.1.10"
+  resolved "https://registry.yarnpkg.com/@types/passport-facebook/-/passport-facebook-2.1.10.tgz#bec1d97dfd0ec0f78e5e59b6d7eda618a16ce6e3"
+  integrity sha512-qIgUGdf8ZN0ljRuFtOCLaN4r5WFo1Adk+hAbflOEKRJra+odp2zKGZYClPdJOR9daKydY1nVEaTk2ojyob//VA==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+
+"@types/passport-github2@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@types/passport-github2/-/passport-github2-1.2.4.tgz#f56c386d1fe6435e359430e57adc1747a627bd86"
+  integrity sha512-dtGtA0Uyzk6ne3SrgQi/I1ClClLE3i7JmSiMaJgkGH8v1nbE9JdBpG7QWJ1XPlLdcf7EvoPdHmkWN2+Kln9y8g==
+  dependencies:
+    "@types/express" "*"
+    "@types/passport" "*"
+    "@types/passport-oauth2" "*"
+
 "@types/passport-google-oauth20@^2.0.6":
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/@types/passport-google-oauth20/-/passport-google-oauth20-2.0.6.tgz#f991fcf03cb15688866c1ff2168744eca6add4e7"

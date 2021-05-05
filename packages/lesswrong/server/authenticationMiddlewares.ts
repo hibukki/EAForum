@@ -1,13 +1,13 @@
-import passport from 'passport'
+import passport, { Profile } from 'passport'
 import { createAndSetToken } from './vulcan-lib/apollo-server/authentication';
-import { Strategy as CustomStrategy } from 'passport-custom'
+import { Strategy as CustomStrategy, VerifiedCallback, VerifyCallback } from 'passport-custom'
 import { getUser } from './vulcan-lib/apollo-server/context';
 import { Users } from '../lib/collections/users/collection';
 import { getCookieFromReq } from './utils/httpUtil';
-import { Strategy as GoogleOAuthStrategy } from 'passport-google-oauth20';
-import { Strategy as FacebookOAuthStrategy } from 'passport-facebook';
-import { Strategy as Auth0Strategy } from 'passport-auth0';
-import { Strategy as GithubOAuthStrategy } from 'passport-github2';
+import { Strategy as GoogleOAuthStrategy, Profile as GoogleProfile } from 'passport-google-oauth20';
+import { Strategy as FacebookOAuthStrategy, Profile as FacebookProfile } from 'passport-facebook';
+import { Strategy as GithubOAuthStrategy, Profile as GithubProfile } from 'passport-github2';
+import { Strategy as Auth0Strategy, Profile as Auth0Profile, ExtraVerificationParams } from 'passport-auth0';
 import { DatabaseServerSetting } from './databaseSettings';
 import { createMutator } from './vulcan-lib/mutators';
 import { getSiteUrl, slugify, Utils } from '../lib/vulcan-lib/utils';
@@ -35,19 +35,28 @@ const facebookOAuthSecretSetting = new DatabaseServerSetting('oAuth.facebook.sec
 const githubClientIdSetting = new DatabaseServerSetting('oAuth.github.clientId', null)
 const githubOAuthSecretSetting = new DatabaseServerSetting('oAuth.github.secret', null)
 
-function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
-  return async (_accessToken, _refreshToken, profile, done) => {
+type IdFromProfile<P extends Profile> = (profile: P) => string
+type UserDataFromProfile<P extends Profile> = (profile: P) => Promise<Partial<DbUser>>
+
+// TODO; doc
+function createOAuthUserHandler<P extends Profile>(idPath: string, getIdFromProfile: IdFromProfile<P>, getUserDataFromProfile: UserDataFromProfile<P>) {
+  return async (_accessToken: string, _refreshToken: string, profile: P, done: VerifiedCallback) => {
     // console.log('idPath', idPath)
     // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 40 ~ return ~ profile', profile)
     // console.log('profile.emails', profile.emails)
     // console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
-    // TODO; this erroneously returns any (single) user if the profile ID is undefined
-    const user = await Users.findOne({[idPath]: getIdFromProfile(profile)})
+    const profileId = getIdFromProfile(profile)
+    // Probably impossible, but if it is null, we just log the person in as a
+    // random user, which is bad
+    if (!profileId) {
+      throw new Error('OAuth profile does not have a profile ID')
+    }
+    const user = await Users.findOne({[idPath]: profileId})
     if (!user) {
       console.log("In createOAuthUserHandler, creating a new user")
       // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 60 ~ return ~ getUserDataFromProfile', getUserDataFromProfile)
       // console.log('user', user)
-      const userToCreate = getUserDataFromProfile(profile)
+      const userToCreate = await getUserDataFromProfile(profile)
       // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate', userToCreate)
       // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate.json', userToCreate._json)
       const { data: userCreated } = await createMutator({
@@ -65,10 +74,10 @@ function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile
 }
 
 // TODO; doc
-function createAuth0UserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
+function createAuth0UserHandler(idPath: string, getIdFromProfile: IdFromProfile<Auth0Profile>, getUserDataFromProfile: UserDataFromProfile<Auth0Profile>) {
   const standardHandler = createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile)
-  return (_accessToken, _refreshToken, extraParams, profile, done) => {
-    return standardHandler(_accessToken, _refreshToken, profile, done)
+  return (accessToken: string, refreshToken: string, _extraParams: ExtraVerificationParams, profile: Auth0Profile, done: VerifyCallback) => {
+    return standardHandler(accessToken, refreshToken, profile, done)
   }
 }
 
@@ -136,86 +145,86 @@ export const addAuthMiddlewares = (addConnectHandler) => {
       callbackURL: `${getSiteUrl()}auth/google/callback`,
       proxy: true
     },
-    createOAuthUserHandler('services.google.id', profile => profile.id, profile => ({
-      email: profile.emails[0].address,
+    createOAuthUserHandler<GoogleProfile>('services.google.id', profile => profile.id, async profile => ({
+      email: profile.emails?.[0].value,
       services: {
         google: profile
       },
       emails: profile.emails,
-      username: Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
+      username: await Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
       displayName: profile.displayName,
       emailSubscribedToCurated: true
     }))
   ))}
   
   const facebookClientId = facebookClientIdSetting.get()
-  if (facebookClientId) {
+  const facebookOAuthSecret = facebookOAuthSecretSetting.get()
+  if (facebookClientId && facebookOAuthSecret) {
     passport.use(new FacebookOAuthStrategy({
       clientID: facebookClientId,
-      clientSecret: facebookOAuthSecretSetting.get(),
+      clientSecret: facebookOAuthSecret,
       callbackURL: `${getSiteUrl()}auth/facebook/callback`,
       profileFields: ['id', 'emails', 'name', 'displayName'],
-      proxy: true
     },
-      createOAuthUserHandler('services.facebook.id', profile => profile.id, profile => ({
-        email: profile.emails[0].value,
+      createOAuthUserHandler<FacebookProfile>('services.facebook.id', profile => profile.id, async profile => ({
+        email: profile.emails?.[0].value,
         services: {
           facebook: profile
         },
-        username: Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
+        username: await Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
         displayName: profile.displayName,
         emailSubscribedToCurated: true
       }))
     ))
   }
 
-  const auth0ClientId = auth0ClientIdSetting.get();
-  if (auth0ClientId) {
-    passport.use(
-      new Auth0Strategy(
-        {
-          clientID: auth0ClientIdSetting.get(),
-          clientSecret: auth0OAuthSecretSetting.get(),
-          domain: auth0DomainSetting.get(),
-          callbackURL: `${getSiteUrl()}auth/auth0/callback`,
-          proxy: true
-        },
-        createAuth0UserHandler('services.auth0.id', profile => profile.id, profile => {
-          delete profile._json
-          return {
-            email: profile.emails[0].value,
-            services: {
-              auth0: profile
-            },
-            username: /* await */ Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
-            displayName: profile.displayName,
-            emailSubscribedToCurated: true
-          }
-        })
-      )
-    );
-  }
-
   const githubClientId = githubClientIdSetting.get()
-  if (githubClientId) {
+  const githubOAuthSecret = githubOAuthSecretSetting.get()
+  if (githubClientId && githubOAuthSecret) {
     passport.use(new GithubOAuthStrategy({
       clientID: githubClientId,
-      clientSecret: githubOAuthSecretSetting.get(),
+      clientSecret: githubOAuthSecret,
       callbackURL: `${getSiteUrl()}auth/github/callback`,
       scope: [ 'user:email' ], // fetches non-public emails as well
     },
-      createOAuthUserHandler('services.github.id', profile => profile.id, profile => ({
-        email: profile.emails[0].value,
+      createOAuthUserHandler<GithubProfile>('services.github.id', profile => profile.id, async profile => ({
+        email: profile.emails?.[0].value,
         services: {
           github: profile
         },
-        username: Utils.getUnusedSlugByCollectionName("Users", slugify(profile.username)),
+        username: await Utils.getUnusedSlugByCollectionName("Users", slugify(profile.username || profile.displayName)),
         displayName: profile.username || profile.displayName,
         emailSubscribedToCurated: true
       }))
     ));
   }
-  
+
+  const auth0ClientId = auth0ClientIdSetting.get();
+  const auth0OAuthSecret = auth0OAuthSecretSetting.get()
+  const auth0Domain = auth0DomainSetting.get()
+  if (auth0ClientId && auth0OAuthSecret && auth0Domain) {
+    passport.use(new Auth0Strategy(
+      {
+        clientID: auth0ClientId,
+        clientSecret: auth0OAuthSecret,
+        domain: auth0Domain,
+        callbackURL: `${getSiteUrl()}auth/auth0/callback`,
+      },
+      createAuth0UserHandler('services.auth0.id', profile => profile.id, async profile => {
+        delete profile._json
+        return {
+          email: profile.emails?.[0].value,
+          services: {
+            auth0: profile
+          },
+          username: await Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
+          displayName: profile.displayName,
+          emailSubscribedToCurated: true
+        }
+      })
+    ));
+  }
+
   addConnectHandler('/auth/google/callback', (req, res, next) => {
     passport.authenticate('google', {}, (err, user, info) => {
       if (err) return next(err)
