@@ -5,6 +5,8 @@ import fs from 'mz/fs'
 import Papa from 'papaparse'
 import * as _ from 'underscore';
 
+// TODO; delete
+
 Vulcan.exportBcrypt = wrapVulcanAsyncScript(
   'exportBcrypt',
   async ({outputFile}) => {

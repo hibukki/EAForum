@@ -1,20 +1,30 @@
 import passport, { Profile } from 'passport'
 import { createAndSetToken } from './vulcan-lib/apollo-server/authentication';
-import { Strategy as CustomStrategy, VerifiedCallback, VerifyCallback } from 'passport-custom'
+import { Strategy as CustomStrategy } from 'passport-custom'
 import { getUser } from './vulcan-lib/apollo-server/context';
 import { Users } from '../lib/collections/users/collection';
 import { getCookieFromReq } from './utils/httpUtil';
-import { Strategy as GoogleOAuthStrategy, Profile as GoogleProfile } from 'passport-google-oauth20';
+import { Strategy as GoogleOAuthStrategy, Profile as GoogleProfile, VerifyCallback as GoogleVerifyCallback } from 'passport-google-oauth20';
 import { Strategy as FacebookOAuthStrategy, Profile as FacebookProfile } from 'passport-facebook';
 import { Strategy as GithubOAuthStrategy, Profile as GithubProfile } from 'passport-github2';
 import { Strategy as Auth0Strategy, Profile as Auth0Profile, ExtraVerificationParams } from 'passport-auth0';
+import { VerifyCallback } from 'passport-oauth2'
 import { DatabaseServerSetting } from './databaseSettings';
 import { createMutator } from './vulcan-lib/mutators';
 import { getSiteUrl, slugify, Utils } from '../lib/vulcan-lib/utils';
 
-// TODO; doc
+/**
+ * Passport declares an empty interface User in the Express namespace. We modify
+ * it once here, and then all Passport user typings will use it.
+ *
+ * See: https://github.com/DefinitelyTyped/DefinitelyTyped/commit/91c229dbdb653dbf0da91992f525905893cbeb91#r34805708
+ *
+ * It appears that passport is the only user of Express.User, so this choice
+ * only affects the shape of user objects in this file.
+ */
 declare global {
-  // TODO;
+  // @types/passport made the decision to use the Express namespace. We're
+  // constrained to follow it
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface User extends DbUser {
@@ -22,25 +32,25 @@ declare global {
   }
 }
 
-const googleClientIdSetting = new DatabaseServerSetting('oAuth.google.clientId', null)
-const googleOAuthSecretSetting = new DatabaseServerSetting('oAuth.google.secret', null)
+const googleClientIdSetting = new DatabaseServerSetting<string | null>('oAuth.google.clientId', null)
+const googleOAuthSecretSetting = new DatabaseServerSetting<string | null>('oAuth.google.secret', null)
 
-const auth0ClientIdSetting = new DatabaseServerSetting('oAuth.auth0.appId', null)
-const auth0OAuthSecretSetting = new DatabaseServerSetting('oAuth.auth0.secret', null)
-const auth0DomainSetting = new DatabaseServerSetting('oAuth.auth0.domain', null)
+const auth0ClientIdSetting = new DatabaseServerSetting<string | null>('oAuth.auth0.appId', null)
+const auth0OAuthSecretSetting = new DatabaseServerSetting<string | null>('oAuth.auth0.secret', null)
+const auth0DomainSetting = new DatabaseServerSetting<string | null>('oAuth.auth0.domain', null)
 
-const facebookClientIdSetting = new DatabaseServerSetting('oAuth.facebook.appId', null)
-const facebookOAuthSecretSetting = new DatabaseServerSetting('oAuth.facebook.secret', null)
+const facebookClientIdSetting = new DatabaseServerSetting<string | null>('oAuth.facebook.appId', null)
+const facebookOAuthSecretSetting = new DatabaseServerSetting<string | null>('oAuth.facebook.secret', null)
 
-const githubClientIdSetting = new DatabaseServerSetting('oAuth.github.clientId', null)
-const githubOAuthSecretSetting = new DatabaseServerSetting('oAuth.github.secret', null)
+const githubClientIdSetting = new DatabaseServerSetting<string | null>('oAuth.github.clientId', null)
+const githubOAuthSecretSetting = new DatabaseServerSetting<string | null>('oAuth.github.secret', null)
 
 type IdFromProfile<P extends Profile> = (profile: P) => string
 type UserDataFromProfile<P extends Profile> = (profile: P) => Promise<Partial<DbUser>>
 
 // TODO; doc
 function createOAuthUserHandler<P extends Profile>(idPath: string, getIdFromProfile: IdFromProfile<P>, getUserDataFromProfile: UserDataFromProfile<P>) {
-  return async (_accessToken: string, _refreshToken: string, profile: P, done: VerifiedCallback) => {
+  return async (_accessToken: string, _refreshToken: string, profile: P, done: VerifyCallback) => {
     // console.log('idPath', idPath)
     // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 40 ~ return ~ profile', profile)
     // console.log('profile.emails', profile.emails)
@@ -154,7 +164,11 @@ export const addAuthMiddlewares = (addConnectHandler) => {
       username: await Utils.getUnusedSlugByCollectionName("Users", slugify(profile.displayName)),
       displayName: profile.displayName,
       emailSubscribedToCurated: true
-    }))
+      // Type assertion here is because @types/passport-google-oauth20 doesn't
+      // think their verify callback is able to take a null in the place of the
+      // error, which seems like a bug and which prevents are seemingly working
+      // code from type-checking
+    })) as (_accessToken: string, _refreshToken: string, profile: GoogleProfile, done: GoogleVerifyCallback) => Promise<void>
   ))}
   
   const facebookClientId = facebookClientIdSetting.get()
