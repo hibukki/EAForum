@@ -157,9 +157,9 @@ const WrappedLoginForm = ({ startingState = "login", classes }: {
       </div>
       <div className={classes.oAuthComment}>...or continue with</div>
       <div className={classes.oAuthBlock}>
-        {/* <a className={classes.oAuthLink} href="/auth/facebook">FACEBOOK</a>
+        {/* <a className={classes.oAuthLink} href="/auth/facebook">FACEBOOK</a> */}
         <a className={classes.oAuthLink} href="/auth/google">GOOGLE</a>
-        <a className={classes.oAuthLink} href="/auth/github">GITHUB</a> */}
+        {/* <a className={classes.oAuthLink} href="/auth/github">GITHUB</a> */}
         <a className={classes.oAuthLink} href="/auth/auth0">AUTH0</a>
       </div>
       {/* <a href="/auth/facebook"><FacebookIcon /></a>

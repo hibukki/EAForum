@@ -11,8 +11,8 @@ import { Strategy as GithubOAuthStrategy } from 'passport-github2';
 import { DatabaseServerSetting } from './databaseSettings';
 import { createMutator } from './vulcan-lib/mutators';
 import { getSiteUrl, slugify, Utils } from '../lib/vulcan-lib/utils';
-import jwt from 'jsonwebtoken'
 
+// TODO; doc
 declare global {
   // TODO;
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -35,41 +35,40 @@ const facebookOAuthSecretSetting = new DatabaseServerSetting('oAuth.facebook.sec
 const githubClientIdSetting = new DatabaseServerSetting('oAuth.github.clientId', null)
 const githubOAuthSecretSetting = new DatabaseServerSetting('oAuth.github.secret', null)
 
-// TODO replace this function for Auth0 and revert this to however it was originally written
 function createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
-  return async (accessToken, _refreshToken, _extraParams, profile, done) => {
-    console.log('idPath', idPath)
-    console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 40 ~ return ~ profile', profile)
-    console.log('profile.emails', profile.emails)
-    console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
-    // You'll need to get the secret from our public key
-    // https://auth0.com/docs/tokens/json-web-tokens/json-web-key-sets/locate-json-web-key-sets
-    // There's probably a library that'll do this for you
-    //
-    // We rely on the previous strategy code to verify the jwt. For some reason,
-    // they don't pass us the decoded value, so we'll decode it ourselves, but
-    // not verify it.
-    // const auth0User = jwt.decode(profile.id_token)
+  return async (_accessToken, _refreshToken, profile, done) => {
+    // console.log('idPath', idPath)
+    // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 40 ~ return ~ profile', profile)
+    // console.log('profile.emails', profile.emails)
+    // console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
     // TODO; this erroneously returns any (single) user if the profile ID is undefined
     const user = await Users.findOne({[idPath]: getIdFromProfile(profile)})
     if (!user) {
       console.log("In createOAuthUserHandler, creating a new user")
-      console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 60 ~ return ~ getUserDataFromProfile', getUserDataFromProfile)
-      console.log('user', user)
+      // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 60 ~ return ~ getUserDataFromProfile', getUserDataFromProfile)
+      // console.log('user', user)
       const userToCreate = getUserDataFromProfile(profile)
-      console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate', userToCreate)
-      console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate.json', userToCreate._json)
+      // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate', userToCreate)
+      // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate.json', userToCreate._json)
       const { data: userCreated } = await createMutator({
         collection: Users,
         document: userToCreate,
         validate: false,
         currentUser: null
       })
-      console.log('done creating new user')
+      // console.log('done creating new user')
       return done(null, userCreated)
     }
     console.log("In createOAuthUserHandler, a user already exists")
     return done(null, user)
+  }
+}
+
+// TODO; doc
+function createAuth0UserHandler(idPath, getIdFromProfile, getUserDataFromProfile) {
+  const standardHandler = createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile)
+  return (_accessToken, _refreshToken, extraParams, profile, done) => {
+    return standardHandler(_accessToken, _refreshToken, profile, done)
   }
 }
 
@@ -87,10 +86,7 @@ async function deserializeUserPassport(id, done) {
   done(null, user)
 }
 
-// TODO: Passport annotates this a taking an Express.User, which doesn't have an _id.
-// But this seems to work with this (and other functions) assuming a DbUser. Marked
-// as 'any' to suppress the type error.
-passport.serializeUser((user: any, done) => done(null, user._id))
+passport.serializeUser((user, done) => done(null, user._id))
 passport.deserializeUser(deserializeUserPassport)
 
 
@@ -184,7 +180,7 @@ export const addAuthMiddlewares = (addConnectHandler) => {
           callbackURL: `${getSiteUrl()}auth/auth0/callback`,
           proxy: true
         },
-        createOAuthUserHandler('services.auth0.id', profile => profile.id, profile => {
+        createAuth0UserHandler('services.auth0.id', profile => profile.id, profile => {
           delete profile._json
           return {
             email: profile.emails[0].value,
