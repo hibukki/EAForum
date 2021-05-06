@@ -48,13 +48,12 @@ const githubOAuthSecretSetting = new DatabaseServerSetting<string | null>('oAuth
 type IdFromProfile<P extends Profile> = (profile: P) => string
 type UserDataFromProfile<P extends Profile> = (profile: P) => Promise<Partial<DbUser>>
 
-// TODO; doc
+/**
+ * Given the provider-appropriate ways to get user info from a profile, create
+ * a function that handles successful logins from that provider
+ */
 function createOAuthUserHandler<P extends Profile>(idPath: string, getIdFromProfile: IdFromProfile<P>, getUserDataFromProfile: UserDataFromProfile<P>) {
   return async (_accessToken: string, _refreshToken: string, profile: P, done: VerifyCallback) => {
-    // console.log('idPath', idPath)
-    // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 40 ~ return ~ profile', profile)
-    // console.log('profile.emails', profile.emails)
-    // console.log('getIdFromProfile(profile)', getIdFromProfile(profile))
     const profileId = getIdFromProfile(profile)
     // Probably impossible, but if it is null, we just log the person in as a
     // random user, which is bad
@@ -63,27 +62,22 @@ function createOAuthUserHandler<P extends Profile>(idPath: string, getIdFromProf
     }
     const user = await Users.findOne({[idPath]: profileId})
     if (!user) {
-      console.log("In createOAuthUserHandler, creating a new user")
-      // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 60 ~ return ~ getUserDataFromProfile', getUserDataFromProfile)
-      // console.log('user', user)
       const userToCreate = await getUserDataFromProfile(profile)
-      // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate', userToCreate)
-      // console.log('🚀 ~ file: authenticationMiddlewares.ts ~ line 59 ~ return ~ userToCreate.json', userToCreate._json)
       const { data: userCreated } = await createMutator({
         collection: Users,
         document: userToCreate,
         validate: false,
         currentUser: null
       })
-      // console.log('done creating new user')
       return done(null, userCreated)
     }
-    console.log("In createOAuthUserHandler, a user already exists")
     return done(null, user)
   }
 }
 
-// TODO; doc
+/**
+ * Auth0 passes 5 parameters, not 4, so we need to wrap createOAuthUserHandler
+ */
 function createAuth0UserHandler(idPath: string, getIdFromProfile: IdFromProfile<Auth0Profile>, getUserDataFromProfile: UserDataFromProfile<Auth0Profile>) {
   const standardHandler = createOAuthUserHandler(idPath, getIdFromProfile, getUserDataFromProfile)
   return (accessToken: string, refreshToken: string, _extraParams: ExtraVerificationParams, profile: Auth0Profile, done: VerifyCallback) => {
@@ -281,33 +275,24 @@ export const addAuthMiddlewares = (addConnectHandler) => {
   })
 
   addConnectHandler('/auth/auth0/callback', (req, res, next) => {
-    console.log('Starting passport auth...')
     passport.authenticate('auth0', (err, user, info) => {
-      console.log("In passport.authenticate for auth0");
       if (err) {
-        console.log(err);
         return next(err)
       }
-      console.log('req.query:', req.query)
-      console.log('user:', user)
       if (req.query?.error) {
         const { error, error_description} = req.query
         return next(new Error(`${error}: ${error_description}`))
       }
       if (!user) {
-        console.log("No user")
         return next()
       }
       req.logIn(user, async (err) => {
-        console.log("In req.logIn result callback")
         if (err) {
-          console.log("req.logIn failed: ", err)
           return next(err)
         }
         await createAndSetToken(req, res, user)
         res.statusCode=302;
         res.setHeader('Location', '/')
-        console.log("req.logIn finished");
         return res.end();
       })
     })(req, res, next)
