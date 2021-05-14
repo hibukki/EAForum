@@ -30,6 +30,12 @@ const styles = (theme: ThemeType): JssStyles => ({
     top: 2,
     color: "rgba(255,255,255,.8)"
   },
+  prizeIcon: {
+    height: "1rem",
+    width: "1rem",
+    position: "relative",
+    top: 2,
+  },
   bookIcon: {
     filter: "invert(100%)",
   },
@@ -56,7 +62,7 @@ const UsersNameDisplay = ({ user, nofollow = false, simple = false, classes, too
   }
   const { FormatDate, LWTooltip } = Components
   const { htmlBio } = user
-  
+
   const truncatedBio = truncate(htmlBio, 500)
   const postCount = userGetPostCount(user)
   const commentCount = userGetCommentCount(user)
@@ -86,7 +92,7 @@ const UsersNameDisplay = ({ user, nofollow = false, simple = false, classes, too
         </Link>
       </LWTooltip>
       {user.forumPrizewinner && <LWTooltip title='This person won a forum prize' placement={tooltipPlacement}>
-        <StarBorderIcon style={{ verticalAlign: 'bottom' }} />
+        <StarBorderIcon className={classes.prizeIcon}  />
       </LWTooltip>}
     </AnalyticsContext>
   </span>
