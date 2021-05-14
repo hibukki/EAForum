@@ -5,6 +5,7 @@ import { Link } from '../../lib/reactRouterWrapper';
 import { truncate } from '../../lib/editor/ellipsize';
 import DescriptionIcon from '@material-ui/icons/Description';
 import MessageIcon from '@material-ui/icons/Message';
+import StarBorderIcon from '@material-ui/icons/StarBorder';
 import { BookIcon } from '../icons/bookIcon'
 import { useHover } from '../common/withHover'
 import classNames from 'classnames';
@@ -82,6 +83,7 @@ const UsersNameDisplay = ({user, nofollow=false, simple=false, classes, tooltipP
           {...(nofollow ? {rel:"nofollow"} : {})}
         >
         {userGetDisplayName(user)}
+        <StarBorderIcon style={{verticalAlign:'bottom'}}/>
       </Link>
     </LWTooltip>
     </AnalyticsContext>
