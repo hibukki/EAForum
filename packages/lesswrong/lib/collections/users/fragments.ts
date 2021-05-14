@@ -19,6 +19,7 @@ registerFragment(`
     afPostCount
     afCommentCount
     spamRiskScore
+    forumPrizewinner
   }
 `);
 

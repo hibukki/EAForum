@@ -41,22 +41,22 @@ const styles = (theme: ThemeType): JssStyles => ({
 
 // Given a user (which may not be null), render the user name as a link with a
 // tooltip. This should not be used directly; use UsersName instead.
-const UsersNameDisplay = ({user, nofollow=false, simple=false, classes, tooltipPlacement = "left", className}: {
-  user: UsersMinimumInfo|null|undefined,
+const UsersNameDisplay = ({ user, nofollow = false, simple = false, classes, tooltipPlacement = "left", className }: {
+  user: UsersMinimumInfo | null | undefined,
   nofollow?: boolean,
   simple?: boolean,
   classes: ClassesType,
   tooltipPlacement?: "left" | "top" | "right" | "bottom",
   className?: string,
 }) => {
-  const {eventHandlers} = useHover({pageElementContext: "linkPreview",  pageSubElementContext: "userNameDisplay", userId: user?._id})
+  const { eventHandlers } = useHover({ pageElementContext: "linkPreview", pageSubElementContext: "userNameDisplay", userId: user?._id })
 
   if (!user || user.deleted) {
-    return <Components.UserNameDeleted/>
+    return <Components.UserNameDeleted />
   }
   const { FormatDate, LWTooltip } = Components
   const { htmlBio } = user
-
+  
   const truncatedBio = truncate(htmlBio, 500)
   const postCount = userGetPostCount(user)
   const commentCount = userGetCommentCount(user)
@@ -64,12 +64,12 @@ const UsersNameDisplay = ({user, nofollow=false, simple=false, classes, tooltipP
 
   const tooltip = <span>
     <div className={classes.joined}>Joined on <FormatDate date={user.createdAt} format="MMM Do YYYY" /></div>
-    { !!sequenceCount && <div>
-        <BookIcon className={classNames(classes.icon, classes.bookIcon)}/> { sequenceCount } sequence{sequenceCount !== 1 && 's'}
-      </div>}
-    { !!postCount && <div><DescriptionIcon className={classes.icon} /> { postCount } post{postCount !== 1 && 's'}</div>}
-    { !!commentCount && <div><MessageIcon className={classes.icon}  /> { commentCount } comment{commentCount !== 1 && 's'}</div>}
-    { truncatedBio && <div className={classes.bio } dangerouslySetInnerHTML={{__html: truncatedBio}}/>}
+    {!!sequenceCount && <div>
+      <BookIcon className={classNames(classes.icon, classes.bookIcon)} /> {sequenceCount} sequence{sequenceCount !== 1 && 's'}
+    </div>}
+    {!!postCount && <div><DescriptionIcon className={classes.icon} /> {postCount} post{postCount !== 1 && 's'}</div>}
+    {!!commentCount && <div><MessageIcon className={classes.icon} /> {commentCount} comment{commentCount !== 1 && 's'}</div>}
+    {truncatedBio && <div className={classes.bio} dangerouslySetInnerHTML={{ __html: truncatedBio }} />}
   </span>
 
   if (simple) {
@@ -78,20 +78,22 @@ const UsersNameDisplay = ({user, nofollow=false, simple=false, classes, tooltipP
 
   return <span {...eventHandlers} className={className}>
     <AnalyticsContext pageElementContext="userNameDisplay" userIdDisplayed={user._id}>
-    <LWTooltip title={tooltip} placement={tooltipPlacement}>
-      <Link to={userGetProfileUrl(user)} className={classes.userName}
-          {...(nofollow ? {rel:"nofollow"} : {})}
+      <LWTooltip title={tooltip} placement={tooltipPlacement}>
+        <Link to={userGetProfileUrl(user)} className={classes.userName}
+          {...(nofollow ? { rel: "nofollow" } : {})}
         >
-        {userGetDisplayName(user)}
-        <StarBorderIcon style={{verticalAlign:'bottom'}}/>
-      </Link>
-    </LWTooltip>
+          {userGetDisplayName(user)}
+        </Link>
+      </LWTooltip>
+      {user.forumPrizewinner && <LWTooltip title='This person won a forum prize' placement={tooltipPlacement}>
+        <StarBorderIcon style={{ verticalAlign: 'bottom' }} />
+      </LWTooltip>}
     </AnalyticsContext>
   </span>
 }
 
 const UsersNameDisplayComponent = registerComponent(
-  'UsersNameDisplay', UsersNameDisplay, {styles}
+  'UsersNameDisplay', UsersNameDisplay, { styles }
 );
 
 declare global {

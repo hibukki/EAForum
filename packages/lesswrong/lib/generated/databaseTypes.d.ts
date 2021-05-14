@@ -718,6 +718,7 @@ interface DbUser extends DbObject {
   reviewForAlignmentForumUserId: string
   afApplicationText: string
   afSubmittedApplication: boolean
+  forumPrizewinner: boolean
 }
 
 interface VotesCollection extends CollectionBase<DbVote, "Votes"> {

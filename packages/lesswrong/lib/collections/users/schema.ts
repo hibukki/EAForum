@@ -265,6 +265,12 @@ const schema: SchemaType<DbUser> = {
     type: Boolean,
     optional: true, 
     canRead: ['guests'],
+  },
+  
+  forumPrizewinner: {
+    type: Boolean,
+    optional: true, 
+    canRead: ['guests'],
   }
 };
 

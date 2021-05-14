@@ -1370,6 +1370,7 @@ interface UsersMinimumInfo { // fragment on Users
   readonly afPostCount: number,
   readonly afCommentCount: number,
   readonly spamRiskScore: number,
+  readonly forumPrizewinner: boolean,
 }
 
 interface UsersProfile extends UsersMinimumInfo, SharedUserBooleans { // fragment on Users
