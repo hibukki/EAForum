@@ -53,12 +53,14 @@ const schema: SchemaType<DbTagFlag> = {
 };
 
 
-const adminActions = [
+const modActions = [
   'tagFlags.new',
   'tagFlags.edit.all',
 ];
 
-adminsGroup.can(adminActions);
+adminsGroup.can(modActions);
+// TODO; does not exist, see: `packages/lesswrong/lib/vulcan-users/permissions.ts`
+modsGroup.can(modActions);
 
 const options: MutationOptions<DbTagFlag> = {
   newCheck: (user: DbUser|null, document: DbTagFlag|null) => {
@@ -99,4 +101,3 @@ makeEditable({
   }
 })
 export default TagFlags;
-

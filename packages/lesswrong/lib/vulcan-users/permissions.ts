@@ -215,6 +215,7 @@ export const userCanUpdateField = <T extends DbObject>(user: DbUser|UsersCurrent
 // initialize the 3 out-of-the-box groups
 export const guestsGroup = createGroup('guests'); // non-logged-in users
 export const membersGroup = createGroup('members'); // regular users
+// TODO; Sure would be nice to have a sunshine regiment group
 
 const membersActions = [
   'user.create',

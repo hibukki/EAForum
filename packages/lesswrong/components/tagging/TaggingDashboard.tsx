@@ -71,6 +71,8 @@ const styles = (theme: ThemeType): JssStyles => ({
   }
 })
 
+const isModerator = (user: UsersCurrent|DbUser|null): boolean => !!(user?.isAdmin || user?.groups?.includes('sunshineRegiment'))
+
 const TaggingDashboard = ({classes}: {
   classes: ClassesType
 }) => {
@@ -123,7 +125,7 @@ const TaggingDashboard = ({classes}: {
         <SectionTitle title="Wiki-Tags in Need of Work">
           <SectionButton>
             {query.focus && <QueryLink query={{}}> Reset Filter </QueryLink>}
-            {currentUser?.isAdmin &&
+            {isModerator(currentUser) &&
                 <span className={classes.editButton} onClick={() => openDialog({
                   componentName: "TagFlagEditAndNewForm",
                   componentProps: query.focus ? {tagFlagId: query.focus} : {}
