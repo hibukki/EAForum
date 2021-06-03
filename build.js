@@ -75,7 +75,7 @@ build({
   onStart: (config, changedFiles, ctx, esbuildOptions) => {
     clientRebuildInProgress = true;
     inProgressBuildId = generateBuildId();
-    esbuildOptions.define.buildId = `"${inProgressBuildId}"`;
+    // esbuildOptions.define.buildId = `"${inProgressBuildId}"`;
   },
   onEnd: (config, buildResult, ctx) => {
     clientRebuildInProgress = false;
@@ -196,4 +196,3 @@ function startWebsocketServer() {
 if (cliopts.watch && cliopts.run && !isProduction) {
   startWebsocketServer();
 }
-

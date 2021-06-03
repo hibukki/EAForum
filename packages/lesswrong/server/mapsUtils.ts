@@ -1,4 +1,4 @@
-import googleMaps from '@google/maps'
+// import googleMaps from '@google/maps'
 import { DatabaseServerSetting } from './databaseSettings';
 
 const googleMapsApiKeySetting = new DatabaseServerSetting<string | null>('googleMaps.serverApiKey', null)
@@ -8,10 +8,10 @@ const getGoogleMapsClient = () => {
   if (!googleMapsClient) {
     const googleMapsApiKey = googleMapsApiKeySetting.get()
     if (googleMapsApiKey) {
-      googleMapsClient = googleMaps.createClient({
-        key: googleMapsApiKey,
-        Promise: Promise
-      });
+      // googleMapsClient = googleMaps.createClient({
+      //   key: googleMapsApiKey,
+      //   Promise: Promise
+      // });
     } else {
       // eslint-disable-next-line no-console
       console.log("No Server-side Google maps API key provided, please provide one for proper event timezone handling")
