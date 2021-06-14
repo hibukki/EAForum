@@ -195,6 +195,7 @@ addFieldsDict(Users, {
     type: Object,
   },
 
+  // TODO(EA): Allow resending of confirmation email
   whenConfirmationEmailSent: {
     type: Date,
     optional: true,
@@ -202,7 +203,11 @@ addFieldsDict(Users, {
     group: formGroups.emails,
     control: 'UsersEmailVerification',
     canRead: ['members'],
-    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    // Disable updating on the EA Forum until we can get it to play well with
+    // Auth0
+    canUpdate: forumTypeSetting.get() === 'EAForum' ?
+      [] :
+      [userOwns, 'sunshineRegiment', 'admins'],
     canCreate: ['members'],
   },
 
@@ -773,6 +778,17 @@ addFieldsDict(Users, {
     canCreate: ['members'],
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
     hidden: ['AlignmentForum', 'EAForum'].includes(forumTypeSetting.get()),
+    canRead: ['members'],
+  },
+  // Not reusing curated, because we might actually use that as well
+  subscribedToDigest: {
+    type: Boolean,
+    optional: true,
+    group: formGroups.emails,
+    label: "Subscribe to the EA Forum Digest emails",
+    canCreate: ['members'],
+    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    hidden: forumTypeSetting.get() !== 'EAForum',
     canRead: ['members'],
   },
   unsubscribeFromAll: {
@@ -1502,6 +1518,14 @@ addFieldsDict(Users, {
     hidden: true,
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
   },
+  usernameUnset: {
+    type: Boolean,
+    optional: true,
+    canRead: ['members'],
+    hidden: true,
+    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    ...schemaDefaultValue(false),
+  }
 });
 
 makeEditable({

@@ -1467,6 +1467,7 @@ interface UsersCurrent extends UsersProfile, SharedUserBooleans { // fragment on
   readonly nearbyPeopleNotificationThreshold: number,
   readonly hideFrontpageMap: boolean,
   readonly emailSubscribedToCurated: boolean,
+  readonly subscribedToDigest: boolean,
   readonly unsubscribeFromAll: boolean,
   readonly emails: Array<any /*{"definitions":[{}]}*/>,
   readonly whenConfirmationEmailSent: Date,
@@ -1539,6 +1540,7 @@ interface SharedUserBooleans { // fragment on Users
   readonly hideWalledGardenUI: boolean,
   readonly walledGardenPortalOnboarded: boolean,
   readonly taggingDashboardCollapsed: boolean,
+  readonly usernameUnset: boolean,
 }
 
 interface UsersMapEntry extends UsersMinimumInfo { // fragment on Users
@@ -1567,6 +1569,7 @@ interface UsersEdit extends UsersProfile { // fragment on Users
   readonly email: string,
   readonly whenConfirmationEmailSent: Date,
   readonly emailSubscribedToCurated: boolean,
+  readonly subscribedToDigest: boolean,
   readonly unsubscribeFromAll: boolean,
   readonly moderatorAssistance: boolean,
   readonly collapseModerationGuidelines: boolean,
