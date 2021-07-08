@@ -130,6 +130,26 @@ const partiallyReadSequenceItem = new SimpleSchema({
 });
 
 addFieldsDict(Users, {
+  createdAt: {
+    type: Date,
+    onInsert: (user: DbUser, currentUser: DbUser) => {
+      return user.createdAt || new Date();
+    },
+    canRead: ["guests"]
+  },
+
+  // Emails (not to be confused with email). This field belongs to Meteor's
+  // accounts system; we should never write it, but we do need to read it to find
+  // out whether a user's email address is verified.
+  emails: {
+    hidden: true,
+    canRead: [userOwns, 'sunshineRegiment', 'admins'],
+  },
+  'emails.$': {
+    type: Object,
+  },
+
+  // TODO(EA): Allow resending of confirmation email
   whenConfirmationEmailSent: {
     type: Date,
     optional: true,
@@ -137,7 +157,11 @@ addFieldsDict(Users, {
     group: formGroups.emails,
     control: 'UsersEmailVerification',
     canRead: ['members'],
-    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    // Disable updating on the EA Forum until we can get it to play well with
+    // Auth0
+    canUpdate: forumTypeSetting.get() === 'EAForum' ?
+      [] :
+      [userOwns, 'sunshineRegiment', 'admins'],
     canCreate: ['members'],
   },
 
@@ -386,7 +410,7 @@ addFieldsDict(Users, {
     type: Boolean,
     optional: true,
     group: formGroups.moderationGroup,
-    label: "I'm happy for LW site moderators to help enforce my policy",
+    label: "I'm happy for site moderators to help enforce my policy",
     canRead: ['guests'],
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
     canCreate: ['members', 'sunshineRegiment', 'admins'],
@@ -702,6 +726,17 @@ addFieldsDict(Users, {
     canCreate: ['members'],
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
     hidden: ['AlignmentForum', 'EAForum'].includes(forumTypeSetting.get()),
+    canRead: ['members'],
+  },
+  // Not reusing curated, because we might actually use that as well
+  subscribedToDigest: {
+    type: Boolean,
+    optional: true,
+    group: formGroups.emails,
+    label: "Subscribe to the EA Forum Digest emails",
+    canCreate: ['members'],
+    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    hidden: forumTypeSetting.get() !== 'EAForum',
     canRead: ['members'],
   },
   unsubscribeFromAll: {
@@ -1397,6 +1432,14 @@ addFieldsDict(Users, {
     hidden: true,
     canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
   },
+  usernameUnset: {
+    type: Boolean,
+    optional: true,
+    canRead: ['members'],
+    hidden: true,
+    canUpdate: [userOwns, 'sunshineRegiment', 'admins'],
+    ...schemaDefaultValue(false),
+  }
 });
 
 makeEditable({
