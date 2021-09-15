@@ -325,7 +325,7 @@ addRoute(
     name: 'allTags',
     path: '/tags/all',
     componentName: 'AllTagsPage',
-    title: "Concepts Portal",
+    title: "The EA Forum Wiki",
   },
   {
     name: "Concepts",
@@ -725,7 +725,7 @@ switch (forumTypeSetting.get()) {
       {
         name: 'Community',
         path: '/meta',
-        redirect: () => `/tags/community`,
+        redirect: () => `/tag/community`,
       },
       {
         name: 'eaSequencesHome',

@@ -212,7 +212,7 @@ Comments.addView("afSubmissions", (terms: CommentsViewTerms) => {
 });
 
 Comments.addView("recentDiscussionThread", (terms: CommentsViewTerms) => {
-  const eighteenHoursAgo = moment().subtract(18, 'hours').toDate();
+  const eighteenHoursAgo = moment().subtract(36, 'hours').toDate();
   return {
     selector: {
       postId: terms.postId,
@@ -340,7 +340,7 @@ Comments.addView('topShortform', (terms: CommentsViewTerms) => {
     } }
     : null
   );
-  
+
   return {
     selector: {
       shortform: true,

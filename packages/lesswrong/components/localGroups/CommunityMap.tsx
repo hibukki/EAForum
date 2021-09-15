@@ -11,6 +11,9 @@ import { mapboxAPIKeySetting } from '../../lib/publicSettings';
 import { forumTypeSetting } from '../../lib/instanceSettings';
 import PersonIcon from '@material-ui/icons/PersonPin';
 
+export const mapsHeight = 440
+const mapsWidth = "100vw"
+
 const styles = createStyles((theme: ThemeType): JssStyles => ({
   root: {
     width: "100%",

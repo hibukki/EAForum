@@ -107,6 +107,7 @@ const CommunityHome = ({classes}: {
       On the map above you can find nearby events (blue arrows), local groups (green house icons), and other users who have added themselves to the map (purple person icons)
     </Typography>);
 
+
     return (
       <React.Fragment>
         <AnalyticsContext pageContext="communityHome">
@@ -156,7 +157,7 @@ const CommunityHome = ({classes}: {
             </SingleColumnSection>
             <SingleColumnSection>
               <SectionTitle title="Local Groups">
-                {canCreateEvents && <GroupFormLink />}
+                {currentUser && (!isEAForum || isAdmin) && <GroupFormLink />}
               </SectionTitle>
               { currentUserLocation.loading
                 ? <Components.Loading />
@@ -168,7 +169,7 @@ const CommunityHome = ({classes}: {
             {!isEAForum && <SingleColumnSection>
               <SectionTitle title="Resources"/>
               <AnalyticsContext listContext={"communityResources"}>
-                <PostsList2 terms={{view: 'communityResourcePosts'}} showLoadMore={false} />
+                {isEAForum && <PostsList2 terms={{view: 'communityResourcePosts'}} showLoadMore={false} />}
               </AnalyticsContext>
             </SingleColumnSection>}
         </AnalyticsContext>
