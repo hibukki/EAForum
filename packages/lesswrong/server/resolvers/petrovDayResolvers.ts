@@ -235,15 +235,15 @@ const petrovDayLaunchResolvers = {
   Query: {
     async PetrovDayCheckIfIncoming(root: void, {external}: {external: boolean}, context: ResolverContext) {
       if (external) {
-        const externalUrl = forumTypeSetting.get() === 'EAForum' ? `http://lessestwrong.com/graphql?` : `https://forum-staging.effectivealtruism.org/graphql`
+        const externalUrl = forumTypeSetting.get() === 'EAForum' ? `https://lessestwrong.com/graphql?` : `https://forum-staging.effectivealtruism.org/graphql`
         console.log({externalUrl})
         const payload = [{ 
           "operationName": "petrovDayLaunchResolvers", 
           "variables": {}, 
           "query": `query petrovDayLaunchResolvers 
             {\n  PetrovDayCheckIfIncoming(external: false)
-              {\n    launched\n    __typename\n  }
-              {\n    createdAt\n    __typename\n  }
+              {\n    launched\n    __typename\n  
+              \n    createdAt\n      }
             \n}
           \n` 
         }]
@@ -261,10 +261,14 @@ const petrovDayLaunchResolvers = {
         });
         const text = await response.text()
         const data = JSON.parse(text)
-        console.log({fetchResponse: data[0]?.data})
-        return {
-          launched: data[0]?.data?.PetrovDayCheckIfIncoming.launched
-        }
+        const createdAt = data[0]?.data?.PetrovDayCheckIfIncoming?.createdAt ?
+          new Date(data[0]?.data?.PetrovDayCheckIfIncoming?.createdAt) : null
+          console.log({fetchResponse: data[0]?.data})
+
+          return {
+            launched: data[0]?.data?.PetrovDayCheckIfIncoming.launched,
+            createdAt,
+          }
       }
       const launches = await PetrovDayLaunchs.find().fetch()
       const isEAForum = forumTypeSetting.get() === 'EAForum';
@@ -301,6 +305,8 @@ const petrovDayLaunchResolvers = {
           validate: false
         })
         return newLaunch.data
+      } else {
+        throw new Error('You already launched a missile')
       }
     }
   }
