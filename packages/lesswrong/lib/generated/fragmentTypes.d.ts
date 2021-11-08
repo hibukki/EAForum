@@ -1077,6 +1077,7 @@ interface LocalgroupsDefaultFragment { // fragment on Localgroups
   readonly organizerIds: Array<string>,
   readonly lastActivity: Date,
   readonly types: Array<string>,
+  readonly isOnline: boolean,
   readonly mongoLocation: any /*{"definitions":[{"blackbox":true}]}*/,
   readonly googleLocation: any /*{"definitions":[{"blackbox":true}]}*/,
   readonly location: string,
@@ -1095,6 +1096,7 @@ interface localGroupsBase { // fragment on Localgroups
   readonly organizers: Array<UsersMinimumInfo>,
   readonly lastActivity: Date,
   readonly name: string,
+  readonly isOnline: boolean,
   readonly location: string,
   readonly googleLocation: any /*{"definitions":[{"blackbox":true}]}*/,
   readonly mongoLocation: any /*{"definitions":[{"blackbox":true}]}*/,
@@ -1113,6 +1115,12 @@ interface localGroupsHomeFragment extends localGroupsBase { // fragment on Local
 
 interface localGroupsEdit extends localGroupsBase { // fragment on Localgroups
   readonly contents: RevisionEdit|null,
+}
+
+interface localGroupsIsOnline { // fragment on Localgroups
+  readonly _id: string,
+  readonly name: string,
+  readonly isOnline: boolean,
 }
 
 interface ChaptersFragment { // fragment on Chapters
@@ -1791,6 +1799,7 @@ interface FragmentTypes {
   localGroupsBase: localGroupsBase
   localGroupsHomeFragment: localGroupsHomeFragment
   localGroupsEdit: localGroupsEdit
+  localGroupsIsOnline: localGroupsIsOnline
   ChaptersFragment: ChaptersFragment
   ChaptersEdit: ChaptersEdit
   SequencesPageTitleFragment: SequencesPageTitleFragment
@@ -1928,6 +1937,7 @@ interface CollectionNamesByFragmentName {
   localGroupsBase: "Localgroups"
   localGroupsHomeFragment: "Localgroups"
   localGroupsEdit: "Localgroups"
+  localGroupsIsOnline: "Localgroups"
   ChaptersFragment: "Chapters"
   ChaptersEdit: "Chapters"
   SequencesPageTitleFragment: "Sequences"

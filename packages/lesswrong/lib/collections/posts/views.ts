@@ -853,7 +853,7 @@ Posts.addView("nearbyEvents", (terms: PostsViewTerms) => {
                type: "Point" ,
                coordinates: [ terms.lng, terms.lat ]
           },
-          $maxDistance: 80000 // only show in-person events within 50 miles
+          $maxDistance: 240000 // only show in-person events within 150 miles
         },
       }
     },
