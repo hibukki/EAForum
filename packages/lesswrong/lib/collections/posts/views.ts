@@ -260,29 +260,65 @@ function filterSettingsToParams(filterSettings: FilterSettings): any {
   for (let tag of tagsExcluded) {
     tagsFilter[`tagRelevance.${tag.tagId}`] = {$not: {$gte: 1}};
   }
+
+  /**
+   * For example:
+   * {
+   *   tagId: <Community tag ID>,
+   *   scoreMultiplier: 0.1
+   * }
+   * Will do:
+   * All posts with the Community tag will get their score multiplied by 0.1 for purposes of sorting front-page posts
+   * 
+   * TODO: Move to DB (or to environment variable?) (or to another file?)
+   */
+  const tagScoreMultipliers = [
+    {
+      tagId: "ZCihBFp5P64JCvQY6", // Community
+      scoreMultiplier: 0.5
+    },
+  ]
   
   const tagsSoftFiltered = _.filter(filterSettings.tags, t => (t.filterMode!=="Hidden" && t.filterMode!=="Required" && t.filterMode!=="Default" && t.filterMode!==0));
   let scoreExpr: any = null;
   if (tagsSoftFiltered.length > 0 || frontpageSoftFilter.length > 0) {
     scoreExpr = {
       syntheticFields: {
-        score: {$divide:[
-          {$add:[
-            "$baseScore",
-            ...tagsSoftFiltered.map(t => ({
+        score: {
+          $divide: [
+            {
               $multiply: [
-                filterModeToKarmaModifier(t.filterMode),
-                {$ifNull: [
-                  "$tagRelevance."+t.tagId,
-                  0
-                ]}
+                {
+                  $add:
+                    [
+                      "$baseScore",
+                      ...tagsSoftFiltered.map(t => ({
+                        $multiply: [
+                          filterModeToKarmaModifier(t.filterMode),
+                          {
+                            $ifNull: [
+                              "$tagRelevance." + t.tagId,
+                              0
+                            ]
+                          }
+                        ]
+                      })),
+                      ...defaultScoreModifiers(),
+                      ...frontpageSoftFilter,
+                    ]
+                },
+                ...tagScoreMultipliers.map(t => ({
+                  $cond: [
+                    '$tagRelevance.' + t.tagId,
+                    t.scoreMultiplier,
+                    1
+                  ]
+                })),
               ]
-            })),
-            ...defaultScoreModifiers(),
-            ...frontpageSoftFilter,
-          ]},
-          timeDecayExpr()
-        ]}
+            },
+            timeDecayExpr()
+          ]
+        }
       },
     };
   }
